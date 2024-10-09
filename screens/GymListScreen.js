@@ -35,7 +35,7 @@ export default function GymListScreen({ navigation }) {
   const [error, setError] = useState('');
   const limit = 9;
 
-  const GOOGLE_MAPS_API_KEY = 'AIzaSyCe_VHcmc7i6jbNl0oFDVHwQyavPgYFU10';  // Replace with your actual API key
+  const GOOGLE_MAPS_API_KEY = '<<API_KEY>>';  // Replace with your actual API key
 
   const fetchGyms = async (lat, long, searchText = '', page = 1) => {
     if ((loading || !hasMoreGyms) && !searchText) return; 
