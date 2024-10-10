@@ -35,7 +35,7 @@ export default function GymListScreen({ navigation }) {
   const [error, setError] = useState('');
   const limit = 9;
 
-  const GOOGLE_MAPS_API_KEY = 'AIzaSyCe_VHcmc7i6jbNl0oFDVHwQyavPgYFU10';  // Replace with your actual API key
+  const GOOGLE_MAPS_API_KEY = '<<MAP_KEY>>';  // Replace with your actual API key
 
   const fetchGyms = async (lat, long, searchText = '', page = 1) => {
     if ((loading || !hasMoreGyms) && !searchText) return; 
@@ -43,8 +43,8 @@ export default function GymListScreen({ navigation }) {
     setError('');
     try {
       const gymList = await fetchAllGyms(lat, long, searchText, limit, page, pincode);
-      console.log("gymList received", gymList);
-      if (gymList.length > 0) {
+   
+      if (gymList?.length > 0) {
         setGyms(gymList);
       } else {
         setHasMoreGyms(false); 
@@ -111,7 +111,7 @@ export default function GymListScreen({ navigation }) {
     setError('');
     try {
       const response = await axios.get(`https://maps.googleapis.com/maps/api/geocode/json?address=${pincode}&key=${GOOGLE_MAPS_API_KEY}`);
-      if (response.data.results && response.data.results.length > 0) {
+      if (response.data.results && response.data.results?.length > 0) {
         const location = response.data.results[0].geometry.location;
         fetchAddress(location.lat, location.lng);
         fetchGyms(location.lat, location.lng, searchText, 1); // Fetch gyms for the new location
@@ -129,7 +129,7 @@ export default function GymListScreen({ navigation }) {
   };
 
   const validatePincode = () => {
-    if (!pincode || pincode.length !== 6 || isNaN(pincode)) {
+    if (!pincode || pincode?.length !== 6 || isNaN(pincode)) {
       //Alert.alert('Invalid Pincode', 'Please enter a valid 6-digit pincode.');
       return false;
     }
@@ -137,9 +137,13 @@ export default function GymListScreen({ navigation }) {
   };
 
   useEffect(() => {
-    getLocation();
-    fetchUserName(); 
-  }, []);
+    if (!validatePincode()) {
+      getLocation();
+    } else {
+      fetchLatLongFromPincode();
+    }
+   
+  }, [searchText]);
 
   useEffect(() => {
     if (validatePincode()) {
@@ -198,9 +202,7 @@ export default function GymListScreen({ navigation }) {
               keyboardType="numeric"
             />
           </View>
-          <TouchableOpacity onPress={() => navigation.navigate('NotificationListScreen')}>
-            <Icon name="bell" size={24} color="#fff" />
-          </TouchableOpacity>
+          
         </View>
         <Text style={styles.greetingText}>Hey {fullName}, looking for a gym or a workout buddy?</Text>
         <TextInput
@@ -248,18 +250,27 @@ const styles = StyleSheet.create({
   locationPincodeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  locationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  locationIcon: {
+    marginRight: 8,
   },
   locationText: {
     color: '#fff',
     fontSize: 16,
-    marginRight: 10,
+    maxWidth: '70%',  // Ensures it doesn't overflow
   },
   pincodeInput: {
     backgroundColor: '#fff',
     color: '#333',
     padding: 10,
     borderRadius: 5,
-    width: 100,
+    width: 120,
     textAlign: 'center',
     fontSize: 16,
   },

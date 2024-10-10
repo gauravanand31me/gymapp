@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, Image } from 'react-native';
-import { acceptFriendRequest, fetchAllNotifications, rejectFriendRequest } from '../api/apiService'; // Ensure this path is correct
+import { acceptFriendRequest, fetchAllNotifications, markAllNotificationsAsRead, rejectFriendRequest } from '../api/apiService'; // Ensure this path is correct
 import Footer from '../components/Footer';
 import CustomHeader from '../components/Header';
 
@@ -15,8 +15,8 @@ const NotificationListScreen = ({ navigation }) => {
       try {
         const data = await fetchAllNotifications();
         console.log("Data is", data);
-        if (data.results) {
-          setNotifications(data.results); 
+        if (data.notifications) {
+          setNotifications(data.notifications); 
         } else {
           setError(data.message);
         }
@@ -27,7 +27,16 @@ const NotificationListScreen = ({ navigation }) => {
         setLoading(false);
       }
     };
+  
+    const markNotificationsAsRead = async () => {
+      try {
+        await markAllNotificationsAsRead(); // Mark all notifications as read
+      } catch (error) {
+        console.error("Failed to mark notifications as read:", error);
+      }
+    };
 
+    markNotificationsAsRead();
     fetchNotifications();
   }, []);
 
@@ -134,6 +143,7 @@ const NotificationListScreen = ({ navigation }) => {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
       />
+      <Footer navigation={navigation} />
     </View>
   );
 };
@@ -142,7 +152,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
-    paddingHorizontal: 20,
+    
   },
   header: {
     fontSize: 24,

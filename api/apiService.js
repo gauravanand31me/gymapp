@@ -4,7 +4,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system';
 
-const BASE_URL = 'https://24e4-2401-4900-62a8-213c-2dac-550c-f2a0-5bb4.ngrok-free.app/user/api'; // Change to HTTP for testing
+const BASE_URL = 'https://694a-2401-4900-61c8-205c-34af-2d70-2b32-f6b9.ngrok-free.app/user/api'; // Change to HTTP for testing
 
 // Function to handle login
 export const loginUser = async (phoneNumber) => {
@@ -58,7 +58,7 @@ export const verifyOtp = async (mobileNumber, otp) => {
 
   export const fetchAllGyms = async (latitude = 12.9716, longitude = 77.5946,  searchText='', limit = 9, page = 1) => {
     try {
-  
+      console.log("SearchText received", searchText);
       const userToken = await AsyncStorage.getItem('authToken'); // Fetch token if needed
       const response = await axios.get(
         `${BASE_URL}/gym/get?lat=${latitude}&long=${longitude}&limit=${limit}&page=${page}&search=${searchText}`,
@@ -254,6 +254,25 @@ export const verifyOtp = async (mobileNumber, otp) => {
       return error.response.data;
     }
   };
+
+  export const markAllNotificationsAsRead = async () => {
+    try {
+      const userToken = await AsyncStorage.getItem('authToken'); // Fetch token if needed
+      const response = await axios.post(`${BASE_URL}/notifications/mark-all-read`, {}, {
+        headers: {
+          Authorization: `Bearer ${userToken}`, // Add token to the request
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.log('Error marking notifications as read:', error.response.data.message);
+    }
+  };
+  
+
+
+  // Add this function in your apiService.js or similar file
+
 
 
   export const acceptFriendRequest = async (requestId) => {

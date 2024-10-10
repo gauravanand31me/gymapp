@@ -398,33 +398,7 @@ cityContainer: {
     marginTop: 10,
     textAlign: 'center',
   },
-  // mapMarkerContainer: {
-  //   padding: 15,
-  //   flexDirection: 'row',
-  //   justifyContent: 'space-between',
-  //   alignItems: 'center',
-  //   borderRadius: 10,
-  //   marginTop: 10,
-  //   fontSize: 18,
-
-
-  // },
-  // mapMarkerText: {
-  //   fontSize: 18,
-  //   fontWeight: 'bold',
-  //   fontSize: 18,
-  //   color :'#4CAF50'
-
-  // },
-  // mapButton: {
-  //   flexDirection: 'row',
-  //   alignItems: 'center',
-  // },
-  // mapButtonText: {
-  //   fontSize: 18,
-  //   color: '#4CAF50',
-  //   marginLeft: 5,
-  // },
+  
 });
 
 export default GymDetailScreen;
