@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, Modal, Dimensions, Linking  } from 'react-native'; // Import Dimensions
+import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, Modal, Dimensions, Linking } from 'react-native'; // Import Dimensions
 import { fetchIndividualGymData } from '../api/apiService';
 import SlotSelectionScreen from './SlotSelectionScreen';
 import AmenitiesListPopup from '../components/AmenitiesListPopup';
@@ -86,12 +86,6 @@ const GymDetailScreen = ({ navigation, route }) => {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.headerContainer}>
-        <View style={styles.headerRow}>
-    <TouchableOpacity onPress={() => navigation.goBack()}>
-      <Icon name="arrow-left" size={24} color="#4CAF50" style={styles.backIcon} />
-    </TouchableOpacity>
-    <Text style={styles.userName}>Deepak Parmar</Text>
-  </View>
           <Text style={styles.bookingPrompt}>Want to book your gym sessions with just a tap?</Text>
 
           <View style={styles.imageContainer}>
@@ -108,13 +102,13 @@ const GymDetailScreen = ({ navigation, route }) => {
                   <Image source={{ uri: image }} style={styles.image} />
                 </TouchableOpacity>
               )) || (
-                <Image
-                  source={{
-                    uri: 'https://example.com/default_image.png',
-                  }}
-                  style={styles.image}
-                />
-              )}
+                  <Image
+                    source={{
+                      uri: 'https://example.com/default_image.png',
+                    }}
+                    style={styles.image}
+                  />
+                )}
             </ScrollView>
 
             {/* Dot Indicators */}
@@ -134,21 +128,21 @@ const GymDetailScreen = ({ navigation, route }) => {
               {isDescriptionExpanded ? 'Show Less' : 'Show More'}
             </Text>
           </TouchableOpacity>
-          
+
         </View>
 
         <View style={styles.card}>
           <View style={styles.priceAvailabilityContainer}>
-          <View style={styles.cityContainer}>
+            <View style={styles.cityContainer}>
 
-            <Text style={styles.city}>City: {gymData.city}</Text>
-            <TouchableOpacity
+              <Text style={styles.city}>{gymData.addressLine1}: {gymData.city}</Text>
+              <TouchableOpacity
                 style={styles.mapButton}
                 onPress={() => openGoogleMaps(gymData.latitude, gymData.longitude)} // Call the map redirection
               >
                 <Icon name="map-marker" size={30} color="#4CAF50" />
               </TouchableOpacity>
-              </View>
+            </View>
           </View>
         </View>
 
@@ -168,7 +162,7 @@ const GymDetailScreen = ({ navigation, route }) => {
           </TouchableOpacity>
         </View>
 
-         
+
 
         <View style={styles.bottomSpacing} />
       </ScrollView>
@@ -198,11 +192,21 @@ const GymDetailScreen = ({ navigation, route }) => {
           <TouchableOpacity style={styles.closeButton} onPress={closeSlotSelection}>
             <Text style={styles.closeButtonText}>✖️</Text>
           </TouchableOpacity>
-          {/* Render slot selection screen */}
-          <SlotSelectionScreen navigation={navigation} gym={gymData} />
+          {/* Check if gymData.slot is not null */}
+      
+          {gymData.slots ? (
+            // Render SlotSelectionScreen if gymData.slot exists
+            <SlotSelectionScreen navigation={navigation} gym={gymData} />
+          ) : (
+            // Display a message if no slots are available
+            <View style={styles.noSlotsContainer}>
+              <Text style={styles.noSlotsText}>No slots available for this gym.</Text>
+            </View>
+          )}
         </View>
       </Modal>
       <Footer navigation={navigation} />
+     
     </View>
   );
 };
@@ -303,10 +307,10 @@ const styles = StyleSheet.create({
   priceAvailabilityContainer: {
     marginVertical: 5,
   },
-cityContainer: {
-  flexDirection: 'row',  // Ensures icon and text are in the same row
-  alignItems: 'center',  // Vertically centers the content
-},
+  cityContainer: {
+    flexDirection: 'row',  // Ensures icon and text are in the same row
+    alignItems: 'center',  // Vertically centers the content
+  },
   city: {
     fontSize: 14,
     color: '#333',
@@ -398,7 +402,7 @@ cityContainer: {
     marginTop: 10,
     textAlign: 'center',
   },
-  
+
 });
 
 export default GymDetailScreen;

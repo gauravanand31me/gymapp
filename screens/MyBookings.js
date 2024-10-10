@@ -1,55 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Footer from '../components/Footer';
-
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  FlatList,
-  Image,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import { fetchAllBookings } from '../api/apiService'; // Adjust the import as necessary
 
-export default function BookingsScreen({ navigation }) { // Make sure navigation is passed
+export default function BookingsScreen({ navigation }) {
   const [selectedTab, setSelectedTab] = useState('Upcoming');
+  const [bookings, setBookings] = useState([]);
 
-  const bookings = [
-    {
-      id: '1',
-      gymName: 'FitZone Gym',
-      location: 'Fitness Gym, Downtown',
-      rating: 4.5,
-      reviews: 120,
-      invites: 2,
-      date: 'April 26, 2023',
-      time: '10:00 PM - 03:00 PM',
-      imageUrl: 'https://via.placeholder.com/100',
-      bookingId: 'BK12345',
-      price: 30,  // Add price here
-        // Add booking ID here
-    },
-    {
-      id: '2',
-      gymName: 'FitZone Gym',
-      location: 'Fitness Gym, Downtown',
-      rating: 4.5,
-      reviews: 120,
-      invites: 2,
-      date: 'April 26, 2023',
-      time: '10:00 PM - 03:00 PM',
-      imageUrl: 'https://via.placeholder.com/100',
-      bookingId: 'BK12346',
-      price: 30,  // Add price here
-        // Add booking ID here
-    },
-  ];
+  useEffect(() => {
+    const getBookings = async () => {
+      const allBookings = await fetchAllBookings();
+      if (allBookings) {
+        setBookings(allBookings);
+      }
+    };
+
+    getBookings();
+  }, []);
+
+  const upcomingBookings = bookings.filter(booking => {
+    const bookingDate = new Date(booking.date);
+    const currentDate = new Date();
+    return bookingDate >= currentDate;
+  });
+
+  const completedBookings = bookings.filter(booking => {
+    const bookingDate = new Date(booking.date);
+    const currentDate = new Date();
+    return bookingDate < currentDate;
+  });
 
   const renderBooking = ({ item }) => (
     <View style={styles.bookingCard}>
       <View style={styles.cardHeader}>
-        <Text style={styles.bookingDate}>Booking Date: {item.date}, {item.time}</Text>
+        <Text style={styles.bookingDate}>Booking Date: {item.date}</Text>
         <View style={styles.locationContainer}>
           <MaterialIcon name="location-on" size={16} color="#777" />
           <Text style={styles.locationText}>{item.location}</Text>
@@ -107,39 +93,23 @@ export default function BookingsScreen({ navigation }) { // Make sure navigation
   return (
     <View style={styles.container}>
       {/* Header */}
-      <Text style={styles.headerText}>My bookings</Text>
+      <Text style={styles.headerText}>My Bookings</Text>
 
       {/* Tabs */}
       <View style={styles.tabContainer}>
         <TouchableOpacity
-          style={[
-            styles.tabButton,
-            selectedTab === 'Upcoming' && styles.activeTabButton,
-          ]}
+          style={[styles.tabButton, selectedTab === 'Upcoming' && styles.activeTabButton]}
           onPress={() => setSelectedTab('Upcoming')}
         >
-          <Text
-            style={[
-              styles.tabText,
-              selectedTab === 'Upcoming' && styles.activeTabText,
-            ]}
-          >
+          <Text style={[styles.tabText, selectedTab === 'Upcoming' && styles.activeTabText]}>
             Upcoming
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[
-            styles.tabButton,
-            selectedTab === 'Completed' && styles.activeTabButton,
-          ]}
+          style={[styles.tabButton, selectedTab === 'Completed' && styles.activeTabButton]}
           onPress={() => setSelectedTab('Completed')}
         >
-          <Text
-            style={[
-              styles.tabText,
-              selectedTab === 'Completed' && styles.activeTabText,
-            ]}
-          >
+          <Text style={[styles.tabText, selectedTab === 'Completed' && styles.activeTabText]}>
             Completed
           </Text>
         </TouchableOpacity>
@@ -147,17 +117,18 @@ export default function BookingsScreen({ navigation }) { // Make sure navigation
 
       {/* Booking List */}
       <FlatList
-        data={bookings}
+        data={selectedTab === 'Upcoming' ? upcomingBookings : completedBookings}
         keyExtractor={(item) => item.id}
         renderItem={renderBooking}
         contentContainerStyle={styles.listContent}
       />
-    <View style={styles.footer}>
+      <View style={styles.footer}>
         <Footer navigation={navigation} />
       </View>
     </View>
   );
 }
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,

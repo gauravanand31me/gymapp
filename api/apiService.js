@@ -228,14 +228,26 @@ export const verifyOtp = async (mobileNumber, otp) => {
         },
       }); // Your API endpoint
       const data = await response.json();
-
-    
-
-      return data;
+  
+      // Assuming data.Booking contains the bookings
+      return data.Booking.map(booking => ({
+        id: booking.bookingId, // Assuming bookingId is unique
+        gymName: booking.gymName,
+        location: booking.gymLocation, // Assuming you have this in your API response
+        rating: booking.gymRating,
+        reviews: booking.gymReviews, // Ensure this is returned from the API
+        invites: booking.invitedBuddyCount,
+        date: booking.bookingDate,
+        time: booking.slotStartTime, // Assuming this is your time format
+        imageUrl: booking.gymImage, // Add the gym image here
+        bookingId: booking.bookingId,
+        price: booking.subscriptionPrice, // Assuming you have this in your API response
+      }));
     } catch (error) {
       console.error("Error fetching bookings:", error);
     }
   };
+  
 
 
 

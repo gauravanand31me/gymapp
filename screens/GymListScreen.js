@@ -35,7 +35,7 @@ export default function GymListScreen({ navigation }) {
   const [error, setError] = useState('');
   const limit = 9;
 
-  const GOOGLE_MAPS_API_KEY = '<<MAP_KEY>>';  // Replace with your actual API key
+  const GOOGLE_MAPS_API_KEY = '';  // Replace with your actual API key
 
   const fetchGyms = async (lat, long, searchText = '', page = 1) => {
     if ((loading || !hasMoreGyms) && !searchText) return; 
@@ -61,6 +61,7 @@ export default function GymListScreen({ navigation }) {
   const getLocation = async () => {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
+      console.log("Status nis", status);
       if (status !== 'granted') {
         Alert.alert('Permission Denied', 'Location permission is required to access your location.');
         setError('Location permission denied.');
@@ -68,6 +69,7 @@ export default function GymListScreen({ navigation }) {
       }
 
       const location = await Location.getCurrentPositionAsync({});
+      console.log("Fetching all gyms near you")
       fetchGyms(location.coords.latitude, location.coords.longitude, searchText, page);
       fetchAddress(location.coords.latitude, location.coords.longitude);
     } catch (error) {
@@ -92,18 +94,18 @@ export default function GymListScreen({ navigation }) {
     }
   };
 
-  const fetchUserName = async () => {
-    try {
-      const user = await AsyncStorage.getItem('user');
-      if (user) {
-        const userInfo = JSON.parse(user);
-        setFullName(userInfo.full_name || ''); 
-      }
-    } catch (error) {
-      console.error('Error fetching user name:', error);
-      setError('Unable to load user details.');
-    }
-  };
+  // const fetchUserName = async () => {
+  //   try {
+  //     const user = await AsyncStorage.getItem('user');
+  //     if (user) {
+  //       const userInfo = JSON.parse(user);
+  //       setFullName(userInfo.full_name || ''); 
+  //     }
+  //   } catch (error) {
+  //     console.error('Error fetching user name:', error);
+  //     setError('Unable to load user details.');
+  //   }
+  // };
 
   // Function to fetch latitude and longitude based on pincode
   const fetchLatLongFromPincode = async () => {

@@ -4,7 +4,6 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import Icon from 'react-native-vector-icons/Ionicons'; // Importing Ionicons for icons
 
 const SlotSelectionScreen = ({ navigation, gym }) => {
-  console.log("gymn is", gym.subscriptions[0].id);
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedDuration, setSelectedDuration] = useState(60); // Default duration
@@ -12,8 +11,6 @@ const SlotSelectionScreen = ({ navigation, gym }) => {
   const [isTimeDropdownVisible, setIsTimeDropdownVisible] = useState(false); // For showing/hiding time dropdown
 
   const durations = [60, 90, 120, 180];
-
-  // Extract available slots from gymData
   const availableSlots = gym.slots;
 
   const onDateChange = (event, selectedDate) => {
@@ -27,8 +24,6 @@ const SlotSelectionScreen = ({ navigation, gym }) => {
       Alert.alert("Please select a time.");
       return;
     }
-    console.log("selectedSlot.price", gym);
-    // Prepare the slot details to pass to PaymentScreen
     const slotDetails = {
       date: date.toLocaleDateString(),
       time: selectedSlot.startTime,
@@ -41,34 +36,19 @@ const SlotSelectionScreen = ({ navigation, gym }) => {
       pricePerSlot: selectedSlot.price,
       subscriptionId: gym?.subscriptions[0].id
     };
-
-    // Navigate to PaymentScreen with slot details
     navigation.navigate('PaymentScreen', { slotDetails });
-  };
-
-  // Function to calculate price based on selected duration
-  const calculatePrice = (duration) => {
-    // Assuming price is based on slot's price and duration
-    if (selectedSlot) {
-      const pricePerMinute = selectedSlot.price / selectedSlot.timePeriod; // price per minute based on slot's price and time period
-      return duration * pricePerMinute;
-    }
-    return 0;
   };
 
   const buttonColor = '#28a745'; // Set uniform button color to green
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {/* Close button */}
-      {/* <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeButton}>
-        <Icon name="close-outline" size={30} color="#fff" />
-      </TouchableOpacity> */}
-
       <Text style={styles.title}>Select a Slot</Text>
 
       {/* Date Picker */}
-      <TouchableOpacity onPress={() => setShowDatePicker(true)} style={[styles.button, { backgroundColor: buttonColor }]}>
+      <TouchableOpacity 
+        onPress={() => setShowDatePicker(true)} 
+        style={[styles.button, { backgroundColor: buttonColor }]}>
         <Icon name="calendar-outline" size={20} color="#fff" style={styles.icon} />
         <Text style={styles.buttonText}>{`Date: ${date.toLocaleDateString()}`}</Text>
       </TouchableOpacity>
@@ -107,7 +87,6 @@ const SlotSelectionScreen = ({ navigation, gym }) => {
               <Text style={styles.timeOptionText}>
                 {slot.startTime}
               </Text>
-              {/* Optionally, display capacity or price */}
               <Text style={styles.slotDetailsText}>
                 Capacity: {slot.capacity} | Price: ₹{slot.price}
               </Text>
@@ -119,32 +98,19 @@ const SlotSelectionScreen = ({ navigation, gym }) => {
       {/* Duration Selection */}
       <Text style={styles.durationTitle}>Select Duration:</Text>
       <View style={styles.durationsContainer}>
-        <View style={styles.row}>
-          {durations.slice(0, 2).map((duration) => (
-            <TouchableOpacity
-              key={duration}
-              onPress={() => setSelectedDuration(duration)}
-              style={[
-                styles.durationButton,
-                selectedDuration === duration && styles.selectedDurationButton
-              ]}>
-              <Text style={[styles.durationText, { color: selectedDuration === duration ? '#fff' : '#333' }]}>{duration} mn</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-        <View style={styles.row}>
-          {durations.slice(2).map((duration) => (
-            <TouchableOpacity
-              key={duration}
-              onPress={() => setSelectedDuration(duration)}
-              style={[
-                styles.durationButton,
-                selectedDuration === duration && styles.selectedDurationButton
-              ]}>
-              <Text style={[styles.durationText, { color: selectedDuration === duration ? '#fff' : '#333' }]}>{duration} mn</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+        {durations.map((duration) => (
+          <TouchableOpacity
+            key={duration}
+            onPress={() => setSelectedDuration(duration)}
+            style={[
+              styles.durationButton,
+              selectedDuration === duration && styles.selectedDurationButton
+            ]}>
+            <Text style={[styles.durationText, { color: selectedDuration === duration ? '#fff' : '#333' }]}>
+              {duration} mn
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
 
       <Text style={styles.selectedDuration}>{`Selected Duration: ${selectedDuration} mn`}</Text>
@@ -161,24 +127,15 @@ const styles = StyleSheet.create({
   container: {
     flexGrow: 1, // Allow scrolling
     padding: 20,
-    backgroundColor: '#ffffff', // Changed background color to white
-  },
-  closeButton: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    zIndex: 1,
-    padding: 10,
-    backgroundColor: '#333',
-    borderRadius: 20,
-    elevation: 3,
+    backgroundColor: '#f8f9fa', // Light grey background for a modern look
   },
   title: {
     fontSize: 28,
-    color: '#333', // Darker text for better readability
+    color: '#333', // Dark text for better readability
     marginBottom: 20,
     textAlign: 'center',
-    fontFamily: 'Roboto', // Set to a standard font for uniformity
+    fontFamily: 'Roboto', // Consistent font
+    fontWeight: 'bold', // Make title bold
   },
   button: {
     flexDirection: 'row',
@@ -193,7 +150,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     textAlign: 'center',
     marginLeft: 10, // Spacing between icon and text
-    fontFamily: 'Roboto', // Set to a standard font for uniformity
+    fontFamily: 'Roboto', // Consistent font
     flex: 1,
   },
   icon: {
@@ -201,12 +158,13 @@ const styles = StyleSheet.create({
   },
   timeTitle: {
     color: '#333',
-    fontSize: 18,
+    fontSize: 20, // Slightly larger for emphasis
     marginVertical: 10,
     textAlign: 'center',
+    fontWeight: '600', // Semi-bold for better visibility
   },
   timeDropdown: {
-    backgroundColor: '#f8f9fa', // Light background for dropdown
+    backgroundColor: '#ffffff', // White background for dropdown
     borderRadius: 5,
     marginBottom: 20,
     borderWidth: 1,
@@ -217,11 +175,12 @@ const styles = StyleSheet.create({
   timeOption: {
     padding: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#28a745', // Uniform border color for options
+    borderBottomColor: '#ddd', // Light grey border for options
   },
   timeOptionText: {
-    color: '#333', // Darker text for better visibility
+    color: '#333',
     fontSize: 18,
+    fontWeight: '500', // Semi-bold for better visibility
   },
   slotDetailsText: {
     color: '#666',
@@ -230,27 +189,27 @@ const styles = StyleSheet.create({
   },
   durationTitle: {
     color: '#333',
-    fontSize: 18,
+    fontSize: 20,
     marginBottom: 10,
     textAlign: 'center',
+    fontWeight: '600', // Semi-bold for better visibility
   },
   durationsContainer: {
     alignItems: 'center',
     marginBottom: 20,
-  },
-  row: {
     flexDirection: 'row',
-    justifyContent: 'center',
+    justifyContent: 'space-around', // Space out duration buttons
   },
   durationButton: {
-    width: 80, // Fixed width for uniformity
+    width: 70, // Fixed width for uniformity
     padding: 10,
     borderWidth: 2,
-    borderColor: '#333', // Darker border color
+    borderColor: '#28a745', // Green border color
     borderRadius: 10,
-    marginHorizontal: 10, // Spacing between buttons
+    marginHorizontal: 5, // Spacing between buttons
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#fff', // White background for buttons
   },
   selectedDurationButton: {
     backgroundColor: '#28a745', // Green background for selected button
@@ -260,7 +219,7 @@ const styles = StyleSheet.create({
   },
   selectedDuration: {
     fontSize: 16,
-    color: '#333', // Darker text for better readability
+    color: '#333',
     marginBottom: 20,
     textAlign: 'center',
   },
