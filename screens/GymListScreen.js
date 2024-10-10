@@ -35,7 +35,7 @@ export default function GymListScreen({ navigation }) {
   const [error, setError] = useState('');
   const limit = 9;
 
-  const GOOGLE_MAPS_API_KEY = '';  // Replace with your actual API key
+  const GOOGLE_MAPS_API_KEY = '<<AP _KEY>>';  // Replace with your actual API key
 
   const fetchGyms = async (lat, long, searchText = '', page = 1) => {
     if ((loading || !hasMoreGyms) && !searchText) return; 
@@ -139,12 +139,17 @@ export default function GymListScreen({ navigation }) {
   };
 
   useEffect(() => {
-    if (!validatePincode()) {
-      getLocation();
-    } else {
-      fetchLatLongFromPincode();
-    }
-   
+    const timer = setTimeout(() => {
+      setLoading(true); // Set loading to true before validation
+      if (!validatePincode()) {
+        getLocation();
+      } else {
+        fetchLatLongFromPincode();
+      }
+      setLoading(false); // Set loading to false after the operation
+    }, 2000); // Delay of 2 seconds
+
+    return () => clearTimeout(timer); // Clear timeout on unmount
   }, [searchText]);
 
   useEffect(() => {
