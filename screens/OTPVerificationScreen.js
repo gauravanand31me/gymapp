@@ -8,7 +8,7 @@ export default function OTPVerificationScreen({ route, navigation }) {
   const { mobileNumber } = route.params; // Get the mobile number passed from the Login Screen
 
   const handleVerifyOtp = async () => {
-    navigation.navigate('GymList');
+
     if (!otp) {
       Alert.alert('Error', 'Please enter the OTP.');
       return;
@@ -16,17 +16,22 @@ export default function OTPVerificationScreen({ route, navigation }) {
 
     try {
       const data = await verifyOtp(mobileNumber, otp); // Call the API to verify OTP
-
+      console.log("Data.status is", data.status);
       if (data.status) { // If verification is successful, store the token
         await AsyncStorage.setItem('authToken', data.token); // Store token in AsyncStorage
         // Navigate to the Register screen or Home screen
-        navigation.navigate('GymList');
+        if (data.token) {
+          navigation.navigate('GymList');
+        } 
+      
       } else {
         Alert.alert('OTP Verification Failed', data.message || 'The OTP verification failed. Please try again.');
+        return false;
       }
     } catch (error) {
       console.error('OTP Verification Error:', error);
       Alert.alert('Error', 'Something went wrong. Please try again later.');
+      return false;
     }
   };
 
