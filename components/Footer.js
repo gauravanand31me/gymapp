@@ -9,6 +9,7 @@ const Footer = ({ navigation }) => {
   // Fetch notifications on component mount
   useEffect(() => {
     const loadNotifications = async () => {
+      console.log("loadNotifications is called...")
       const data = await fetchAllNotifications();
       if (data && data.unreadCount !== undefined) {
         setUnreadCount(data.unreadCount);
