@@ -9,7 +9,7 @@ const PaymentScreen = ({ route, navigation }) => {
   const { slotDetails } = route.params; // Extract slot details from navigation parameters
   const [loading, setLoading] = useState(false); // Loading state for button
 
-  console.log("slotDetails", slotDetails);
+
 
   // Function to create an order by calling your backend
 
@@ -40,7 +40,7 @@ const PaymentScreen = ({ route, navigation }) => {
 
         const result = await WebBrowser.openBrowserAsync(orderResponse.paymentLink);
        
-
+   
         // Step 3: After successful payment, create the booking
         if (result.type === 'opened') {
           const bookingResponse = await createBooking(slotDetails); // Create booking on success

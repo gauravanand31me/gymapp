@@ -4,7 +4,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ImageBackground } from 'react
 const ConfirmationScreen = ({ route, navigation }) => {
   const { slotDetails, data } = route.params; // Get slot details from navigation parameters
   
-  console.log("Data received", data);
+
  
 
   return (

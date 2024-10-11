@@ -16,8 +16,9 @@ export default function BookingsScreen({ navigation }) {
       if (allBookings) {
         setBookings(allBookings);
       }
+      console.log("allBookings", allBookings);
     };
-
+   
     getBookings();
   }, []);
 

@@ -4,7 +4,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system';
 
-const BASE_URL = 'https://b258-2401-4900-61c8-205c-4977-9658-c81d-3c30.ngrok-free.app/user/api'; // Change to HTTP for testing
+const BASE_URL = 'https://d44b-2401-4900-61c8-205c-70f4-30ec-8e04-7943.ngrok-free.app/user/api'; // Change to HTTP for testing
 
 // Function to handle login
 export const loginUser = async (phoneNumber) => {
@@ -37,6 +37,10 @@ export const registerUser = async (fullName, phoneNumber) => {
     throw error; // Rethrow the error for handling in the calling function
   }
 };
+
+
+
+
 
 
 // Function to handle OTP verification
@@ -175,16 +179,19 @@ export const verifyOtp = async (mobileNumber, otp) => {
     }
   };
 
-
+  export const createBookingUrl = (bookingId)  => {
+    return `${BASE_URL}/booking/create?bookingId=${bookingId}`;
+  }
 
   export const createBooking = async (slotDetails) => {
    
     try {
    
-        const [month, day, year] = slotDetails.date.split('/'); // Split by '/' 
+        const [day, month, year] = slotDetails.date.split('/'); // Split by '/' 
 
 // Create a new date object in the format YYYY-MM-DD
         const parsedDate = new Date(`${year}-${month}-${day}`);
+ 
         const bookingDate = parsedDate.toISOString(); // Convert to ISO format
       const userToken = await AsyncStorage.getItem('authToken'); // Fetch token if needed
       const response = await axios.post(`${BASE_URL}/booking/create`, {
