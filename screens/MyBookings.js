@@ -4,6 +4,7 @@ import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image } from 'react
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { fetchAllBookings } from '../api/apiService'; // Adjust the import as necessary
+import BookingQRCode from '../components/BookingQRCode';
 
 export default function BookingsScreen({ navigation }) {
   const [selectedTab, setSelectedTab] = useState('Upcoming');
@@ -67,6 +68,8 @@ export default function BookingsScreen({ navigation }) {
               </View>
             </View>
           </View>
+
+          <BookingQRCode booking_id={item.bookingId} booking_date={item.date}  type="daily"/>
 
           {/* Move Cancel Button Below the Add More Options */}
           {selectedTab === 'Upcoming' && (
