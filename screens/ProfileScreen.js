@@ -166,7 +166,7 @@ const ProfileScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
         <View style={styles.statCard}>
-          <Text style={styles.statValueTime}>{userData?.total_work_out_time || 0} h.</Text>
+          <Text style={styles.statValueTime}>{userData?.total_work_out_time/60 || 0} h.</Text>
           <Text style={styles.statLabel}>Workout Time</Text>
           <ProgressBar progress={0.75} color="#4CAF50" style={styles.progressBar} />
         </View>
@@ -197,7 +197,7 @@ const ProfileScreen = ({ navigation }) => {
         style={styles.imageGrid}
       /> */}
 
-      <MileStoneContainer workoutTime={userData?.total_work_out_time}/>
+      <MileStoneContainer workoutTime={userData?.total_work_out_time/60}/>
 
       {/* Footer at the Bottom */}
       <Footer navigation={navigation} />
