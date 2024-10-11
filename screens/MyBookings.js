@@ -70,7 +70,7 @@ export default function BookingsScreen({ navigation }) {
           </View>
 
           <BookingQRCode booking_id={item.bookingId} booking_date={item.date}  type="daily"/>
-
+          
           {/* Move Cancel Button Below the Add More Options */}
           {selectedTab === 'Upcoming' && (
             <View style={styles.cardFooter}>

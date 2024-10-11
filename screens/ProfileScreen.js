@@ -21,6 +21,7 @@ import {
   getUserImage,
 } from '../api/apiService'; // Ensure you have the correct path
 import CustomHeader from '../components/Header';
+import MileStoneContainer from '../components/MileStoneContainer';
 
 const ProfileScreen = ({ navigation }) => {
   const [profileImage, setProfileImage] = useState('https://via.placeholder.com/150');
@@ -187,14 +188,16 @@ const ProfileScreen = ({ navigation }) => {
       </View>
 
       {/* Image Grid using FlatList */}
-      <FlatList
+      {/* <FlatList
         data={images}
         renderItem={renderItem}
         keyExtractor={(item) => item.id} // Use unique image ID
         numColumns={3}
         columnWrapperStyle={styles.columnWrapper}
         style={styles.imageGrid}
-      />
+      /> */}
+
+      <MileStoneContainer workoutTime={userData?.total_work_out_time}/>
 
       {/* Footer at the Bottom */}
       <Footer navigation={navigation} />
