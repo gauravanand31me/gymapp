@@ -180,7 +180,7 @@ export const verifyOtp = async (mobileNumber, otp) => {
   };
 
   export const createBookingUrl = (bookingId)  => {
-    return `${BASE_URL}/booking/create?bookingId=${bookingId}`;
+    return `${BASE_URL}/booking/verify?bookingId=${bookingId}`;
   }
 
   export const createBooking = async (slotDetails) => {
