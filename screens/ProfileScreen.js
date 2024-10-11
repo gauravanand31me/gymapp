@@ -240,9 +240,9 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   profileImage: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
+    width: 100,
+    height: 100,
+    borderRadius: 60,
     borderWidth: 2,
     borderColor: '#4CAF50',
   },
