@@ -7,7 +7,11 @@ import { fetchFriends, inviteBuddyRequest } from '../api/apiService';
 const InviteFriendBuddiesScreen = ({ navigation, route }) => {
   const [searchText, setSearchText] = useState('');
   const [buddyList, setBuddyList] = useState([]);
-  const { bookingId } = route.params; // Assuming bookingId is passed as a parameter
+  let bookingId;
+  if(route?.params?.bookingId) {
+      bookingId  = route.params.bookingId; // Assuming bookingId is passed as a parameter
+  }
+  
 
   // Fetch friends on component mount
   const fetchBuddyList = async () => {
@@ -43,9 +47,13 @@ const InviteFriendBuddiesScreen = ({ navigation, route }) => {
       <View style={styles.buddyInfo}>
         <Text style={styles.buddyName}>{item.full_name}</Text>
       </View>
-      <TouchableOpacity style={styles.inviteButton} onPress={() => inviteBuddy(bookingId, item.fromUserId)}>
+      {bookingId && <TouchableOpacity style={styles.inviteButton} onPress={() => inviteBuddy(bookingId, item.fromUserId)}>
         <Text style={styles.inviteButtonText}>Invite buddy</Text>
-      </TouchableOpacity>
+      </TouchableOpacity>}
+
+      {!bookingId && <TouchableOpacity style={styles.inviteButton}>
+        <Text style={styles.inviteButtonText}>Unfriend</Text>
+      </TouchableOpacity>}
     </View>
   );
 

@@ -19,8 +19,9 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import Footer from '../components/Footer';
 import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage'; 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import CustomHeader from '../components/Header';
+import { Link } from '@react-navigation/native';
 
 export default function GymListScreen({ navigation }) {
   const [searchText, setSearchText] = useState('');
@@ -28,16 +29,16 @@ export default function GymListScreen({ navigation }) {
   const [currentLocation, setCurrentLocation] = useState('');
   const [address, setAddress] = useState('');
   const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(false); 
+  const [loading, setLoading] = useState(false);
   const [hasMoreGyms, setHasMoreGyms] = useState(true);
-  const [fullName, setFullName] = useState(''); 
-  const [isInputFocused, setIsInputFocused] = useState(false); 
+  const [fullName, setFullName] = useState('');
+  const [isInputFocused, setIsInputFocused] = useState(false);
   const [pincode, setPincode] = useState('');
   const [error, setError] = useState('');
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false); // Track keyboard visibility
   const limit = 9;
 
-  const GOOGLE_MAPS_API_KEY = '<<API_KEY>>';  // Replace with your actual API key
+  const GOOGLE_MAPS_API_KEY = '';  // Replace with your actual API key
 
   useEffect(() => {
     const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
@@ -54,16 +55,16 @@ export default function GymListScreen({ navigation }) {
   }, []);
 
   const fetchGyms = async (lat, long, searchText = '', page = 1) => {
-    if ((loading || !hasMoreGyms) && !searchText) return; 
+    if ((loading || !hasMoreGyms) && !searchText) return;
     setLoading(true);
     setError('');
     try {
       const gymList = await fetchAllGyms(lat, long, searchText, limit, page, pincode);
-   
+      
       if (gymList?.length > 0) {
         setGyms(gymList);
       } else {
-        setHasMoreGyms(false); 
+        setHasMoreGyms(false);
       }
     } catch (error) {
       console.error('Error fetching gyms:', error);
@@ -90,7 +91,7 @@ export default function GymListScreen({ navigation }) {
       console.error('Error getting location:', error);
       setError('Failed to retrieve location. Please try again.');
       Alert.alert('Error', 'Could not retrieve location. Please try again later.');
-      fetchGyms(); 
+      fetchGyms();
     }
   };
 
@@ -148,7 +149,7 @@ export default function GymListScreen({ navigation }) {
     }, 2000); // Delay of 2 seconds
 
     return () => clearTimeout(timer);
-  }, [searchText]);
+  }, [page, searchText]);
 
   useEffect(() => {
     if (validatePincode()) {
@@ -158,7 +159,7 @@ export default function GymListScreen({ navigation }) {
 
   const loadMoreGyms = () => {
     if (hasMoreGyms && !loading) {
-      setPage(prevPage => prevPage + 1); 
+      setPage(prevPage => prevPage + 1);
     }
   };
 
@@ -198,7 +199,7 @@ export default function GymListScreen({ navigation }) {
               <MaterialIcon name="location-on" size={20} color="#fff" />
               {address || 'Fetching location...'}
             </Text>
-            <Text style={styles.orText}> or </Text> 
+            <Text style={styles.orText}> or </Text>
 
             <TextInput
               style={styles.pincodeInput}
@@ -209,7 +210,7 @@ export default function GymListScreen({ navigation }) {
               keyboardType="numeric"
             />
           </View>
-          
+
         </View>
         <Text style={styles.greetingText}>Hey {fullName}, looking for a gym or a workout buddy?</Text>
         <TextInput
@@ -218,8 +219,8 @@ export default function GymListScreen({ navigation }) {
           placeholderTextColor="#ccc"
           value={searchText}
           onChangeText={setSearchText}
-          onFocus={() => setIsInputFocused(true)} 
-          onBlur={() => setIsInputFocused(false)} 
+          onFocus={() => setIsInputFocused(true)}
+          onBlur={() => setIsInputFocused(false)}
         />
       </View>
 
@@ -230,12 +231,22 @@ export default function GymListScreen({ navigation }) {
         data={gyms}
         renderItem={renderGym}
         keyExtractor={(item) => item.gymId.toString()}
-        onEndReached={loadMoreGyms}
-        onEndReachedThreshold={0.5}
-        ListFooterComponent={loading ? <ActivityIndicator size="large" color="#f4511e" /> : null}
+        ListFooterComponent={
+          <>
+            {loading ? <ActivityIndicator size="large" color="#f4511e" /> : null}
+
+            {!loading && hasMoreGyms && (
+              <TouchableOpacity style={styles.seeMoreButton} onPress={loadMoreGyms}>
+                <Text style={styles.seeMoreText}>See More Results</Text>
+              </TouchableOpacity>
+            )}
+          </>
+        }
       />
-     
-      {!isKeyboardVisible && <Footer  navigation={navigation} />} 
+
+
+
+      {!isKeyboardVisible && <Footer navigation={navigation} />}
     </KeyboardAvoidingView>
   );
 }
@@ -289,11 +300,11 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     borderWidth: 1,
-  borderColor: '#ccc',
-  borderRadius: 10,
-  padding: 8, // Adjust padding if needed
-  backgroundColor: '#fff',
-  height: 40, // Reduced height
+    borderColor: '#ccc',
+    borderRadius: 10,
+    padding: 8, // Adjust padding if needed
+    backgroundColor: '#fff',
+    height: 40, // Reduced height
   },
   gymList: {
     paddingBottom: 80, // Add some padding at the bottom
@@ -315,7 +326,7 @@ const styles = StyleSheet.create({
   gymInfo: {
     marginLeft: 10,
     flex: 1,
-    paddingBottom: 20, 
+    paddingBottom: 20,
   },
   gymName: {
     fontSize: 18,
@@ -345,7 +356,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     borderRadius: 5,
     alignSelf: 'flex-end',
-    marginTop: -15, 
+    marginTop: -15,
   },
   bookNowText: {
     color: '#fff',
@@ -356,5 +367,18 @@ const styles = StyleSheet.create({
     marginHorizontal: 5, // Space around the text
     fontSize: 16, // Adjust the size to match surrounding text
     fontWeight: "bold"
+  },
+  seeMoreButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    backgroundColor: '#4CAF50',
+    borderRadius: 5,
+    margin: 20,
+    alignItems: 'center',
+  },
+  seeMoreText: {
+    fontSize: 16,
+    color: '#fff',
+    fontWeight: 'bold',
   },
 });

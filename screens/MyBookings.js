@@ -18,7 +18,7 @@ export default function BookingsScreen({ navigation }) {
       }
       console.log("allBookings", allBookings);
     };
-   
+
     getBookings();
   }, []);
 
@@ -43,7 +43,7 @@ export default function BookingsScreen({ navigation }) {
           <Text style={styles.locationText}>{item.location}</Text>
         </View>
       </View>
-
+  
       <View style={styles.cardBody}>
         <Image source={{ uri: item.imageUrl }} style={styles.gymImage} />
         <View style={styles.gymDetails}>
@@ -52,11 +52,11 @@ export default function BookingsScreen({ navigation }) {
             <Icon name="star" size={14} color="#FFD700" />
             <Text style={styles.ratingText}>{item.rating} ({item.reviews} Reviews)</Text>
           </View>
-
+  
           {/* Add Price and Booking ID */}
           <Text style={styles.bookingIdText}>Booking ID: {item.bookingId}</Text>
-          <Text style={styles.priceText}>Price: ${item.price}</Text>
-
+          <Text style={styles.priceText}>Price: ₹ {item.price}</Text>
+  
           {/* Invites and Add More Options */}
           <View style={styles.inviteAddMoreContainer}>
             <Text style={styles.inviteText}>
@@ -69,20 +69,21 @@ export default function BookingsScreen({ navigation }) {
               </View>
             </View>
           </View>
-
+  
+          {/* Message for QR Code */}
+          <Text style={styles.qrCodeText}>
+            Please scan the QR code below to log your workout hours.
+          </Text>
+  
           <BookingQRCode booking_id={item.bookingId} booking_date={item.date} type="daily" />
-
-          {/* Move Cancel Button Below the Add More Options */}
-          {selectedTab === 'Upcoming' && (
-            <View style={styles.cardFooter}>
-              <TouchableOpacity style={styles.cancelButton}>
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-              </TouchableOpacity>
-            </View>
-          )}
+  
+          {/* Cancellation Notice */}
+          <Text style={styles.cancellationText}>
+            For cancellations, please contact the administrator.
+          </Text>
         </View>
       </View>
-
+  
       {/* Move Book Again Button to Card Footer */}
       {selectedTab === 'Completed' && (
         <View style={styles.cardFooter}>
@@ -297,5 +298,18 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingBottom: 20,
+  },
+  cancellationText: {
+    fontSize: 14,
+    color: '#ff5722', // A warning color, can change according to your design
+    marginTop: 10,
+    textAlign: 'center', // Center the text for better presentation
+  },
+  qrCodeText: {
+    fontSize: 14,
+    color: '#555',
+    marginTop: 10,
+    marginBottom: 10,
+    textAlign: 'center', // Center the text for better presentation
   },
 });

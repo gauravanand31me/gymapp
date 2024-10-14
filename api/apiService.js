@@ -4,7 +4,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system';
 
-const BASE_URL = 'https://d44b-2401-4900-61c8-205c-70f4-30ec-8e04-7943.ngrok-free.app/user/api'; // Change to HTTP for testing
+const BASE_URL = 'https://ec2-18-118-173-113.us-east-2.compute.amazonaws.com/user/api'; // Change to HTTP for testing
 
 // Function to handle login
 export const loginUser = async (phoneNumber) => {
@@ -13,11 +13,16 @@ export const loginUser = async (phoneNumber) => {
     const response = await axios.post(`${BASE_URL}/auth/login`, {
       identifier: phoneNumber,
     });
-    console.log("Response Data", response.data);
-    return response.data; // Return the data on success
+    console.log("response.data", response.data);
+    return {
+      status: true,
+      data: response.data
+     } // Return the data on success
   } catch (error) {
-    console.error('API call error:', error);
-    throw error; // Rethrow the error for handling in the calling function
+    return {
+      status: false,
+      message: error?.response?.data?.message
+     } // Return the data on success
   }
 };
 
@@ -107,9 +112,7 @@ export const verifyOtp = async (mobileNumber, otp) => {
     console.log("Search Text received", searchText);
     try {
       const userToken = await AsyncStorage.getItem('authToken'); // Fetch token if needed
-      const endpoint = searchText
-      ? `${BASE_URL}/users/search/${searchText}`
-      : `${BASE_URL}/users/nearby-users`;
+      const endpoint = `${BASE_URL}/users/search/${searchText}`
       const response = await fetch(endpoint, {
         method: 'GET',
         headers: {
@@ -134,7 +137,7 @@ export const verifyOtp = async (mobileNumber, otp) => {
       }
       
     } catch (error) {
-      console.error('Error fetching nearby users:', error);
+      
     }
   };
 
@@ -184,10 +187,17 @@ export const verifyOtp = async (mobileNumber, otp) => {
   }
 
   export const createBooking = async (slotDetails) => {
+
+    console.log("slotDetails", slotDetails);
    
     try {
-   
-        const [day, month, year] = slotDetails.date.split('/'); // Split by '/' 
+      let year, month, day;
+      if (slotDetails.bookingDate) {
+         [year, month, day] = slotDetails.bookingDate.split('-'); // Split by '-'
+      } else {
+         [day, month, year] = slotDetails.date.split('/'); // Split by '/'
+      }
+       
 
 // Create a new date object in the format YYYY-MM-DD
         const parsedDate = new Date(`${year}-${month}-${day}`);
@@ -195,14 +205,15 @@ export const verifyOtp = async (mobileNumber, otp) => {
         const bookingDate = parsedDate.toISOString(); // Convert to ISO format
       const userToken = await AsyncStorage.getItem('authToken'); // Fetch token if needed
       const response = await axios.post(`${BASE_URL}/booking/create`, {
-        slotId: slotDetails.slotId, // slot ID
+        slotId: slotDetails.slotId || slotDetails.bookingSlotId, // slot ID
         gymId: slotDetails.gymId,   // gym ID
         bookingDate: bookingDate, // current date
         subscriptionType: "daily", // subscription type
-        subscriptionId: slotDetails.subscriptionId,         // subscription ID
+        subscriptionId: slotDetails.subscriptionId || slotDetails.bookingSubscriptionId,         // subscription ID
         paymentId: slotDetails?.paymentId || Date.now.toString(),              // razorpay payment ID
-        duration: slotDetails?.duration,
-        price: slotDetails.price * (slotDetails.duration / 60)
+        duration: slotDetails?.duration || slotDetails.bookingDuration,
+        price: slotDetails.price * (slotDetails.duration / 60) || slotDetails.subscriptionPrice,
+        requestId: slotDetails.requestId
       },{
         headers: {
           Authorization: `Bearer ${userToken}`,  // Add the Bearer token here
@@ -464,5 +475,37 @@ export const createOrder = async (amount) => {
   } catch (error) {
     console.log('Error creating order:', error);
     throw error; // Handle error accordingly
+  }
+};
+
+export const acceptBuddyRequest = async (requestId) => {
+  try {
+    const userToken = await AsyncStorage.getItem('authToken'); // Fetch token if needed
+    const response = await axios.get(`${BASE_URL}/booking/indv?requestId=${requestId}` ,{
+      headers: {
+        Authorization: `Bearer ${userToken}`,  // Add the Bearer token here
+      },
+    });
+    
+    return response.data; // This should include the Razorpay order_id, amount, currency, etc.
+  } catch (error) {
+    console.log('Error creating order:', error);
+    throw error; // Handle error accordingly
+  }
+}
+
+
+export const getVisitedGyms = async () => {
+  try {
+    const userToken = await AsyncStorage.getItem('authToken'); // Fetch token if needed
+    const response = await axios.get(`${BASE_URL}/booking/visited-gyms`, {
+      headers: {
+        Authorization: `Bearer ${userToken}`,  // Add the Bearer token here
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching visited gyms:', error);
+    throw error;
   }
 };

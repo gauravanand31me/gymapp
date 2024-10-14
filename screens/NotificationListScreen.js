@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, Image, SafeAreaView } from 'react-native';
-import { acceptFriendRequest, fetchAllNotifications, markAllNotificationsAsRead, rejectFriendRequest } from '../api/apiService'; // Ensure this path is correct
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, Image, SafeAreaView, Alert } from 'react-native';
+import { acceptFriendRequest, fetchAllNotifications, markAllNotificationsAsRead, rejectFriendRequest, acceptBuddyRequest } from '../api/apiService'; // Ensure this path is correct
 import Footer from '../components/Footer';
-//import CustomHeader from '../components/Header';
 
 const NotificationListScreen = ({ navigation }) => {
   const [notifications, setNotifications] = useState([]);
@@ -13,20 +12,18 @@ const NotificationListScreen = ({ navigation }) => {
     const fetchNotifications = async () => {
       try {
         const data = await fetchAllNotifications();
-        console.log("Data is", data);
         if (data.notifications) {
           setNotifications(data.notifications); 
         } else {
           setError(data.message);
         }
-        setLoading(false);
       } catch (error) {
-        console.log("Error is", error);
-        setError(error.message);
+        setError("Failed to fetch notifications. Please try again.");
+      } finally {
         setLoading(false);
       }
     };
-  
+
     const markNotificationsAsRead = async () => {
       try {
         await markAllNotificationsAsRead(); // Mark all notifications as read
@@ -39,27 +36,30 @@ const NotificationListScreen = ({ navigation }) => {
     fetchNotifications();
   }, []);
 
-  const acceptRejectRequest = async (requestId, action) => {
+  const handleActionRequest = async (requestId, action, type) => {
     try {
-        if (action === 'accept') {
-            await acceptFriendRequest(requestId);
-            setNotifications(prev => prev.filter(notification => notification.id !== requestId));
-            navigation.navigate('Profile')
-
-        } else if (action === 'reject') {
-            await rejectFriendRequest(requestId);
-            setNotifications(prev => prev.filter(notification => notification.id !== requestId));
-            navigation.navigate('Profile')
+      if (action === 'accept') {
+        if (type === 'buddyInvite') {
+          const data = await acceptBuddyRequest(requestId);
+          navigation.navigate('PaymentScreen', { slotDetails: data.booking, requestId });
+        } else {
+          await acceptFriendRequest(requestId);
         }
+      } else if (action === 'reject') {
+        await rejectFriendRequest(requestId);
+      }
+      // Optimistically update UI
+      setNotifications(prev => prev.filter(notification => notification.relatedId !== requestId));
     } catch (error) {
-        setError(error.message);
+      setError(error.message);
+      Alert.alert("Error", error.message);
     }
   };
 
   const renderItem = ({ item }) => (
     <View style={styles.notificationItem}>
       <Image
-        source={{ uri: item.profileImage || 'https://via.placeholder.com/50' }} // Placeholder if image is not available
+        source={{ uri: item.profileImage || 'https://via.placeholder.com/50' }}
         style={styles.profileImage}
       />
       <View style={styles.notificationContent}>
@@ -71,10 +71,18 @@ const NotificationListScreen = ({ navigation }) => {
       <View style={styles.actionButtons}>
         {item.type === 'buddyInvite' && (
           <>
-            <TouchableOpacity style={styles.acceptButton}>
+            <TouchableOpacity
+              style={styles.acceptButton}
+              onPress={() => handleActionRequest(item.relatedId, 'accept', item.type)}
+              accessibilityLabel="Accept Buddy Request"
+            >
               <Text style={styles.buttonText}>Accept</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.declineButton}>
+            <TouchableOpacity
+              style={styles.declineButton}
+              onPress={() => handleActionRequest(item.relatedId, 'reject', item.type)}
+              accessibilityLabel="Decline Buddy Request"
+            >
               <Text style={styles.buttonText}>Decline</Text>
             </TouchableOpacity>
           </>
@@ -82,19 +90,28 @@ const NotificationListScreen = ({ navigation }) => {
 
         {item.type === 'friendRequest' && (
           <>
-            <TouchableOpacity style={styles.acceptButton} onPress={() => acceptRejectRequest(item.relatedId, 'accept')}>
+            <TouchableOpacity
+              style={styles.acceptButton}
+              onPress={() => handleActionRequest(item.relatedId, 'accept', item.type)}
+              accessibilityLabel="Accept Friend Request"
+            >
               <Text style={styles.buttonText}>Accept</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.declineButton} onPress={() => acceptRejectRequest(item.relatedId, 'reject')}>
+            <TouchableOpacity
+              style={styles.declineButton}
+              onPress={() => handleActionRequest(item.relatedId, 'reject', item.type)}
+              accessibilityLabel="Decline Friend Request"
+            >
               <Text style={styles.buttonText}>Decline</Text>
             </TouchableOpacity>
           </>
         )}
 
-        {item.type === 'workoutRequestInvite' && (
+        {/* {item.type === 'workoutRequestInvite' && (
           <TouchableOpacity 
             style={styles.viewButton} 
             onPress={() => navigation.navigate('WorkoutInvitation')}
+            accessibilityLabel="View Workout Invitation"
           >
             <Text style={styles.buttonText}>View Details</Text>
           </TouchableOpacity>
@@ -103,10 +120,11 @@ const NotificationListScreen = ({ navigation }) => {
           <TouchableOpacity 
             style={styles.viewButton} 
             onPress={() => navigation.navigate('WorkoutRequest')}
+            accessibilityLabel="View Workout Request"
           >
             <Text style={styles.buttonText}>View Details</Text>
           </TouchableOpacity>
-        )}
+        )} */}
       </View>
     </View>
   );
@@ -115,6 +133,7 @@ const NotificationListScreen = ({ navigation }) => {
     return (
       <View style={styles.container}>
         <ActivityIndicator size="large" color="#0000ff" />
+        <Text style={styles.loadingText}>Loading notifications...</Text>
       </View>
     );
   }
@@ -133,7 +152,7 @@ const NotificationListScreen = ({ navigation }) => {
       <FlatList
         data={notifications}
         renderItem={renderItem}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.relatedId.toString()} // Use a unique key
         contentContainerStyle={styles.listContent}
       />
       <Footer navigation={navigation} />
@@ -145,13 +164,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
-    paddingTop: 20,  // Add some padding at the top for space below status bar
+    paddingTop: 20,
   },
   header: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#333',
     marginVertical: 20,
+    textAlign: 'center',
   },
   listContent: {
     paddingBottom: 20,
@@ -216,6 +236,13 @@ const styles = StyleSheet.create({
   errorText: {
     color: 'red',
     fontSize: 16,
+    textAlign: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#333',
+    textAlign: 'center',
+    marginTop: 10,
   },
 });
 

@@ -178,14 +178,14 @@ const ProfileScreen = ({ navigation }) => {
 
       {/* Action Buttons */}
       <View style={styles.buttonsRow}>
-        <TouchableOpacity style={styles.button}>
+        <TouchableOpacity style={styles.button}  onPress={() => navigation.navigate('VisitedGymScreen')}>
           <Icon name="dumbbell" size={20} color="#fff" />
           <Text style={styles.buttonText}>Visited Gyms</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.button}>
+        {/* <TouchableOpacity style={styles.button}>
           <Icon name="account-group" size={20} color="#fff" />
           <Text style={styles.buttonText}>Gym Buddies</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
         
       </View>
 

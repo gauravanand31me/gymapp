@@ -6,7 +6,7 @@ import axios from 'axios';
 import { createBooking, createOrder } from '../api/apiService';
 
 const PaymentScreen = ({ route, navigation }) => {
-  const { slotDetails } = route.params; // Extract slot details from navigation parameters
+  const { slotDetails, requestId } = route.params; // Extract slot details from navigation parameters
   const [loading, setLoading] = useState(false); // Loading state for button
 
 
@@ -19,7 +19,7 @@ const PaymentScreen = ({ route, navigation }) => {
       setLoading(true);
 
       // Step 1: Create the payment order first
-      const orderResponse = await createOrder(slotDetails.price * (slotDetails.duration / 60));
+      const orderResponse = await createOrder(slotDetails.price * (slotDetails.duration / 60) || slotDetails.subscriptionPrice);
       console.log("orderResponse", orderResponse);
       if (orderResponse && orderResponse.id) {
         // Step 2: Open Razorpay payment link in the browser
@@ -42,11 +42,15 @@ const PaymentScreen = ({ route, navigation }) => {
        
    
         // Step 3: After successful payment, create the booking
+   
+        if (requestId) {
+          slotDetails.requestId = requestId;
+        }
         if (result.type === 'opened') {
           const bookingResponse = await createBooking(slotDetails); // Create booking on success
           if (bookingResponse) {
             // Navigate to confirmation page after booking
-            navigation.navigate('ConfirmationScreen', { slotDetails, data: bookingResponse });
+            navigation.replace('ConfirmationScreen', { slotDetails, data: bookingResponse });
           } else {
             Alert.alert('Booking creation failed.');
           }
@@ -76,21 +80,25 @@ const PaymentScreen = ({ route, navigation }) => {
         <View style={styles.card}>
           <Text style={styles.gymName}>{slotDetails.gymName}</Text>
           <Text style={styles.gymDescription}>
-            Welcome to {slotDetails.gymName}, your ultimate fitness destination!
-            We offer a variety of classes and personal training options to fit your needs.
+            Please verify the details before booking this gym. Welcome to {slotDetails.gymName}, your ultimate fitness destination!
+           
           </Text>
           <Text style={styles.gymLocation}>{slotDetails.location}</Text>
         </View>
         <View style={styles.detailRow}>
           <Icon name="access-time" size={24} color="#2e7d32" />
-          <Text style={styles.detail}>Time: {slotDetails.time}</Text>
+          <Text style={styles.detail}>Date: {slotDetails.date || slotDetails.bookingDate}</Text>
+        </View>
+        <View style={styles.detailRow}>
+          <Icon name="access-time" size={24} color="#2e7d32" />
+          <Text style={styles.detail}>Time: {slotDetails.time || slotDetails.slotStartTime}</Text>
         </View>
         <View style={styles.detailRow}>
           <Icon name="hourglass-empty" size={24} color="#2e7d32" />
-          <Text style={styles.detail}>Duration: {slotDetails.duration} mn</Text>
+          <Text style={styles.detail}>Duration: {slotDetails.duration || slotDetails.bookingDuration} mn</Text>
         </View>
         <View style={styles.detailRow}>
-          <Text style={styles.price}>Price: INR {slotDetails.price * (slotDetails.duration / 60)}</Text>
+          <Text style={styles.price}>Price: INR {slotDetails.price * (slotDetails.duration / 60) || slotDetails.subscriptionPrice}</Text>
         </View>
 
         <TouchableOpacity style={styles.button} onPress={handlePayment} disabled={loading}>

@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ImageBackground } from 'react
 
 const ConfirmationScreen = ({ route, navigation }) => {
   const { slotDetails, data } = route.params; // Get slot details from navigation parameters
-  
+  console.log("slotDetails received in ConfirmScreen", slotDetails);
 
  
 
@@ -26,7 +26,7 @@ const ConfirmationScreen = ({ route, navigation }) => {
           <Text style={styles.detailTitle}>Booking details</Text>
           <Text style={styles.detail}>Gym: {slotDetails.gymName}</Text>
           <Text style={styles.detail}>Location: {slotDetails.location}</Text>
-          <Text style={styles.detail}>Date & time: {slotDetails.date} - {slotDetails.time}</Text>
+          <Text style={styles.detail}>Date & time: {slotDetails.date || slotDetails.bookingDate} - {slotDetails.time || slotDetails.slotStartTime}</Text>
         </View>
 
         <TouchableOpacity style={styles.button} onPress={() => navigation.navigate("InviteFriendBuddy", {bookingId: data.bookingId})}>

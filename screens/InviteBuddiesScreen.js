@@ -23,7 +23,7 @@ const InviteBuddiesScreen = ({ navigation }) => {
 
   useEffect(() => {
     fetchNearbyUsers();
-  }, []);
+  }, [searchText]);
 
   const handleInvite = async (id) => {
     try {
@@ -36,8 +36,9 @@ const InviteBuddiesScreen = ({ navigation }) => {
   };
 
   const searchUser = async (user) => {
+
     setSearchText(user);
-    fetchNearbyUsers();
+    
   };
 
   const renderBuddy = ({ item }) => (
@@ -68,7 +69,7 @@ const InviteBuddiesScreen = ({ navigation }) => {
 
   const renderEmptyList = () => (
     <View style={styles.emptyContainer}>
-      <Text style={styles.emptyText}>No users found</Text>
+      <Text style={styles.emptyText}>Search friends by username or name</Text>
       <Icon name="emoticon-sad-outline" size={48} color="#66BB6A" />
     </View>
   );
