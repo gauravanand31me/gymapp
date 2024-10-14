@@ -1,15 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, Image } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, Image, SafeAreaView } from 'react-native';
 import { acceptFriendRequest, fetchAllNotifications, markAllNotificationsAsRead, rejectFriendRequest } from '../api/apiService'; // Ensure this path is correct
 import Footer from '../components/Footer';
-import CustomHeader from '../components/Header';
+//import CustomHeader from '../components/Header';
 
 const NotificationListScreen = ({ navigation }) => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch notifications from API when the component is mounted
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
@@ -57,17 +56,14 @@ const NotificationListScreen = ({ navigation }) => {
     }
   };
 
-  // Render individual notification item
   const renderItem = ({ item }) => (
     <View style={styles.notificationItem}>
-      {/* Display User Profile Image */}
       <Image
         source={{ uri: item.profileImage || 'https://via.placeholder.com/50' }} // Placeholder if image is not available
         style={styles.profileImage}
       />
       <View style={styles.notificationContent}>
         <Text style={styles.notificationText}>
- 
           {item.others ? `, ${item.others}` : ''} {item.message || 'No message available.'}
         </Text>
         <Text style={styles.time}>{item.createdAt || 'Time not available.'}</Text>
@@ -115,7 +111,6 @@ const NotificationListScreen = ({ navigation }) => {
     </View>
   );
 
-  // Show a loader or error message if applicable
   if (loading) {
     return (
       <View style={styles.container}>
@@ -127,15 +122,13 @@ const NotificationListScreen = ({ navigation }) => {
   if (error) {
     return (
       <View style={styles.container}>
-        <CustomHeader />
-          <Text style={styles.errorText}>{error}</Text>
+        <Text style={styles.errorText}>{error}</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <CustomHeader />
+    <SafeAreaView style={styles.container}>
       <Text style={styles.header}>Notifications</Text>
       <FlatList
         data={notifications}
@@ -144,7 +137,7 @@ const NotificationListScreen = ({ navigation }) => {
         contentContainerStyle={styles.listContent}
       />
       <Footer navigation={navigation} />
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -152,7 +145,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
-    
+    paddingTop: 20,  // Add some padding at the top for space below status bar
   },
   header: {
     fontSize: 24,
@@ -189,10 +182,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#555',
     marginBottom: 4,
-  },
-  username: {
-    fontWeight: 'bold',
-    color: '#333',
   },
   time: {
     fontSize: 12,

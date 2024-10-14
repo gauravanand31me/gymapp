@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, Modal, Dimensions, Linking } from 'react-native'; // Import Dimensions
+import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, Modal, Dimensions, Linking } from 'react-native';
 import { fetchIndividualGymData } from '../api/apiService';
 import SlotSelectionScreen from './SlotSelectionScreen';
 import AmenitiesListPopup from '../components/AmenitiesListPopup';
 import Icon from 'react-native-vector-icons/FontAwesome';
-//import CustomHeader from '../components/Header';
 import Footer from '../components/Footer';
 
 // Get screen width
@@ -36,7 +35,7 @@ const GymDetailScreen = ({ navigation, route }) => {
 
   const handleScroll = (event) => {
     const contentOffsetX = event.nativeEvent.contentOffset.x;
-    const index = Math.floor(contentOffsetX / screenWidth); // Updated to use screen width
+    const index = Math.floor(contentOffsetX / screenWidth);
     setCurrentIndex(index);
   };
 
@@ -79,66 +78,70 @@ const GymDetailScreen = ({ navigation, route }) => {
 
   return (
     <View style={styles.container}>
-      {/* <CustomHeader /> */}
+      <View style={styles.headerContainer}>
+        {/* Header Row */}
+        <View style={styles.headerRow}>
+          {/* Back Button */}
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Icon name="chevron-left" size={24} color="#808080" />
+          </TouchableOpacity>
+          <Text style={styles.bookingPrompt}>Want to book your gym sessions with just a tap?</Text>
+        </View>
+      </View>
+
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.headerContainer}>
-          <Text style={styles.bookingPrompt}>Want to book your gym sessions with just a tap?</Text>
+        <View style={styles.imageContainer}>
+          <ScrollView
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            onScroll={handleScroll}
+            scrollEventThrottle={16}
+            style={styles.imageScroll}
+          >
+            {(gymData.images || []).map((image, index) => (
+              <TouchableOpacity key={index} onPress={() => openModal(image)}>
+                <Image source={{ uri: image }} style={styles.image} />
+              </TouchableOpacity>
+            )) || (
+              <Image
+                source={{
+                  uri: 'https://example.com/default_image.png',
+                }}
+                style={styles.image}
+              />
+            )}
+          </ScrollView>
 
-          <View style={styles.imageContainer}>
-            <ScrollView
-              horizontal
-              pagingEnabled
-              showsHorizontalScrollIndicator={false}
-              onScroll={handleScroll}
-              scrollEventThrottle={16}
-              style={styles.imageScroll}
-            >
-              {(gymData.images || []).map((image, index) => (
-                <TouchableOpacity key={index} onPress={() => openModal(image)}>
-                  <Image source={{ uri: image }} style={styles.image} />
-                </TouchableOpacity>
-              )) || (
-                  <Image
-                    source={{
-                      uri: 'https://example.com/default_image.png',
-                    }}
-                    style={styles.image}
-                  />
-                )}
-            </ScrollView>
-
-            {/* Dot Indicators */}
-            <View style={styles.dotContainer}>
-              {(gymData.images || []).map((_, index) => (
-                <View key={index} style={[styles.dot, currentIndex === index && styles.activeDot]} />
-              ))}
-            </View>
+          {/* Dot Indicators */}
+          <View style={styles.dotContainer}>
+            {(gymData.images || []).map((_, index) => (
+              <View key={index} style={[styles.dot, currentIndex === index && styles.activeDot]} />
+            ))}
           </View>
-
-          <Text style={styles.gymName}>{gymData.name}</Text>
-          <Text style={styles.gymDescription}>
-            {isDescriptionExpanded ? gymData.description : `${truncatedDescription}...`}
-          </Text>
-          <TouchableOpacity onPress={() => setDescriptionExpanded(!isDescriptionExpanded)}>
-            <Text style={styles.showMoreText}>
-              {isDescriptionExpanded ? 'Show Less' : 'Show More'}
-            </Text>
-          </TouchableOpacity>
-
         </View>
+
+        <Text style={styles.gymName}>{gymData.name}</Text>
+        <Text style={styles.gymDescription}>
+          {isDescriptionExpanded ? gymData.description : `${truncatedDescription}...`}
+        </Text>
+        <TouchableOpacity onPress={() => setDescriptionExpanded(!isDescriptionExpanded)}>
+          <Text style={styles.showMoreText}>
+            {isDescriptionExpanded ? 'Show Less' : 'Show More'}
+          </Text>
+        </TouchableOpacity>
 
         <View style={styles.card}>
           <View style={styles.priceAvailabilityContainer}>
             <View style={styles.cityContainer}>
-
               <Text style={styles.city}>{gymData.addressLine1}: {gymData.city}</Text>
               <TouchableOpacity
                 style={styles.mapButton}
-                onPress={() => openGoogleMaps(gymData.latitude, gymData.longitude)} // Call the map redirection
+                onPress={() => openGoogleMaps(gymData.latitude, gymData.longitude)}
               >
                 <Icon name="map-marker" size={30} color="#4CAF50" />
               </TouchableOpacity>
@@ -161,8 +164,6 @@ const GymDetailScreen = ({ navigation, route }) => {
             <Text style={styles.showAllText}>Show All Amenities</Text>
           </TouchableOpacity>
         </View>
-
-
 
         <View style={styles.bottomSpacing} />
       </ScrollView>
@@ -192,13 +193,9 @@ const GymDetailScreen = ({ navigation, route }) => {
           <TouchableOpacity style={styles.closeButton} onPress={closeSlotSelection}>
             <Text style={styles.closeButtonText}>✖️</Text>
           </TouchableOpacity>
-          {/* Check if gymData.slot is not null */}
-      
           {gymData.slots ? (
-            // Render SlotSelectionScreen if gymData.slot exists
             <SlotSelectionScreen navigation={navigation} gym={gymData} />
           ) : (
-            // Display a message if no slots are available
             <View style={styles.noSlotsContainer}>
               <Text style={styles.noSlotsText}>No slots available for this gym.</Text>
             </View>
@@ -206,7 +203,6 @@ const GymDetailScreen = ({ navigation, route }) => {
         </View>
       </Modal>
       <Footer navigation={navigation} />
-     
     </View>
   );
 };
@@ -214,8 +210,9 @@ const GymDetailScreen = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    marginTop: 0,
+  backgroundColor: '#fff',
+  marginTop: 0,
+  paddingTop: 20, // Add padding to the top
   },
   scrollView: {
     flex: 1,
@@ -232,8 +229,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center', // Center vertically
   },
-  backIcon: {
-    marginRight: 10, // Space between the arrow and username
+  backButton: {
+    marginRight: 20,
+    paddingLeft: 20,
+    color: '#808080'  
   },
   imageContainer: {
     position: 'relative',
@@ -262,27 +261,15 @@ const styles = StyleSheet.create({
   },
   activeDot: {
     backgroundColor: '#4CAF50',
-  },
-  welcomeText: {
-    color: '#4CAF50',
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 5,
-    fontFamily: 'Roboto',
-  },
-  userName: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 5,
-    fontFamily: 'Roboto',
-    color: '#4CAF50',
-
+  
+  
   },
   bookingPrompt: {
-    color: '#333',
     fontSize: 16,
     marginBottom: 10,
     fontFamily: 'Roboto',
+    fontWeight: 'bold',
+    color: '#4CAF50',
   },
   card: {
     padding: 20,

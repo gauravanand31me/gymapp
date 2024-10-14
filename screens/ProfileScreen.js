@@ -20,7 +20,6 @@ import {
   uploadImages,
   getUserImage,
 } from '../api/apiService'; // Ensure you have the correct path
-import CustomHeader from '../components/Header';
 import MileStoneContainer from '../components/MileStoneContainer';
 
 const ProfileScreen = ({ navigation }) => {
@@ -131,34 +130,39 @@ const ProfileScreen = ({ navigation }) => {
   }
 
   return (
-    <View style={styles.container}>
-      <CustomHeader />
-      {/* Profile Header with Stats */}
-      <View style={styles.headerContainer}>
-        <View style={styles.profileHeader}>
-          <View style={styles.profileImageContainer}>
-            <Image source={{ uri: profileImage }} style={styles.profileImage} />
-            <TouchableOpacity style={styles.addPhotoButton} onPress={selectProfileImage}>
-              <Icon name="plus" size={20} color="#4CAF50" />
-            </TouchableOpacity>
-          </View>
-          <View style={styles.profileDetails}>
-            <Text style={styles.fullName}>{userData?.full_name || 'N/A'}</Text>
-            <Text style={styles.username}>@{userData?.username || 'N/A'}</Text>
-            <Text style={styles.mobileNumber}>{userData?.mobile_number || 'N/A'}</Text>
-          </View>
+<View style={styles.container}>
+    {/* Profile Header with Stats */}
+    <View style={styles.headerContainer}>
+      <View style={styles.profileHeader}>
+        <View style={styles.profileImageContainer}>
+          <Image source={{ uri: profileImage }} style={styles.profileImage} />
+          <TouchableOpacity style={styles.addPhotoButton} onPress={selectProfileImage}>
+            <Icon name="plus" size={20} color="#4CAF50" />
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity style={styles.settingsButton} onPress={() => navigation.navigate('Settings')}>
-          <Icon name="cog" size={20} color="#4CAF50" />
-        </TouchableOpacity>
+        <View style={styles.profileDetails}>
+          <Text style={styles.fullName}>{userData?.full_name || 'N/A'}</Text>
+          <Text style={styles.username}>@{userData?.username || 'N/A'}</Text>
+          <Text style={styles.mobileNumber}>{userData?.mobile_number || 'N/A'}</Text>
+        </View>
+      </View>
+      <TouchableOpacity style={styles.settingsButton} onPress={() => navigation.navigate('Settings')}>
+        <Icon name="cog" size={20} color="#4CAF50" />
+      </TouchableOpacity>
+
+      {/* Send Request Button */}
+      <TouchableOpacity style={styles.sendRequestButton} onPress={() => Alert.alert('Request Sent!')}>
+        <Text style={styles.sendRequestText}>Send Request</Text>
+      </TouchableOpacity>
+   
       </View>
 
       {/* Combined Stats Container */}
       <View style={styles.statsContainer}>
-        <View style={styles.statCard}>
+        {/* <View style={styles.statCard}>
           <Text style={styles.statValue}>{userData?.upload_count || 0}</Text>
           <Text style={styles.statLabel}>Posts</Text>
-        </View>
+        </View> */}
         <View style={styles.statCard}>
           <TouchableOpacity onPress={() => navigation.navigate("InviteFriendBuddy")}>
             <Text style={styles.statValue}>{userData?.followers_count || 0}</Text>
@@ -182,9 +186,7 @@ const ProfileScreen = ({ navigation }) => {
           <Icon name="account-group" size={20} color="#fff" />
           <Text style={styles.buttonText}>Gym Buddies</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.addButton} onPress={selectImages}>
-          <Icon name="plus" size={16} color="#fff" />
-        </TouchableOpacity>
+        
       </View>
 
       {/* Image Grid using FlatList */}
@@ -223,6 +225,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
+    marginTop: 30, // Space from status bar
   },
   profileHeader: {
     flexDirection: 'row',
@@ -273,6 +276,20 @@ const styles = StyleSheet.create({
   settingsButton: {
     padding: 10,
   },
+  sendRequestButton: {
+    backgroundColor: '#4CAF50',
+    borderRadius: 5,
+    padding: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 10, // Space between settings button and send request button
+    marginTop: 50, // Add margin to move the button down
+
+  },
+  sendRequestText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
   statsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -291,7 +308,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 10,
-    minHeight: 100, // Ensures each stat card has a minimum height
+    minHeight: 100,
   },
   statValue: {
     fontSize: 20,
@@ -338,8 +355,8 @@ const styles = StyleSheet.create({
   gridItem: {
     flex: 1,
     margin: 5,
-    aspectRatio: 1, // Keep aspect ratio to 1 for square items
-    height: 100, // Set a fixed height for grid items
+    aspectRatio: 1,
+    height: 100,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -357,5 +374,6 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
 });
+
 
 export default ProfileScreen;
