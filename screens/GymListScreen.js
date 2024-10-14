@@ -234,8 +234,8 @@ export default function GymListScreen({ navigation }) {
         onEndReachedThreshold={0.5}
         ListFooterComponent={loading ? <ActivityIndicator size="large" color="#f4511e" /> : null}
       />
-
-      {!isKeyboardVisible && <Footer />} 
+     
+      {!isKeyboardVisible && <Footer  navigation={navigation} />} 
     </KeyboardAvoidingView>
   );
 }
