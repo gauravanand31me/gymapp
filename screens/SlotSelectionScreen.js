@@ -96,7 +96,7 @@ const SlotSelectionScreen = ({ navigation, gym }) => {
       )}
 
       {/* Duration Selection */}
-      <Text style={styles.durationTitle}>Select Duration:</Text>
+      <Text style={styles.durationTitle}>Select Duration in minutes:</Text>
       <View style={styles.durationsContainer}>
         {durations.map((duration) => (
           <TouchableOpacity
@@ -107,13 +107,13 @@ const SlotSelectionScreen = ({ navigation, gym }) => {
               selectedDuration === duration && styles.selectedDurationButton
             ]}>
             <Text style={[styles.durationText, { color: selectedDuration === duration ? '#fff' : '#333' }]}>
-              {duration} mn
+              {duration} 
             </Text>
           </TouchableOpacity>
         ))}
       </View>
 
-      <Text style={styles.selectedDuration}>{`Selected Duration: ${selectedDuration} mn`}</Text>
+      <Text style={styles.selectedDuration}>{`Selected Duration in minutes: ${selectedDuration} min`}</Text>
 
       {/* Confirm Button */}
       <TouchableOpacity onPress={handleConfirm} style={[styles.button, { backgroundColor: buttonColor }]}>

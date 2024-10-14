@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Footer from '../components/Footer';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image, SafeAreaView } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { fetchAllBookings } from '../api/apiService'; // Adjust the import as necessary
@@ -70,8 +70,8 @@ export default function BookingsScreen({ navigation }) {
             </View>
           </View>
 
-          <BookingQRCode booking_id={item.bookingId} booking_date={item.date}  type="daily"/>
-          
+          <BookingQRCode booking_id={item.bookingId} booking_date={item.date} type="daily" />
+
           {/* Move Cancel Button Below the Add More Options */}
           {selectedTab === 'Upcoming' && (
             <View style={styles.cardFooter}>
@@ -95,45 +95,51 @@ export default function BookingsScreen({ navigation }) {
   );
 
   return (
-    <View style={styles.container}>
-      {/* Header */}
-      <Text style={styles.headerText}>My Bookings</Text>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        {/* Header */}
+        <Text style={styles.headerText}>My Bookings</Text>
 
-      {/* Tabs */}
-      <View style={styles.tabContainer}>
-        <TouchableOpacity
-          style={[styles.tabButton, selectedTab === 'Upcoming' && styles.activeTabButton]}
-          onPress={() => setSelectedTab('Upcoming')}
-        >
-          <Text style={[styles.tabText, selectedTab === 'Upcoming' && styles.activeTabText]}>
-            Upcoming
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tabButton, selectedTab === 'Completed' && styles.activeTabButton]}
-          onPress={() => setSelectedTab('Completed')}
-        >
-          <Text style={[styles.tabText, selectedTab === 'Completed' && styles.activeTabText]}>
-            Completed
-          </Text>
-        </TouchableOpacity>
-      </View>
+        {/* Tabs */}
+        <View style={styles.tabContainer}>
+          <TouchableOpacity
+            style={[styles.tabButton, selectedTab === 'Upcoming' && styles.activeTabButton]}
+            onPress={() => setSelectedTab('Upcoming')}
+          >
+            <Text style={[styles.tabText, selectedTab === 'Upcoming' && styles.activeTabText]}>
+              Upcoming
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tabButton, selectedTab === 'Completed' && styles.activeTabButton]}
+            onPress={() => setSelectedTab('Completed')}
+          >
+            <Text style={[styles.tabText, selectedTab === 'Completed' && styles.activeTabText]}>
+              Completed
+            </Text>
+          </TouchableOpacity>
+        </View>
 
-      {/* Booking List */}
-      <FlatList
-        data={selectedTab === 'Upcoming' ? upcomingBookings : completedBookings}
-        keyExtractor={(item) => item.id}
-        renderItem={renderBooking}
-        contentContainerStyle={styles.listContent}
-      />
-      <View style={styles.footer}>
-        <Footer navigation={navigation} />
+        {/* Booking List */}
+        <FlatList
+          data={selectedTab === 'Upcoming' ? upcomingBookings : completedBookings}
+          keyExtractor={(item) => item.id}
+          renderItem={renderBooking}
+          contentContainerStyle={styles.listContent}
+        />
+        <View style={styles.footer}>
+          <Footer navigation={navigation} />
+        </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+  },
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
@@ -143,7 +149,8 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     textAlign: 'center',
-    marginVertical: 20,
+    marginTop: 40, // Added extra margin to increase space
+    marginBottom: 20,
   },
   tabContainer: {
     flexDirection: 'row',
@@ -267,26 +274,26 @@ const styles = StyleSheet.create({
   cancelButton: {
     backgroundColor: '#f44336',
     borderRadius: 5,
-    padding: 8, // Reduced padding
+    padding: 8,
     alignItems: 'center',
-    width: '30%', // Adjusted width for smaller button
+    width: '30%',
   },
   cancelButtonText: {
     color: '#fff',
     fontWeight: 'bold',
-    fontSize: 14, // Reduced font size
+    fontSize: 14,
   },
   bookAgainButton: {
     backgroundColor: '#4CAF50',
     borderRadius: 5,
-    padding: 8, // Reduced padding
+    padding: 8,
     alignItems: 'center',
-    width: '30%', // Adjusted width for smaller button
+    width: '30%',
   },
   bookAgainButtonText: {
     color: '#fff',
     fontWeight: 'bold',
-    fontSize: 14, // Reduced font size
+    fontSize: 14,
   },
   listContent: {
     paddingBottom: 20,

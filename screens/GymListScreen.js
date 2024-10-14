@@ -242,119 +242,111 @@ export default function GymListScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#f5f5f5',
   },
   header: {
+    padding: 20,
     backgroundColor: '#4CAF50',
-    padding: 15,
-    paddingBottom: 10,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    elevation: 5,
+    height: 200,
   },
   headerContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginTop: 25,
   },
   locationPincodeContainer: {
-    flexDirection: 'row',
+    flexDirection: 'row', // Row direction to align location text and input
     alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '100%',
-  },
-  locationContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  locationIcon: {
-    marginRight: 8,
   },
   locationText: {
+    fontSize: 14,
     color: '#fff',
-    fontSize: 16,
-    maxWidth: '70%',  // Ensures it doesn't overflow
+    fontWeight: 'bold',
   },
   pincodeInput: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 10,
+    padding: 5,
     backgroundColor: '#fff',
-    color: '#333',
-    padding: 10,
-    borderRadius: 5,
-    width: 120,
+    width: 100, // Adjust width as necessary
     textAlign: 'center',
-    fontSize: 16,
+    marginLeft: 5,
+    height: 30, // Reduced margin to move closer to location text
   },
   greetingText: {
-    color: '#fff',
     fontSize: 18,
-    marginTop: 10,
+    fontWeight: 'bold',
+    color: '#fff',
+    textAlign: 'center',
+    marginVertical: 10,
   },
   searchInput: {
-    backgroundColor: '#fff',
-    color: '#333',
-    padding: 10,
-    borderRadius: 5,
-    marginTop: 10,
+    borderWidth: 1,
+  borderColor: '#ccc',
+  borderRadius: 10,
+  padding: 8, // Adjust padding if needed
+  backgroundColor: '#fff',
+  height: 40, // Reduced height
+  },
+  gymList: {
+    paddingBottom: 80, // Add some padding at the bottom
   },
   gymCard: {
-    flexDirection: 'row',
-    padding: 10,
-    margin: 10,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 10,
-    elevation: 3,
+    marginLeft: 10,
+    flex: 1,
+    flexDirection: 'row', // Arrange items in a row
+    justifyContent: 'space-between', // Space between elements
+    alignItems: 'center', // Align items vertically centered
+    backgroundColor: '#fff',
+
   },
   gymImage: {
     width: 100,
     height: 100,
     borderRadius: 10,
-    marginRight: 10,
   },
   gymInfo: {
+    marginLeft: 10,
     flex: 1,
-    justifyContent: 'space-between',
+    paddingBottom: 20, 
   },
   gymName: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
+    marginTop: 20,
   },
   gymDescription: {
     fontSize: 14,
-    color: '#666',
+    color: '#777',
   },
   gymPrice: {
-    fontSize: 14,
-    color: '#f4511e',
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#4CAF50',
   },
   gymDistance: {
-    fontSize: 12,
-    color: '#999',
+    fontSize: 14,
+    color: '#777',
   },
   gymRating: {
-    fontSize: 12,
-    color: '#333',
+    fontSize: 14,
+    color: '#777',
   },
   bookNowButton: {
     backgroundColor: '#4CAF50',
     paddingVertical: 5,
     paddingHorizontal: 15,
     borderRadius: 5,
-    alignSelf: 'flex-start',
+    alignSelf: 'flex-end',
+    marginTop: -15, 
   },
   bookNowText: {
     color: '#fff',
-    fontSize: 14,
     fontWeight: 'bold',
-  },
-  loader: {
-    marginVertical: 20,
-  },
-  errorMessage: {
-    color: '#f00',
-    textAlign: 'center',
-    marginVertical: 10,
-  },
-  loadMoreText: {
-    textAlign: 'center',
-    paddingVertical: 10,
-    fontSize: 16,
-    color: '#666',
   },
 });
