@@ -10,7 +10,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
-  ActivityIndicator
+  ActivityIndicator,
+  Keyboard
 } from 'react-native';
 import { fetchAllGyms } from '../api/apiService';
 import * as Location from 'expo-location';
@@ -33,9 +34,24 @@ export default function GymListScreen({ navigation }) {
   const [isInputFocused, setIsInputFocused] = useState(false); 
   const [pincode, setPincode] = useState('');
   const [error, setError] = useState('');
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false); // Track keyboard visibility
   const limit = 9;
 
-  const GOOGLE_MAPS_API_KEY = '<<AP _KEY>>';  // Replace with your actual API key
+  const GOOGLE_MAPS_API_KEY = '<<API_KEY>>';  // Replace with your actual API key
+
+  useEffect(() => {
+    const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
+      setIsKeyboardVisible(true);
+    });
+    const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
+      setIsKeyboardVisible(false);
+    });
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, []);
 
   const fetchGyms = async (lat, long, searchText = '', page = 1) => {
     if ((loading || !hasMoreGyms) && !searchText) return; 
@@ -61,7 +77,6 @@ export default function GymListScreen({ navigation }) {
   const getLocation = async () => {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
-      console.log("Status nis", status);
       if (status !== 'granted') {
         Alert.alert('Permission Denied', 'Location permission is required to access your location.');
         setError('Location permission denied.');
@@ -69,7 +84,6 @@ export default function GymListScreen({ navigation }) {
       }
 
       const location = await Location.getCurrentPositionAsync({});
-      console.log("Fetching all gyms near you")
       fetchGyms(location.coords.latitude, location.coords.longitude, searchText, page);
       fetchAddress(location.coords.latitude, location.coords.longitude);
     } catch (error) {
@@ -84,7 +98,6 @@ export default function GymListScreen({ navigation }) {
     try {
       const response = await axios.get(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${long}&localityLanguage=en`);
       if (response.data) {
-        
         setAddress(response.data.city || response.data.locality || 'Unknown location');
       }
     } catch (error) {
@@ -94,20 +107,6 @@ export default function GymListScreen({ navigation }) {
     }
   };
 
-  // const fetchUserName = async () => {
-  //   try {
-  //     const user = await AsyncStorage.getItem('user');
-  //     if (user) {
-  //       const userInfo = JSON.parse(user);
-  //       setFullName(userInfo.full_name || ''); 
-  //     }
-  //   } catch (error) {
-  //     console.error('Error fetching user name:', error);
-  //     setError('Unable to load user details.');
-  //   }
-  // };
-
-  // Function to fetch latitude and longitude based on pincode
   const fetchLatLongFromPincode = async () => {
     setLoading(true);
     setError('');
@@ -132,7 +131,6 @@ export default function GymListScreen({ navigation }) {
 
   const validatePincode = () => {
     if (!pincode || pincode?.length !== 6 || isNaN(pincode)) {
-      //Alert.alert('Invalid Pincode', 'Please enter a valid 6-digit pincode.');
       return false;
     }
     return true;
@@ -140,16 +138,16 @@ export default function GymListScreen({ navigation }) {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setLoading(true); // Set loading to true before validation
+      setLoading(true);
       if (!validatePincode()) {
         getLocation();
       } else {
         fetchLatLongFromPincode();
       }
-      setLoading(false); // Set loading to false after the operation
+      setLoading(false);
     }, 2000); // Delay of 2 seconds
 
-    return () => clearTimeout(timer); // Clear timeout on unmount
+    return () => clearTimeout(timer);
   }, [searchText]);
 
   useEffect(() => {
@@ -200,6 +198,8 @@ export default function GymListScreen({ navigation }) {
               <MaterialIcon name="location-on" size={20} color="#fff" />
               {address || 'Fetching location...'}
             </Text>
+            <Text style={styles.orText}> or </Text> 
+
             <TextInput
               style={styles.pincodeInput}
               placeholder="Enter pincode"
@@ -229,15 +229,17 @@ export default function GymListScreen({ navigation }) {
       <FlatList
         data={gyms}
         renderItem={renderGym}
-        keyExtractor={(item, index) => `${item.gymId}-${index}`}
+        keyExtractor={(item) => item.gymId.toString()}
         onEndReached={loadMoreGyms}
         onEndReachedThreshold={0.5}
-        ListFooterComponent={hasMoreGyms && !loading ? <Text style={styles.loadMoreText}>Loading more gyms...</Text> : null}
+        ListFooterComponent={loading ? <ActivityIndicator size="large" color="#f4511e" /> : null}
       />
-      <Footer navigation={navigation} />
+
+      {!isKeyboardVisible && <Footer />} 
     </KeyboardAvoidingView>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {
@@ -348,5 +350,11 @@ const styles = StyleSheet.create({
   bookNowText: {
     color: '#fff',
     fontWeight: 'bold',
+  },
+  orText: {
+    color: '#fff', // Adjust the color if needed
+    marginHorizontal: 5, // Space around the text
+    fontSize: 16, // Adjust the size to match surrounding text
+    fontWeight: "bold"
   },
 });
