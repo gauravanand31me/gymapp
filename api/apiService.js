@@ -372,6 +372,7 @@ export const inviteBuddyRequest = async (bookingId, toUserId) => {
 export const fetchBuddyInvites = async (bookingId) => {
   try {
     const userToken = await AsyncStorage.getItem('authToken'); // Fetch token if needed
+    console.log("bookingId Received", bookingId);
     const response = await axios.get(`${BASE_URL}/buddy/get?bookingId=${bookingId}`, {
     headers: {
       Authorization: `Bearer ${userToken}`, // Make sure to replace <your_token> with the actual token
@@ -515,6 +516,22 @@ export const getVisitedGyms = async () => {
   try {
     const userToken = await AsyncStorage.getItem('authToken'); // Fetch token if needed
     const response = await axios.get(`${BASE_URL}/booking/visited-gyms`, {
+      headers: {
+        Authorization: `Bearer ${userToken}`,  // Add the Bearer token here
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching visited gyms:', error);
+    throw error;
+  }
+};
+
+
+export const getVisitedBuddies = async () => {
+  try {
+    const userToken = await AsyncStorage.getItem('authToken'); // Fetch token if needed
+    const response = await axios.get(`${BASE_URL}/booking/workout-buddies`, {
       headers: {
         Authorization: `Bearer ${userToken}`,  // Add the Bearer token here
       }

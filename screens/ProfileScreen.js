@@ -16,9 +16,8 @@ import Footer from '../components/Footer';
 import {
   userDetails,
   uploadProfileImage,
-  fetchUploadedImages,
-  uploadImages,
-  getUserImage,
+  getVisitedGyms,
+  getVisitedBuddies,  // Import the API call
 } from '../api/apiService'; // Ensure you have the correct path
 
 const ProfileScreen = ({ navigation }) => {
@@ -26,20 +25,9 @@ const ProfileScreen = ({ navigation }) => {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [visitedGyms, setVisitedGyms] = useState([]);  // State to store visited gyms
   const [selectedTab, setSelectedTab] = useState('Visited Gym'); // State for selected tab
-
-  // Dummy data for "Visited Gyms" and "Gym Buddies"
-  const visitedGymsData = [
-    { id: '1', gymName: 'Gold’s Gym', workoutHours: '15 hours' },
-    { id: '2', gymName: 'Planet Fitness', workoutHours: '20 hours' },
-    { id: '3', gymName: 'Anytime Fitness', workoutHours: '25 hours' },
-  ];
-
-  const gymBuddiesData = [
-    { id: '1', username: 'Buddy1', workoutHours: '10 hours' },
-    { id: '2', username: 'Buddy2', workoutHours: '12 hours' },
-    { id: '3', username: 'Buddy3', workoutHours: '8 hours' },
-  ];
+  const [visitedBuddies, setVisitedBuddies] = useState([]);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -55,7 +43,31 @@ const ProfileScreen = ({ navigation }) => {
       }
     };
 
+    const fetchVisitedGyms = async () => {
+      try {
+        const response = await getVisitedGyms();  // Fetch visited gyms
+        setVisitedGyms(response.visitedGyms);  // Set the visited gyms data
+      } catch (error) {
+        console.error('Error fetching visited gyms:', error);
+        Alert.alert('Error', 'Could not fetch visited gyms. Please try again later.');
+      }
+    };
+
+
+    const fetchVisitedBuddies = async () => {
+      try {
+        const response = await getVisitedBuddies();  // Fetch visited gyms
+        console.log("Response received", response.buddiesWithWorkoutHours);
+        setVisitedBuddies(response.buddiesWithWorkoutHours);  // Set the visited gyms data
+      } catch (error) {
+        console.error('Error fetching visited gyms:', error);
+        Alert.alert('Error', 'Could not fetch visited gyms. Please try again later.');
+      }
+    };
+
     fetchUserData();
+    fetchVisitedGyms();  // Call the API to fetch visited gyms
+    fetchVisitedBuddies();
   }, []);
 
   const selectProfileImage = async () => {
@@ -83,22 +95,21 @@ const ProfileScreen = ({ navigation }) => {
     }
   };
 
-  // Helper function to determine the correct medal image and label
   const getMedalDetails = () => {
     const workoutHours = (userData?.total_work_out_time || 0) / 60;
     let medalImage, medalLabel;
 
     if (workoutHours > 1000) {
-      medalImage = require('../assets/goldmedal.png'); // Gold medal
+      medalImage = require('../assets/goldmedal.png');
       medalLabel = 'Pro';
     } else if (workoutHours > 500) {
-      medalImage = require('../assets/silvermedal.png'); // Silver medal
+      medalImage = require('../assets/silvermedal.png');
       medalLabel = 'Advance';
     } else if (workoutHours > 100) {
-      medalImage = require('../assets/bronzemedal.png'); // Bronze medal
+      medalImage = require('../assets/bronzemedal.png');
       medalLabel = 'Bronze';
     } else {
-      medalImage = require('../assets/defaultmedal.jpg'); // Default image
+      medalImage = require('../assets/defaultmedal.jpg');
       medalLabel = 'Beginner Mode';
     }
     return { medalImage, medalLabel };
@@ -112,7 +123,6 @@ const ProfileScreen = ({ navigation }) => {
     );
   }
 
-  // Destructure the medal details
   const { medalImage, medalLabel } = getMedalDetails();
 
   return (
@@ -141,29 +151,27 @@ const ProfileScreen = ({ navigation }) => {
       </View>
 
       <View style={styles.statsContainer}>
-  <View style={styles.statCard}>
-    <TouchableOpacity onPress={() => navigation.navigate("InviteFriendBuddy")}>
-      <Text style={styles.statValue}>{userData?.followers_count || 0}</Text>
-      <Text style={styles.statLabel}>Friends</Text>
-    </TouchableOpacity>
-  </View>
+        <View style={styles.statCard}>
+          <TouchableOpacity onPress={() => navigation.navigate("InviteFriendBuddy")}>
+            <Text style={styles.statValue}>{userData?.followers_count || 0}</Text>
+            <Text style={styles.statLabel}>Friends</Text>
+          </TouchableOpacity>
+        </View>
 
-  {/* Workout Time Section */}
-  <View style={styles.statCard}>
-    <View style={styles.workoutTimeContainer}>
-      <Text style={styles.statValueTime}>{(userData?.total_work_out_time / 60).toFixed(1)} h</Text>
-    </View>
-    <Text style={styles.statLabel}>Workout Time</Text>
-  </View>
+        <View style={styles.statCard}>
+          <View style={styles.workoutTimeContainer}>
+            <Text style={styles.statValueTime}>{(userData?.total_work_out_time / 60).toFixed(1)} h</Text>
+          </View>
+          <Text style={styles.statLabel}>Workout Time</Text>
+        </View>
 
-  {/* Medal Section */}
-  <View style={styles.statCard}>
-    <View style={styles.medalContainer}>
-      <Image source={medalImage} style={styles.medalImage} />
-      <Text style={styles.medalLabel}>{medalLabel}</Text>
-    </View>
-  </View>
-</View>
+        <View style={styles.statCard}>
+          <View style={styles.medalContainer}>
+            <Image source={medalImage} style={styles.medalImage} />
+            <Text style={styles.medalLabel}>{medalLabel}</Text>
+          </View>
+        </View>
+      </View>
 
       {/* Tabs for Visited Gym and Gym Buddies */}
       <View style={styles.tabContainer}>
@@ -186,34 +194,34 @@ const ProfileScreen = ({ navigation }) => {
       </View>
 
       <View style={styles.listContainer}>
-  {selectedTab === 'Visited Gym' ? (
-    <FlatList
-      data={visitedGymsData}
-      keyExtractor={(item) => item.id}
-      renderItem={({ item }) => (
-        <View style={styles.gymItem}>
-          <View style={styles.gymInfoContainer}>
-            <Text style={styles.gymName}>{item.gymName}</Text>
-            <Text style={styles.gymWorkoutHours}>{item.workoutHours}</Text>
-          </View>
-        </View>
-      )}
-    />
-  ) : (
-    <FlatList
-      data={gymBuddiesData}
-      keyExtractor={(item) => item.id}
-      renderItem={({ item }) => (
-        <View style={styles.buddyItem}>
-          <View style={styles.buddyInfoContainer}>
-            <Text style={styles.buddyUsername}>{item.username}</Text>
-            <Text style={styles.buddyWorkoutHours}>{item.workoutHours}</Text>
-          </View>
-        </View>
-      )}
-    />
-  )}
-</View>
+        {selectedTab === 'Visited Gym' ? (
+          <FlatList
+            data={visitedGyms}  // Use the visitedGyms state
+            keyExtractor={(item) => item.gymId}
+            renderItem={({ item }) => (
+              <View style={styles.gymItem}>
+                <View style={styles.gymInfoContainer}>
+                  <Text style={styles.gymName}>{item.gymName}</Text>
+                  <Text style={styles.gymWorkoutHours}>{item.totalWorkoutHours / 60} hours</Text>
+                </View>
+              </View>
+            )}
+          />
+        ) : (
+          <FlatList
+            data={visitedBuddies}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <View style={styles.buddyItem}>
+                <View style={styles.buddyInfoContainer}>
+                  <Text style={styles.buddyUsername}>{item.buddyName}</Text>
+                  <Text style={styles.buddyWorkoutHours}>{item.totalWorkoutHours / 60} h</Text>
+                </View>
+              </View>
+            )}
+          />
+        )}
+      </View>
 
       {/* Footer */}
       <View style={styles.footerContainer}>

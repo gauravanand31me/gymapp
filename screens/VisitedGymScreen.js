@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, ActivityIndicator, Alert, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { getVisitedGyms } from '../api/apiService'; // API call
 import Icon from 'react-native-vector-icons/Ionicons'; // Ensure you have react-native-vector-icons installed
 import Footer from '../components/Footer';
@@ -40,6 +40,10 @@ const VisitedGymScreen = ({ navigation }) => {
         <Icon name="time" size={20} color="#4CAF50" />
         <Text style={styles.gymDetails}>Workout Hours: {item.totalWorkoutHours / 60} hrs</Text>
       </View>
+      <View style={styles.detailsRow}>
+        <Icon name="calendar" size={20} color="#2196F3" />
+        <Text style={styles.gymDetails}>Visited on: {new Date(item.visitedDate).toLocaleDateString()}</Text>
+      </View>
     </View>
   );
 
@@ -57,6 +61,7 @@ const VisitedGymScreen = ({ navigation }) => {
         data={visitedGyms}
         renderItem={renderGymItem}
         keyExtractor={(item) => item.gymId.toString()}
+        contentContainerStyle={styles.listContainer}
       />
       <Footer navigation={navigation} />
     </View>
@@ -73,22 +78,24 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  listContainer: {
+    paddingBottom: 20,
+  },
   gymItem: {
-    backgroundColor: '#f1f1f1',
-    padding: 20,
-    borderRadius: 10,
-    marginVertical: 10,
-    marginHorizontal: 20,
+    backgroundColor: '#f9f9f9',
+    padding: 15,
+    borderRadius: 8,
+    marginVertical: 5,
+    marginHorizontal: 15,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.1,
     shadowRadius: 5,
-    elevation: 4,
+    elevation: 3,
   },
   gymName: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 10,
     color: '#333',
   },
   detailsRow: {
@@ -97,23 +104,9 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
   gymDetails: {
-    fontSize: 16,
+    fontSize: 14,
     marginLeft: 10,
     color: '#555',
-  },
-  footer: {
-    backgroundColor: '#4CAF50',
-    paddingVertical: 15,
-    paddingHorizontal: 30,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-  },
-  footerText: {
-    fontSize: 12,
-    color: '#fff',
-    textAlign: 'center',
-    marginTop: 5,
   },
 });
 
