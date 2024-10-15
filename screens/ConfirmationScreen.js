@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ImageBackground } from 'react-native';
+import Footer from '../components/Footer';
 
 const ConfirmationScreen = ({ route, navigation }) => {
   const { slotDetails, data } = route.params; // Get slot details from navigation parameters
@@ -33,13 +34,19 @@ const ConfirmationScreen = ({ route, navigation }) => {
           <Text style={styles.buttonText}>Invite friends</Text>
         </TouchableOpacity>
       </View>
+       {/* Footer */}
+       <View style={styles.footerContainer}>
+        <Footer navigation={navigation} />
+      </View>
     </View>
+
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingTop: 50,
   },
   imageContainer: {
     flex: 0.5, // 50% for the image

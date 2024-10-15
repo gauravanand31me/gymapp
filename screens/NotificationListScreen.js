@@ -142,6 +142,10 @@ const NotificationListScreen = ({ navigation }) => {
     return (
       <View style={styles.container}>
         <Text style={styles.errorText}>{error}</Text>
+        <View style={styles.footerContainer}>
+        <Footer navigation={navigation} />
+        </View>
+       
       </View>
     );
   }
@@ -164,7 +168,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
-    paddingTop: 20,
+    paddingTop: 50,
   },
   header: {
     fontSize: 24,
@@ -188,6 +192,14 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     shadowOffset: { width: 0, height: 2 },
+  },
+  footerContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 60,  // Adjust based on footer height
+    backgroundColor: '#f5f5f5',
   },
   profileImage: {
     width: 30,
@@ -234,8 +246,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   errorText: {
-    color: 'red',
+    color: '#4CAF50',
     fontSize: 16,
+    fontWeight:'bold',
     textAlign: 'center',
   },
   loadingText: {

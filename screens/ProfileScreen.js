@@ -6,8 +6,8 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
-  FlatList,
   ActivityIndicator,
+  FlatList, // Import FlatList
 } from 'react-native';
 import { ProgressBar } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -20,45 +20,38 @@ import {
   uploadImages,
   getUserImage,
 } from '../api/apiService'; // Ensure you have the correct path
-import MileStoneContainer from '../components/MileStoneContainer';
 
 const ProfileScreen = ({ navigation }) => {
   const [profileImage, setProfileImage] = useState('https://via.placeholder.com/150');
-  const [images, setImages] = useState([]); // Change to an array to hold multiple images
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [selectedTab, setSelectedTab] = useState('Visited Gym'); // State for selected tab
+
+  // Dummy data for "Visited Gyms" and "Gym Buddies"
+  const visitedGymsData = [
+    { id: '1', gymName: 'Gold’s Gym', workoutHours: '15 hours' },
+    { id: '2', gymName: 'Planet Fitness', workoutHours: '20 hours' },
+    { id: '3', gymName: 'Anytime Fitness', workoutHours: '25 hours' },
+  ];
+
+  const gymBuddiesData = [
+    { id: '1', username: 'Buddy1', workoutHours: '10 hours' },
+    { id: '2', username: 'Buddy2', workoutHours: '12 hours' },
+    { id: '3', username: 'Buddy3', workoutHours: '8 hours' },
+  ];
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         const data = await userDetails();
-        console.log("User Profile Information received", data);
         setUserData(data);
         setProfileImage(data.profile_pic || profileImage);
-        await fetchImages(data.id); // Pass user ID directly to fetch images
       } catch (error) {
         console.error('Error fetching user data:', error);
         Alert.alert('Error', 'Could not fetch user data. Please try again later.');
       } finally {
         setLoading(false);
-      }
-    };
-
-    const fetchImages = async (userId) => {
-      try {
-        const response = await getUserImage(userId); // Get images for the specific user ID
-        console.log("uploadedImages", response);
-        
-        // Check if the response has userImages and set them to the state
-        if (response.userImages) {
-          setImages(response.userImages); // Update the state with the array of images
-        } else {
-          setImages([]); // Reset to an empty array if no images found
-        }
-      } catch (error) {
-        console.error('Error fetching images:', error);
-        Alert.alert('Error', 'Could not fetch images. Please try again later.');
       }
     };
 
@@ -77,10 +70,9 @@ const ProfileScreen = ({ navigation }) => {
       const selectedImage = result.assets[0].uri;
       setProfileImage(selectedImage);
 
-      // Upload the selected image to the server
       try {
         setUploading(true);
-        await uploadProfileImage(selectedImage); // Ensure this API is defined
+        await uploadProfileImage(selectedImage);
         Alert.alert('Success', 'Profile image uploaded successfully.');
       } catch (error) {
         console.error('Error uploading profile image:', error);
@@ -91,35 +83,26 @@ const ProfileScreen = ({ navigation }) => {
     }
   };
 
-  const selectImages = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: false,
-      quality: 0.5,
-      selectionLimit: 0, // 0 for unlimited selection
-    });
+  // Helper function to determine the correct medal image and label
+  const getMedalDetails = () => {
+    const workoutHours = (userData?.total_work_out_time || 0) / 60;
+    let medalImage, medalLabel;
 
-    if (!result.canceled) {
-      const selectedImage = result.assets[0].uri;
-
-      try {
-        setUploading(true);
-        await uploadImages(selectedImage); // Ensure this API handles array of images
-        Alert.alert('Success', 'Images uploaded successfully.');
-      } catch (error) {
-        console.error('Upload Error:', error);
-        Alert.alert('Upload Error', 'Failed to upload images.');
-      } finally {
-        setUploading(false);
-      }
+    if (workoutHours > 1000) {
+      medalImage = require('../assets/goldmedal.png'); // Gold medal
+      medalLabel = 'Pro';
+    } else if (workoutHours > 500) {
+      medalImage = require('../assets/silvermedal.png'); // Silver medal
+      medalLabel = 'Advance';
+    } else if (workoutHours > 100) {
+      medalImage = require('../assets/bronzemedal.png'); // Bronze medal
+      medalLabel = 'Bronze';
+    } else {
+      medalImage = require('../assets/defaultmedal.jpg'); // Default image
+      medalLabel = 'Beginner Mode';
     }
+    return { medalImage, medalLabel };
   };
-
-  const renderItem = ({ item }) => (
-    <View style={styles.gridItem}>
-      <Image source={{ uri: item.user_image }} style={styles.gridImage} />
-    </View>
-  );
 
   if (loading || uploading) {
     return (
@@ -129,80 +112,113 @@ const ProfileScreen = ({ navigation }) => {
     );
   }
 
+  // Destructure the medal details
+  const { medalImage, medalLabel } = getMedalDetails();
+
   return (
-<View style={styles.container}>
-    {/* Profile Header with Stats */}
-    <View style={styles.headerContainer}>
-      <View style={styles.profileHeader}>
-        <View style={styles.profileImageContainer}>
-          <Image source={{ uri: profileImage }} style={styles.profileImage} />
-          <TouchableOpacity style={styles.addPhotoButton} onPress={selectProfileImage}>
-            <Icon name="plus" size={20} color="#4CAF50" />
-          </TouchableOpacity>
+    <View style={styles.container}>
+      {/* Profile Header */}
+      <View style={styles.headerContainer}>
+        <View style={styles.profileHeader}>
+          <View style={styles.profileImageContainer}>
+            <Image source={{ uri: profileImage }} style={styles.profileImage} />
+            <TouchableOpacity style={styles.addPhotoButton} onPress={selectProfileImage}>
+              <Icon name="plus" size={20} color="#4CAF50" />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.profileDetails}>
+            <Text style={styles.fullName}>{userData?.full_name || 'N/A'}</Text>
+            <Text style={styles.username}>@{userData?.username || 'N/A'}</Text>
+            <Text style={styles.mobileNumber}>{userData?.mobile_number || 'N/A'}</Text>
+          </View>
         </View>
-        <View style={styles.profileDetails}>
-          <Text style={styles.fullName}>{userData?.full_name || 'N/A'}</Text>
-          <Text style={styles.username}>@{userData?.username || 'N/A'}</Text>
-          <Text style={styles.mobileNumber}>{userData?.mobile_number || 'N/A'}</Text>
-        </View>
-      </View>
-      <TouchableOpacity style={styles.settingsButton} onPress={() => navigation.navigate('Settings')}>
-        <Icon name="cog" size={20} color="#4CAF50" />
-      </TouchableOpacity>
-
-      {/* Send Request Button */}
-      <TouchableOpacity style={styles.sendRequestButton} onPress={() => Alert.alert('Request Sent!')}>
-        <Text style={styles.sendRequestText}>Send Request</Text>
-      </TouchableOpacity>
-   
-      </View>
-
-      {/* Combined Stats Container */}
-      <View style={styles.statsContainer}>
-        {/* <View style={styles.statCard}>
-          <Text style={styles.statValue}>{userData?.upload_count || 0}</Text>
-          <Text style={styles.statLabel}>Posts</Text>
-        </View> */}
-        <View style={styles.statCard}>
-          <TouchableOpacity onPress={() => navigation.navigate("InviteFriendBuddy")}>
-            <Text style={styles.statValue}>{userData?.followers_count || 0}</Text>
-            <Text style={styles.statLabel}>Friends</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.statCard}>
-          <Text style={styles.statValueTime}>{userData?.total_work_out_time/60 || 0} h.</Text>
-          <Text style={styles.statLabel}>Workout Time</Text>
-          <ProgressBar progress={0.75} color="#4CAF50" style={styles.progressBar} />
-        </View>
-      </View>
-
-      {/* Action Buttons */}
-      <View style={styles.buttonsRow}>
-        <TouchableOpacity style={styles.button}  onPress={() => navigation.navigate('VisitedGymScreen')}>
-          <Icon name="dumbbell" size={20} color="#fff" />
-          <Text style={styles.buttonText}>Visited Gyms</Text>
+        <TouchableOpacity style={styles.settingsButton} onPress={() => navigation.navigate('Settings')}>
+          <Icon name="cog" size={20} color="#4CAF50" />
         </TouchableOpacity>
-        {/* <TouchableOpacity style={styles.button}>
-          <Icon name="account-group" size={20} color="#fff" />
-          <Text style={styles.buttonText}>Gym Buddies</Text>
-        </TouchableOpacity> */}
-        
+        <TouchableOpacity style={styles.sendRequestButton} onPress={() => Alert.alert('Request Sent!')}>
+          <Text style={styles.sendRequestText}>Send Request</Text>
+        </TouchableOpacity>
       </View>
 
-      {/* Image Grid using FlatList */}
-      {/* <FlatList
-        data={images}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id} // Use unique image ID
-        numColumns={3}
-        columnWrapperStyle={styles.columnWrapper}
-        style={styles.imageGrid}
-      /> */}
+      <View style={styles.statsContainer}>
+  <View style={styles.statCard}>
+    <TouchableOpacity onPress={() => navigation.navigate("InviteFriendBuddy")}>
+      <Text style={styles.statValue}>{userData?.followers_count || 0}</Text>
+      <Text style={styles.statLabel}>Friends</Text>
+    </TouchableOpacity>
+  </View>
 
-      <MileStoneContainer workoutTime={userData?.total_work_out_time/60}/>
+  {/* Workout Time Section */}
+  <View style={styles.statCard}>
+    <View style={styles.workoutTimeContainer}>
+      <Text style={styles.statValueTime}>{(userData?.total_work_out_time / 60).toFixed(1)} h</Text>
+    </View>
+    <Text style={styles.statLabel}>Workout Time</Text>
+  </View>
 
-      {/* Footer at the Bottom */}
-      <Footer navigation={navigation} />
+  {/* Medal Section */}
+  <View style={styles.statCard}>
+    <View style={styles.medalContainer}>
+      <Image source={medalImage} style={styles.medalImage} />
+      <Text style={styles.medalLabel}>{medalLabel}</Text>
+    </View>
+  </View>
+</View>
+
+      {/* Tabs for Visited Gym and Gym Buddies */}
+      <View style={styles.tabContainer}>
+        <TouchableOpacity
+          style={[styles.tabButton, selectedTab === 'Visited Gym' && styles.activeTab]}
+          onPress={() => setSelectedTab('Visited Gym')}
+        >
+          <Text style={[styles.tabText, selectedTab === 'Visited Gym' && styles.activeTabText]}>
+            Visited Gym
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tabButton, selectedTab === 'Gym Buddies' && styles.activeTab]}
+          onPress={() => setSelectedTab('Gym Buddies')}
+        >
+          <Text style={[styles.tabText, selectedTab === 'Gym Buddies' && styles.activeTabText]}>
+            Gym Buddies
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.listContainer}>
+  {selectedTab === 'Visited Gym' ? (
+    <FlatList
+      data={visitedGymsData}
+      keyExtractor={(item) => item.id}
+      renderItem={({ item }) => (
+        <View style={styles.gymItem}>
+          <View style={styles.gymInfoContainer}>
+            <Text style={styles.gymName}>{item.gymName}</Text>
+            <Text style={styles.gymWorkoutHours}>{item.workoutHours}</Text>
+          </View>
+        </View>
+      )}
+    />
+  ) : (
+    <FlatList
+      data={gymBuddiesData}
+      keyExtractor={(item) => item.id}
+      renderItem={({ item }) => (
+        <View style={styles.buddyItem}>
+          <View style={styles.buddyInfoContainer}>
+            <Text style={styles.buddyUsername}>{item.username}</Text>
+            <Text style={styles.buddyWorkoutHours}>{item.workoutHours}</Text>
+          </View>
+        </View>
+      )}
+    />
+  )}
+</View>
+
+      {/* Footer */}
+      <View style={styles.footerContainer}>
+        <Footer navigation={navigation} />
+      </View>
     </View>
   );
 };
@@ -259,10 +275,10 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   profileDetails: {
-    marginLeft: 15,
+    marginLeft: 10,
   },
   fullName: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
   },
   username: {
@@ -270,8 +286,8 @@ const styles = StyleSheet.create({
     color: '#555',
   },
   mobileNumber: {
-    fontSize: 14,
-    color: '#777',
+    fontSize: 16,
+    color: '#555',
   },
   settingsButton: {
     padding: 10,
@@ -280,100 +296,131 @@ const styles = StyleSheet.create({
     backgroundColor: '#4CAF50',
     borderRadius: 5,
     padding: 10,
-    justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 10, // Space between settings button and send request button
-    marginTop: 50, // Add margin to move the button down
-
   },
   sendRequestText: {
     color: '#fff',
-    fontWeight: 'bold',
   },
   statsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     padding: 10,
-    backgroundColor: '#f9f9f9',
-    borderRadius: 10,
-    marginVertical: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 3,
   },
   statCard: {
     flex: 1,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 10,
+    margin: 5,
     alignItems: 'center',
+    flexDirection: 'column', // Stack items vertically
     justifyContent: 'center',
-    paddingVertical: 10,
-    minHeight: 100,
+  },
+  workoutTimeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   statValue: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: 'bold',
-    color: '#000',
+    textAlign: 'center', // Center text
   },
   statValueTime: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: 'bold',
-    color: '#000',
-    textAlign: 'center',
   },
-  statLabel: {
-    fontSize: 14,
-    color: '#555',
-  },
-  buttonsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginVertical: 10,
-  },
-  button: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#4CAF50',
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    borderRadius: 5,
-    elevation: 2,
-  },
-  buttonText: {
-    color: '#fff',
-    marginLeft: 5,
-  },
-  addButton: {
-    backgroundColor: '#4CAF50',
-    borderRadius: 50,
-    padding: 8,
-    elevation: 2,
-  },
-  imageGrid: {
-    marginBottom: 10,
-  },
-  gridItem: {
-    flex: 1,
-    margin: 5,
-    aspectRatio: 1,
-    height: 100,
-    justifyContent: 'center',
+  medalContainer: {
     alignItems: 'center',
   },
-  gridImage: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 5,
+  medalImage: {
+    width: 40,
+    height: 40,
   },
-  columnWrapper: {
-    justifyContent: 'space-between',
-  },
-  progressBar: {
-    height: 10,
-    borderRadius: 5,
+  medalLabel: {
+    fontSize: 16,
     marginTop: 5,
   },
+  tabContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+    marginVertical: 10,
+  },
+  tabButton: {
+    paddingVertical: 10,
+    flex: 1,
+    alignItems: 'center',
+  },
+  activeTab: {
+    borderBottomWidth: 2,
+    borderBottomColor: '#4CAF50',
+  },
+  tabText: {
+    fontSize: 18,
+    color: '#555',
+  },
+  activeTabText: {
+    color: '#4CAF50',
+    fontWeight: 'bold',
+  },
+  listContainer: {
+    padding: 10,
+  },
+  gymItem: {
+    //backgroundColor: '#e8f5e9',
+    padding: 10,
+    borderRadius: 5,
+    marginVertical: 5,
+  },
+  gymName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#4CAF50',
+  },
+  gymWorkoutHours: {
+    color: '#555',
+    fontWeight:'bold',
+  },
+  buddyItem: {
+    //backgroundColor: '#e3f2fd',
+    padding: 10,
+    borderRadius: 5,
+    marginVertical: 5,
+  },
+  buddyUsername: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#4CAF50',
+  },
+  buddyWorkoutHours: {
+    color: '#555',
+    fontWeight:'bold',
+  },
+  footerContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 60,  // Adjust based on footer height
+    backgroundColor: '#f5f5f5',  
+  },
+    gymInfoContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    buddyInfoContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    statLabel: {
+      fontSize: 16,
+      color: '#555',
+      textAlign: 'center', // Center text
+      marginTop: 4, // Space between value and label
+    },
 });
-
 
 export default ProfileScreen;
