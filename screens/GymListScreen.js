@@ -38,7 +38,7 @@ export default function GymListScreen({ navigation }) {
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false); // Track keyboard visibility
   const limit = 9;
 
-  const GOOGLE_MAPS_API_KEY = '';  // Replace with your actual API key
+  const GOOGLE_MAPS_API_KEY = 'AIzaSyCe_VHcmc7i6jbNl0oFDVHwQyavPgYFU10';  // Replace with your actual API key
 
   useEffect(() => {
     const showSubscription = Keyboard.addListener('keyboardDidShow', () => {

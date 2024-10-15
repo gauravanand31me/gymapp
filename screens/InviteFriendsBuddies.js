@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, FlatList } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, FlatList, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Footer from '../components/Footer';
-import { fetchFriends, inviteBuddyRequest } from '../api/apiService';
+import { fetchFriends, inviteBuddyRequest, fetchBuddyInvites } from '../api/apiService'; // Add fetchInvitedBuddies
 
 const InviteFriendBuddiesScreen = ({ navigation, route }) => {
   const [searchText, setSearchText] = useState('');
   const [buddyList, setBuddyList] = useState([]);
+  const [invitedBuddies, setInvitedBuddies] = useState([]); // Track invited buddies
+  const [alreadyInvited, setAlreadyInvited] = useState([]); // Track already invited buddies
+
   let bookingId;
-  if(route?.params?.bookingId) {
-      bookingId  = route.params.bookingId; // Assuming bookingId is passed as a parameter
+  if (route?.params?.bookingId) {
+    bookingId = route.params.bookingId; // Assuming bookingId is passed as a parameter
   }
-  
 
   // Fetch friends on component mount
   const fetchBuddyList = async () => {
@@ -23,8 +25,24 @@ const InviteFriendBuddiesScreen = ({ navigation, route }) => {
     }
   };
 
+  // Fetch already invited buddies for this booking
+  const fetchAlreadyInvitedBuddies = async () => {
+    try {
+      const data = await fetchBuddyInvites(bookingId); // Assuming this API returns invited users by bookingId
+      console.log("Data is", data);
+      const invitedIds = data.map(invite => invite.toUserId); // Assuming userId is in the response
+      console.log("invitedIds", invitedIds);
+      setAlreadyInvited(invitedIds); // Store already invited buddy IDs
+    } catch (error) {
+      console.error('Error fetching invited buddies:', error);
+    }
+  };
+
   useEffect(() => {
-    fetchBuddyList();
+    if (bookingId) {
+      fetchAlreadyInvitedBuddies(); // Fetch invited buddies if bookingId is present
+    }
+    fetchBuddyList(); // Fetch the buddy list
   }, []);
 
   const searchUser = (user) => {
@@ -32,28 +50,47 @@ const InviteFriendBuddiesScreen = ({ navigation, route }) => {
   };
 
   const inviteBuddy = async (bookingId, id) => {
-        const resp = await inviteBuddyRequest(bookingId, id);
-        console.log("Response Successful", resp);
-        navigation.navigate("MyBookings");
-  }
+    try {
+      const resp = await inviteBuddyRequest(bookingId, id);
+      
+      if (resp.status == "pending") {
+        Alert.alert("Success", "Invitation sent successfully!");
+        setInvitedBuddies((prev) => [...prev, id]); // Add the buddy to the invited list
+      } else {
+        Alert.alert("Error", "Failed to send the invitation.");
+      }
+    } catch (error) {
+      console.error('Error sending invitation:', error);
+    }
+  };
 
   // Render a buddy
   const renderBuddy = ({ item }) => (
     <View style={styles.buddyItem}>
-      <Image 
-        source={item.profile_pic ? { uri: item.profile_pic } : require('../assets/cultfit.jpg')} 
-        style={styles.buddyImage} 
+      <Image
+        source={item.profile_pic ? { uri: item.profile_pic } : require('../assets/cultfit.jpg')}
+        style={styles.buddyImage}
       />
       <View style={styles.buddyInfo}>
         <Text style={styles.buddyName}>{item.full_name}</Text>
       </View>
-      {bookingId && <TouchableOpacity style={styles.inviteButton} onPress={() => inviteBuddy(bookingId, item.fromUserId)}>
-        <Text style={styles.inviteButtonText}>Invite buddy</Text>
-      </TouchableOpacity>}
+      {bookingId && (
+        <TouchableOpacity
+          style={styles.inviteButton}
+          onPress={() => inviteBuddy(bookingId, item.fromUserId)}
+          disabled={alreadyInvited.includes(item.fromUserId) || invitedBuddies.includes(item.fromUserId)} // Disable if already invited
+        >
+          <Text style={styles.inviteButtonText}>
+            {alreadyInvited.includes(item.fromUserId) || invitedBuddies.includes(item.fromUserId) ? 'Invited' : 'Invite buddy'}
+          </Text>
+        </TouchableOpacity>
+      )}
 
-      {!bookingId && <TouchableOpacity style={styles.inviteButton}>
-        <Text style={styles.inviteButtonText}>Unfriend</Text>
-      </TouchableOpacity>}
+      {!bookingId && (
+        <TouchableOpacity style={styles.inviteButton}>
+          <Text style={styles.inviteButtonText}>Unfriend</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 
@@ -61,7 +98,9 @@ const InviteFriendBuddiesScreen = ({ navigation, route }) => {
     <View style={styles.container}>
       {/* Header with Invite buddies */}
       <View style={styles.header}>
-        <Text><Icon name="dumbbell" size={40} color="#fff" /></Text>
+        <Text>
+          <Icon name="dumbbell" size={40} color="#fff" />
+        </Text>
         <View>
           <Text style={styles.headerTitle}>Invite Friends</Text>
           <Text style={styles.headerSubtitle}>Add your buddies for a workout!</Text>
@@ -75,7 +114,9 @@ const InviteFriendBuddiesScreen = ({ navigation, route }) => {
 
       {/* Search bar */}
       <View style={styles.searchContainer}>
-        <Text><Icon name="magnify" size={24} color="#888" /></Text>
+        <Text>
+          <Icon name="magnify" size={24} color="#888" />
+        </Text>
         <TextInput
           style={styles.searchInput}
           placeholder="Search Friends"

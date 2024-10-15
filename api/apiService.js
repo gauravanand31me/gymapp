@@ -4,7 +4,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system';
 
-const BASE_URL = 'https://ec2-18-118-173-113.us-east-2.compute.amazonaws.com/user/api'; // Change to HTTP for testing
+const BASE_URL = 'https://25b7-2401-4900-61b8-3485-e870-160a-61e8-2f12.ngrok-free.app/user/api'; // Change to HTTP for testing
 
 // Function to handle login
 export const loginUser = async (phoneNumber) => {
@@ -250,7 +250,7 @@ export const verifyOtp = async (mobileNumber, otp) => {
   
       // Assuming data.Booking contains the bookings
       return data.Booking.map(booking => ({
-        id: booking.bookingId, // Assuming bookingId is unique
+        id: booking.id, // Assuming bookingId is unique
         gymName: booking.gymName,
         location: booking.gymLocation, // Assuming you have this in your API response
         rating: booking.gymRating,
@@ -367,6 +367,22 @@ export const inviteBuddyRequest = async (bookingId, toUserId) => {
     Alert.alert('Error', 'An error occurred while sending the invitation.');
   }
 };
+
+
+export const fetchBuddyInvites = async (bookingId) => {
+  try {
+    const userToken = await AsyncStorage.getItem('authToken'); // Fetch token if needed
+    const response = await axios.get(`${BASE_URL}/buddy/get?bookingId=${bookingId}`, {
+    headers: {
+      Authorization: `Bearer ${userToken}`, // Make sure to replace <your_token> with the actual token
+    },
+  });
+    return response.data
+  } catch (error) {
+    console.error('Error fetching buddy:', error);
+    Alert.alert('Error', 'An error occurred while sending the invitation.');
+  }
+}
 
 export const uploadProfileImage = async (imageUri) => {
  

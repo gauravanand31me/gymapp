@@ -1,26 +1,37 @@
 import React, { useState, useEffect } from 'react';
-import Footer from '../components/Footer';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image, Modal, SafeAreaView } from 'react-native';
+import { fetchAllBookings, fetchBuddyInvites } from '../api/apiService'; // Add the new API import
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import { fetchAllBookings } from '../api/apiService'; // Adjust the import as necessary
 import BookingQRCode from '../components/BookingQRCode';
+import Footer from '../components/Footer';
 
 export default function BookingsScreen({ navigation }) {
   const [selectedTab, setSelectedTab] = useState('Upcoming');
   const [bookings, setBookings] = useState([]);
+  const [showInviteModal, setShowInviteModal] = useState(false); // State for modal visibility
+  const [invites, setInvites] = useState([]); // State to hold buddy invites
+  const [currentBookingId, setCurrentBookingId] = useState(null); // To track current booking ID
 
   useEffect(() => {
     const getBookings = async () => {
       const allBookings = await fetchAllBookings();
+      console.log("allBookings", allBookings);
       if (allBookings) {
         setBookings(allBookings);
       }
-      console.log("allBookings", allBookings);
     };
-
     getBookings();
   }, []);
+
+  // Function to fetch invites for a booking
+  const fetchInvitesForBooking = async (booking) => {
+    const inviteList = await fetchBuddyInvites(booking.id);
+    console.log("inviteList", inviteList);
+    setInvites(inviteList);
+    setCurrentBookingId(booking.bookingId); // Set the current booking id
+    setShowInviteModal(true); // Show the modal when invites are loaded
+  };
 
   const upcomingBookings = bookings.filter(booking => {
     const bookingDate = new Date(booking.date);
@@ -34,6 +45,20 @@ export default function BookingsScreen({ navigation }) {
     return bookingDate < currentDate;
   });
 
+  const getStatusStyle = (status) => {
+    switch (status.toLowerCase()) {
+      case 'accepted':
+        return { backgroundColor: '#4CAF50' }; // Green for accepted
+      case 'pending':
+        return { backgroundColor: '#FFC107' }; // Yellow for pending
+      case 'declined':
+        return { backgroundColor: '#F44336' }; // Red for declined
+      default:
+        return { backgroundColor: '#777' }; // Grey for unknown statuses
+    }
+  };
+
+
   const renderBooking = ({ item }) => (
     <View style={styles.bookingCard}>
       <View style={styles.cardHeader}>
@@ -43,7 +68,7 @@ export default function BookingsScreen({ navigation }) {
           <Text style={styles.locationText}>{item.location}</Text>
         </View>
       </View>
-  
+
       <View style={styles.cardBody}>
         <Image source={{ uri: item.imageUrl }} style={styles.gymImage} />
         <View style={styles.gymDetails}>
@@ -52,46 +77,40 @@ export default function BookingsScreen({ navigation }) {
             <Icon name="star" size={14} color="#FFD700" />
             <Text style={styles.ratingText}>{item.rating} ({item.reviews} Reviews)</Text>
           </View>
-  
+
           {/* Add Price and Booking ID */}
           <Text style={styles.bookingIdText}>Booking ID: {item.bookingId}</Text>
           <Text style={styles.priceText}>Price: ₹ {item.price}</Text>
-  
+
           {/* Invites and Add More Options */}
           <View style={styles.inviteAddMoreContainer}>
-            <Text style={styles.inviteText}>
-              <Icon name="users" size={14} color="#777" /> {item.invites} Invites
-            </Text>
-            <View style={styles.addMoreContainer}>
-              <Text style={styles.addMoreText}>Add More</Text>
+            {console.log("Items is", item)}
+            <TouchableOpacity onPress={() => fetchInvitesForBooking(item)}>
+              <Text style={styles.inviteText}>
+                <Icon name="users" size={14} color="#777" /> {item.invites} Invites
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('InviteFriendBuddy', { bookingId: item.id })}>
               <View style={styles.addMoreButton}>
                 <Text style={styles.addMoreButtonText}>+1</Text>
               </View>
-            </View>
+            </TouchableOpacity>
           </View>
-  
+
           {/* Message for QR Code */}
           <Text style={styles.qrCodeText}>
             Please scan the QR code below to log your workout hours.
           </Text>
-  
+
           <BookingQRCode booking_id={item.bookingId} booking_date={item.date} type="daily" />
-  
+
           {/* Cancellation Notice */}
           <Text style={styles.cancellationText}>
             For cancellations, please contact the administrator.
           </Text>
         </View>
       </View>
-  
-      {/* Move Book Again Button to Card Footer */}
-      {selectedTab === 'Completed' && (
-        <View style={styles.cardFooter}>
-          <TouchableOpacity style={styles.bookAgainButton}>
-            <Text style={styles.bookAgainButtonText}>Book Again</Text>
-          </TouchableOpacity>
-        </View>
-      )}
     </View>
   );
 
@@ -128,6 +147,45 @@ export default function BookingsScreen({ navigation }) {
           renderItem={renderBooking}
           contentContainerStyle={styles.listContent}
         />
+
+        {/* Invite Modal */}
+        <Modal visible={showInviteModal} transparent={true} animationType="slide">
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalHeader}>Buddy Invites for Booking ID: {currentBookingId}</Text>
+              <FlatList
+                data={invites}
+                keyExtractor={(invite) => invite.id}
+                renderItem={({ item }) => (
+                  <View style={styles.inviteItem}>
+                    {/* Profile Image and Names */}
+                    <View style={styles.inviteInfoContainer}>
+                      <Image
+                        source={{ uri: item.toUser.profile_pic }}
+                        style={styles.profileImage}
+                      />
+                      <Text style={styles.inviteText}>
+                        {item.toUser.full_name}
+                      </Text>
+                    </View>
+
+                    {/* Status as a Tag */}
+                    <View style={styles.statusContainer}>
+                      <Text style={[styles.statusText, getStatusStyle(item.status)]}>
+                        {item.status}
+                      </Text>
+                    </View>
+                  </View>
+                )}
+              />
+              <TouchableOpacity style={styles.closeButton} onPress={() => setShowInviteModal(false)}>
+                <Text style={styles.closeButtonText}>Close</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+
+        {/* Footer */}
         <View style={styles.footer}>
           <Footer navigation={navigation} />
         </View>
@@ -311,5 +369,64 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 10,
     textAlign: 'center', // Center the text for better presentation
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    width: '80%',
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 10,
+  },
+  modalHeader: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  inviteItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  inviteInfoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  profileImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 10,
+  },
+  statusContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  statusText: {
+    fontSize: 14,
+    color: '#fff',
+    padding: 5,
+    borderRadius: 5,
+  },
+  closeButton: {
+    backgroundColor: '#f44336',
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  closeButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  footer: {
+    height: 50,
+    justifyContent: 'center',
   },
 });
