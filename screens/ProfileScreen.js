@@ -28,7 +28,8 @@ const ProfileScreen = ({ navigation }) => {
   const [visitedGyms, setVisitedGyms] = useState([]);  // State to store visited gyms
   const [selectedTab, setSelectedTab] = useState('Visited Gym'); // State for selected tab
   const [visitedBuddies, setVisitedBuddies] = useState([]);
-
+ 
+  
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -145,9 +146,9 @@ const ProfileScreen = ({ navigation }) => {
         <TouchableOpacity style={styles.settingsButton} onPress={() => navigation.navigate('Settings')}>
           <Icon name="cog" size={20} color="#4CAF50" />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.sendRequestButton} onPress={() => Alert.alert('Request Sent!')}>
+        {/* <TouchableOpacity style={styles.sendRequestButton} onPress={() => Alert.alert('Request Sent!')}>
           <Text style={styles.sendRequestText}>Send Request</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
 
       <View style={styles.statsContainer}>

@@ -27,7 +27,7 @@ const InviteBuddiesScreen = ({ navigation }) => {
 
   const handleInvite = async (id) => {
     try {
-      const response = await addFriend(id); 
+      const response = await addFriend(id);
       console.log('Friend request sent:', response);
       fetchNearbyUsers();
     } catch (error) {
@@ -38,16 +38,19 @@ const InviteBuddiesScreen = ({ navigation }) => {
   const searchUser = async (user) => {
 
     setSearchText(user);
-    
+
   };
 
   const renderBuddy = ({ item }) => (
     <View style={styles.buddyItem}>
       <Image source={{ uri: item.image }} style={styles.buddyImage} />
-      <View style={styles.buddyInfo}>
-        <Text style={styles.buddyName}>{item.name}</Text>
-        <Text style={styles.username}>{item.username}</Text>
-      </View>
+      <TouchableOpacity  style={styles.buddyInfo} onPress={() => navigation.navigate("UserProfile", { userId: item.id })}>
+        <View>
+          <Text style={styles.buddyName}>{item.name}</Text>
+          <Text style={styles.username}>{item.username}</Text>
+        </View>
+      </TouchableOpacity>
+
 
       {(item?.invited?.accepted) && (
         <TouchableOpacity style={styles.invitedButton}>

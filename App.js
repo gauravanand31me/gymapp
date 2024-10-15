@@ -21,6 +21,7 @@ import InviteFriendBuddiesScreen from './screens/InviteFriendsBuddies';
 import SettingsScreen from './screens/SettingsScreen';
 import SplashScreen from './components/SplashScreen'; // Import the SplashScreen component
 import VisitedGymScreen from './screens/VisitedGymScreen'; // Import the screen
+import UserProfileScreen from './screens/UserProfileScreen';
 
 const Stack = createStackNavigator();
 
@@ -66,6 +67,7 @@ export default function App() {
             <Stack.Screen name="PaymentScreen" component={PaymentScreen} />
             <Stack.Screen name="InviteFriendBuddy" component={InviteFriendBuddiesScreen} />
             <Stack.Screen name="Settings" component={SettingsScreen} />
+            <Stack.Screen name="UserProfile" component={UserProfileScreen} />
             <Stack.Screen name="VisitedGymScreen" component={VisitedGymScreen} options={{ title: 'Visited Gyms' }} />
           </>
         )}

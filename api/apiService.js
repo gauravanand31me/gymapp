@@ -141,10 +141,10 @@ export const verifyOtp = async (mobileNumber, otp) => {
     }
   };
 
-  export const userDetails = async () => {
+  export const userDetails = async (userId="") => {
     try {
       const userToken = await AsyncStorage.getItem('authToken'); // Fetch token if needed
-      const response = await fetch(`${BASE_URL}/users/get`, {
+      const response = await fetch(`${BASE_URL}/users/get?id=${userId}`, {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${userToken}`, // Include the bearer token
@@ -512,10 +512,10 @@ export const acceptBuddyRequest = async (requestId) => {
 }
 
 
-export const getVisitedGyms = async () => {
+export const getVisitedGyms = async (userId="") => {
   try {
     const userToken = await AsyncStorage.getItem('authToken'); // Fetch token if needed
-    const response = await axios.get(`${BASE_URL}/booking/visited-gyms`, {
+    const response = await axios.get(`${BASE_URL}/booking/visited-gyms?id=${userId}`, {
       headers: {
         Authorization: `Bearer ${userToken}`,  // Add the Bearer token here
       }
@@ -528,10 +528,10 @@ export const getVisitedGyms = async () => {
 };
 
 
-export const getVisitedBuddies = async () => {
+export const getVisitedBuddies = async (userId="") => {
   try {
     const userToken = await AsyncStorage.getItem('authToken'); // Fetch token if needed
-    const response = await axios.get(`${BASE_URL}/booking/workout-buddies`, {
+    const response = await axios.get(`${BASE_URL}/booking/workout-buddies?id=${userId}`, {
       headers: {
         Authorization: `Bearer ${userToken}`,  // Add the Bearer token here
       }
@@ -542,3 +542,5 @@ export const getVisitedBuddies = async () => {
     throw error;
   }
 };
+
+
