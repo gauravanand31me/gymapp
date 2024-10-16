@@ -224,7 +224,7 @@ export default function GymListScreen({ navigation }) {
         />
       </View>
 
-      {loading && <ActivityIndicator size="large" color="#f4511e" style={styles.loader} />}
+     
       {error && <Text style={styles.errorMessage}>{error}</Text>}
 
       <FlatList
@@ -235,7 +235,7 @@ export default function GymListScreen({ navigation }) {
           <>
             {loading ? <ActivityIndicator size="large" color="#f4511e" /> : null}
 
-            {!loading && hasMoreGyms && (
+            {!loading  && (
               <TouchableOpacity style={styles.seeMoreButton} onPress={loadMoreGyms}>
                 <Text style={styles.seeMoreText}>See More Results</Text>
               </TouchableOpacity>

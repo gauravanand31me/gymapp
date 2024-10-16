@@ -121,7 +121,7 @@ const ProfileScreen = ({ navigation }) => {
           <Text style={styles.statText}>Workout Time</Text>
         </View>
         <View style={styles.statsRow}>
-          <Text style={styles.statValue}>{userData?.friends || 0}</Text>
+          <Text style={styles.statValue}>{userData?.followers_count || 0}</Text>
           <Text style={styles.statValue}>{userData?.total_work_out_time / 60 || 0} hrs.</Text>
         </View>
       </View>

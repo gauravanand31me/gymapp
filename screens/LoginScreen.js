@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert, Modal } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert, Modal, ActivityIndicator } from 'react-native';
 import { loginUser } from '../api/apiService'; // Import the loginUser function
 import { Ionicons } from '@expo/vector-icons'; // For adding icons
 
@@ -7,6 +7,7 @@ const LoginScreen = ({ navigation }) => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [errorVisible, setErrorVisible] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // New state for loader
 
   const handleLogin = async () => {
     if (!phoneNumber) {
@@ -15,6 +16,7 @@ const LoginScreen = ({ navigation }) => {
       return;
     }
 
+    setIsLoading(true); // Start the loader
     try {
       const data = await loginUser(phoneNumber); // Call the API service
 
@@ -29,6 +31,8 @@ const LoginScreen = ({ navigation }) => {
     } catch (error) {
       setErrorMessage(error.response?.data?.message || 'Login Failed');
       setErrorVisible(true);
+    } finally {
+      setIsLoading(false); // Stop the loader
     }
   };
 
@@ -55,8 +59,16 @@ const LoginScreen = ({ navigation }) => {
         onChangeText={setPhoneNumber}
       />
 
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Login</Text>
+      <TouchableOpacity
+        style={[styles.button, isLoading && styles.disabledButton]} // Disable button style if loading
+        onPress={handleLogin}
+        disabled={isLoading} // Disable button when loading
+      >
+        {isLoading ? (
+          <ActivityIndicator size="small" color="#fff" /> // Show loader
+        ) : (
+          <Text style={styles.buttonText}>Login</Text> // Show normal text
+        )}
       </TouchableOpacity>
 
       <View style={styles.footer}>
@@ -131,6 +143,9 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     width: '100%',
     alignItems: 'center',
+  },
+  disabledButton: {
+    backgroundColor: '#aaa', // Change button color when disabled
   },
   buttonText: {
     color: '#fff',
