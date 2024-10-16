@@ -1,4 +1,6 @@
 import * as React from 'react';
+import * as Notifications from 'expo-notifications';
+import { Platform } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import * as NavigationBar from "expo-navigation-bar";
@@ -29,7 +31,35 @@ export default function App() {
   const [isSplashVisible, setSplashVisible] = React.useState(true); // Track splash screen visibility
 
   React.useEffect(() => {
+    registerForPushNotificationsAsync();
+  }, []);
+
+  const registerForPushNotificationsAsync = async () => {
+    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+
+    // Only ask if permissions have not already been determined, because
+    // iOS won't necessarily prompt the user a second time.
+    if (existingStatus !== 'granted') {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+
+    // Stop here if the user did not grant permissions
+    if (finalStatus !== 'granted') {
+      alert('Failed to get push token for push notification!');
+      return;
+    }
+
+    // Get the token that uniquely identifies this device
+    const token = (await Notifications.getExpoPushTokenAsync()).data;
+
+    console.log(token);
+  };
+
+  React.useEffect(() => {
     // Simulate loading time or other tasks, like fetching data or checking user login status
+    registerForPushNotificationsAsync();
     const timer = setTimeout(() => {
       setSplashVisible(false); // Hide the splash screen after 3 seconds
     }, 3000); // 3 seconds
