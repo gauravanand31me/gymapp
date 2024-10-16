@@ -7,7 +7,7 @@ import {
     StyleSheet,
     Alert,
     ActivityIndicator,
-    FlatList, // Import FlatList
+    FlatList,
 } from 'react-native';
 import { ProgressBar } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -19,7 +19,7 @@ import {
     getVisitedGyms,
     getVisitedBuddies,
     fetchAllNearByUser,
-    addFriend,  // Import the API call
+    addFriend,
 } from '../api/apiService'; // Ensure you have the correct path
 
 const UserProfileScreen = ({ navigation, route }) => {
@@ -27,8 +27,8 @@ const UserProfileScreen = ({ navigation, route }) => {
     const [userData, setUserData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
-    const [visitedGyms, setVisitedGyms] = useState([]);  // State to store visited gyms
-    const [selectedTab, setSelectedTab] = useState('Visited Gym'); // State for selected tab
+    const [visitedGyms, setVisitedGyms] = useState([]);
+    const [selectedTab, setSelectedTab] = useState('Visited Gym');
     const [visitedBuddies, setVisitedBuddies] = useState([]);
     const [friends, setFriends] = useState({});
 
@@ -38,17 +38,15 @@ const UserProfileScreen = ({ navigation, route }) => {
         const data = await fetchAllNearByUser(userData?.username);
         setFriends(data[0]);
     }
-    
+
     useEffect(() => {
         const fetchUserData = async () => {
             try {
                 const data = await userDetails(userId);
                 setUserData(data);
                 setProfileImage(data.profile_pic || profileImage);
-           
             } catch (error) {
                 console.error('Error fetching user data:', error);
-
                 Alert.alert('Error', 'Could not fetch user data. Please try again later.');
             } finally {
                 setLoading(false);
@@ -57,30 +55,26 @@ const UserProfileScreen = ({ navigation, route }) => {
 
         const fetchVisitedGyms = async () => {
             try {
-                const response = await getVisitedGyms(userId);  // Fetch visited gyms
-                setVisitedGyms(response.visitedGyms);  // Set the visited gyms data
+                const response = await getVisitedGyms(userId);
+                setVisitedGyms(response.visitedGyms);
             } catch (error) {
                 console.error('Error fetching visited gyms:', error);
                 Alert.alert('Error', 'Could not fetch visited gyms. Please try again later.');
             }
         };
-
 
         const fetchVisitedBuddies = async () => {
             try {
-                const response = await getVisitedBuddies(userId);  // Fetch visited gyms
-                console.log("Response received", response.buddiesWithWorkoutHours);
-                setVisitedBuddies(response.buddiesWithWorkoutHours);  // Set the visited gyms data
+                const response = await getVisitedBuddies(userId);
+                setVisitedBuddies(response.buddiesWithWorkoutHours);
             } catch (error) {
-                console.error('Error fetching visited gyms:', error);
-                Alert.alert('Error', 'Could not fetch visited gyms. Please try again later.');
+                console.error('Error fetching visited buddies:', error);
+                Alert.alert('Error', 'Could not fetch visited buddies. Please try again later.');
             }
         };
 
-        
-
         fetchUserData();
-        fetchVisitedGyms();  // Call the API to fetch visited gyms
+        fetchVisitedGyms();
         fetchVisitedBuddies();
         getFriendShip();
     }, []);
@@ -90,12 +84,10 @@ const UserProfileScreen = ({ navigation, route }) => {
             const response = await addFriend(id);
             console.log('Friend request sent:', response);
             getFriendShip();
-          } catch (error) {
+        } catch (error) {
             console.error('Error inviting friend:', error);
-          }
+        }
     }
-
-
 
     const getMedalDetails = () => {
         const workoutHours = (userData?.total_work_out_time || 0) / 60;
@@ -129,13 +121,11 @@ const UserProfileScreen = ({ navigation, route }) => {
 
     return (
         <View style={styles.container}>
-           
             {/* Profile Header */}
             <View style={styles.headerContainer}>
                 <View style={styles.profileHeader}>
                     <View style={styles.profileImageContainer}>
                         <Image source={{ uri: profileImage }} style={styles.profileImage} />
-
                     </View>
                     <View style={styles.profileDetails}>
                         <Text style={styles.fullName}>{userData?.full_name || 'N/A'}</Text>
@@ -143,13 +133,12 @@ const UserProfileScreen = ({ navigation, route }) => {
                         <Text style={styles.mobileNumber}>{userData?.mobile_number || 'N/A'}</Text>
                     </View>
                 </View>
-                
+
                 {friends && <TouchableOpacity
                     style={styles.sendRequestButton}
                     onPress={() => {
                         if (!friends?.invited?.accepted && !friends?.invited?.sent) {
-                            sendFriendRequest(userId)
-                            // Handle send request logic here
+                            sendFriendRequest(userId);
                         }
                     }}
                 >
@@ -157,7 +146,6 @@ const UserProfileScreen = ({ navigation, route }) => {
                         {friends?.invited?.accepted && !friends?.invited?.sent ? 'Friends' : friends?.invited?.sent && !friends?.invited?.accepted ? 'Invited' : 'Send Request'}
                     </Text>
                 </TouchableOpacity>}
-
             </View>
 
             <View style={styles.statsContainer}>
@@ -206,7 +194,7 @@ const UserProfileScreen = ({ navigation, route }) => {
             <View style={styles.listContainer}>
                 {selectedTab === 'Visited Gym' ? (
                     <FlatList
-                        data={visitedGyms}  // Use the visitedGyms state
+                        data={visitedGyms}
                         keyExtractor={(item) => item.gymId}
                         renderItem={({ item }) => (
                             <View style={styles.gymItem}>
@@ -267,85 +255,73 @@ const styles = StyleSheet.create({
     },
     profileImageContainer: {
         position: 'relative',
-        borderRadius: 50,
-        padding: 5,
-        backgroundColor: '#fff',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 4,
-        elevation: 3,
-    },
-    profileImage: {
-        width: 100,
-        height: 100,
-        borderRadius: 60,
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        overflow: 'hidden',
         borderWidth: 2,
         borderColor: '#4CAF50',
+        marginRight: 10,
     },
-    addPhotoButton: {
-        position: 'absolute',
-        bottom: 0,
-        right: 0,
-        backgroundColor: '#fff',
-        borderRadius: 50,
-        padding: 4,
-        elevation: 2,
+    profileImage: {
+        width: '100%',
+        height: '100%',
+        borderRadius: 40,
     },
     profileDetails: {
-        marginLeft: 10,
+        justifyContent: 'center',
     },
     fullName: {
         fontSize: 20,
         fontWeight: 'bold',
+        color: '#333',
     },
     username: {
         fontSize: 16,
-        color: '#555',
+        color: '#777',
     },
     mobileNumber: {
-        fontSize: 16,
-        color: '#555',
-    },
-    settingsButton: {
-        padding: 10,
+        fontSize: 14,
+        color: '#999',
     },
     sendRequestButton: {
         backgroundColor: '#4CAF50',
         borderRadius: 5,
         padding: 10,
-        alignItems: 'center',
     },
     sendRequestText: {
         color: '#fff',
+        fontSize: 16,
     },
     statsContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        padding: 10,
+        marginVertical: 20,
     },
     statCard: {
         flex: 1,
-        backgroundColor: '#fff',
+        marginHorizontal: 5,
+        padding: 15,
         borderRadius: 10,
-        padding: 10,
-        margin: 5,
-        alignItems: 'center',
-        flexDirection: 'column', // Stack items vertically
-        justifyContent: 'center',
-    },
-    workoutTimeContainer: {
-        flexDirection: 'row',
+        backgroundColor: '#f5f5f5',
         alignItems: 'center',
     },
     statValue: {
         fontSize: 24,
         fontWeight: 'bold',
-        textAlign: 'center', // Center text
+        color: '#4CAF50',
+    },
+    statLabel: {
+        fontSize: 16,
+        color: '#777',
+    },
+    workoutTimeContainer: {
+        alignItems: 'center',
     },
     statValueTime: {
         fontSize: 24,
         fontWeight: 'bold',
+        color: '#4CAF50',
     },
     medalContainer: {
         alignItems: 'center',
@@ -353,91 +329,76 @@ const styles = StyleSheet.create({
     medalImage: {
         width: 40,
         height: 40,
+        marginBottom: 5,
     },
     medalLabel: {
         fontSize: 16,
-        marginTop: 5,
+        color: '#777',
     },
     tabContainer: {
         flexDirection: 'row',
-        justifyContent: 'space-around',
+        justifyContent: 'space-between',
         borderBottomWidth: 1,
-        borderBottomColor: '#ccc',
+        borderBottomColor: '#e0e0e0',
         marginVertical: 10,
     },
     tabButton: {
-        paddingVertical: 10,
         flex: 1,
+        padding: 10,
         alignItems: 'center',
+        backgroundColor: '#f0f0f0',
     },
     activeTab: {
-        borderBottomWidth: 2,
+        borderBottomWidth: 3,
         borderBottomColor: '#4CAF50',
     },
     tabText: {
-        fontSize: 18,
-        color: '#555',
+        fontSize: 16,
+        color: '#333',
     },
     activeTabText: {
-        color: '#4CAF50',
         fontWeight: 'bold',
+        color: '#4CAF50',
     },
     listContainer: {
-        padding: 10,
+        flex: 1,
     },
     gymItem: {
-        //backgroundColor: '#e8f5e9',
-        padding: 10,
-        borderRadius: 5,
-        marginVertical: 5,
-    },
-    gymName: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#4CAF50',
-    },
-    gymWorkoutHours: {
-        color: '#555',
-        fontWeight: 'bold',
-    },
-    buddyItem: {
-        //backgroundColor: '#e3f2fd',
-        padding: 10,
-        borderRadius: 5,
-        marginVertical: 5,
-    },
-    buddyUsername: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#4CAF50',
-    },
-    buddyWorkoutHours: {
-        color: '#555',
-        fontWeight: 'bold',
-    },
-    footerContainer: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        height: 60,  // Adjust based on footer height
-        backgroundColor: '#f5f5f5',
+        padding: 15,
+        borderBottomWidth: 1,
+        borderBottomColor: '#e0e0e0',
     },
     gymInfoContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'center',
+    },
+    gymName: {
+        fontSize: 18,
+        color: '#333',
+    },
+    gymWorkoutHours: {
+        fontSize: 16,
+        color: '#777',
+    },
+    buddyItem: {
+        padding: 15,
+        borderBottomWidth: 1,
+        borderBottomColor: '#e0e0e0',
     },
     buddyInfoContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'center',
     },
-    statLabel: {
+    buddyUsername: {
+        fontSize: 18,
+        color: '#333',
+    },
+    buddyWorkoutHours: {
         fontSize: 16,
-        color: '#555',
-        textAlign: 'center', // Center text
-        marginTop: 4, // Space between value and label
+        color: '#777',
+    },
+    footerContainer: {
+        paddingVertical: 10,
     },
 });
 

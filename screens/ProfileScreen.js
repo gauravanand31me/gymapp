@@ -12,6 +12,7 @@ import {
 import { ProgressBar } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
 import Footer from '../components/Footer'; // Assuming you have a Footer component
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {
   userDetails,
   uploadProfileImage,
@@ -64,6 +65,28 @@ const ProfileScreen = ({ navigation }) => {
     fetchVisitedBuddies();
   }, []);
 
+  const selectProfileImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      const selectedImage = result.assets[0].uri;
+      setProfileImage(selectedImage);
+
+      try {
+        await uploadProfileImage(selectedImage);
+        Alert.alert('Success', 'Profile image uploaded successfully.');
+      } catch (error) {
+        console.error('Error uploading profile image:', error);
+        Alert.alert('Upload Error', 'Failed to upload profile image.');
+      }
+    }
+  };
+
   if (loading) {
     return (
       <View style={styles.loader}>
@@ -76,19 +99,31 @@ const ProfileScreen = ({ navigation }) => {
     <View style={styles.container}>
       {/* Profile Section */}
       <View style={styles.profileSection}>
-        <Image source={{ uri: profileImage }} style={styles.profileImage} />
-        <Text style={styles.nameText}>{userData?.full_name || 'User Name'}</Text>
+        <View style={styles.profileHeader}>
+          <View style={styles.profileImageContainer}>
+            <Image source={{ uri: profileImage }} style={styles.profileImage} />
+            <TouchableOpacity style={styles.addPhotoButton} onPress={selectProfileImage}>
+              <Icon name="plus-circle-outline" size={30} color="#fff" />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.profileDetails}>
+            <Text style={styles.fullName}>{userData?.full_name || 'N/A'}</Text>
+            <Text style={styles.username}>@{userData?.username || 'N/A'}</Text>
+            <Text style={styles.mobileNumber}>{userData?.mobile_number || 'N/A'}</Text>
+          </View>
+          {/* Settings Icon */}
+          <TouchableOpacity style={styles.settingsButton} onPress={() => navigation.navigate('Settings')}>
+            <Icon name="cog" size={30} color="#555" />
+          </TouchableOpacity>
+        </View>
         <View style={styles.statsRow}>
           <Text style={styles.statText}>Friends</Text>
           <Text style={styles.statText}>Workout Time</Text>
         </View>
         <View style={styles.statsRow}>
           <Text style={styles.statValue}>{userData?.friends || 0}</Text>
-          <Text style={styles.statValue}>{userData?.total_work_out_time || 0} hrs.</Text>
+          <Text style={styles.statValue}>{userData?.total_work_out_time / 60 || 0} hrs.</Text>
         </View>
-        <TouchableOpacity style={styles.followButton}>
-          <Text style={styles.followButtonText}>Follow</Text>
-        </TouchableOpacity>
       </View>
 
       {/* Milestone Progress */}
@@ -100,13 +135,13 @@ const ProfileScreen = ({ navigation }) => {
           <Image source={require('../assets/goldmedal.png')} style={styles.milestoneIcon} />
           <Image source={require('../assets/defaultmedal.jpg')} style={styles.milestoneIcon} />
         </View>
-        <ProgressBar 
-          progress={0.7} 
-          width={null} 
-          height={10} 
-          color="#6FCF97" 
-          unfilledColor="#E0E0E0" 
-          borderColor="transparent" 
+        <ProgressBar
+          progress={0.7}
+          width={null}
+          height={10}
+          color="#6FCF97"
+          unfilledColor="#E0E0E0"
+          borderColor="transparent"
           style={styles.progressBar}
         />
         <Text style={styles.milestoneText}>20 hours away from earning Bronze.</Text>
@@ -157,7 +192,7 @@ const ProfileScreen = ({ navigation }) => {
 
       <View style={styles.footerContainer}>
         <Footer navigation={navigation} />
-        </View>
+      </View>
     </View>
   );
 };
@@ -180,63 +215,98 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
   },
+  profileHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  profileImageContainer: {
+    position: 'relative',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   profileImage: {
     width: 100,
     height: 100,
     borderRadius: 50,
-    marginBottom: 10,
+    borderWidth: 3,
+    borderColor: '#4CAF50',
   },
-  nameText: {
+  addPhotoButton: {
+    position: 'absolute',
+    bottom: 0,
+    right: -10,
+    backgroundColor: '#4CAF50',
+    borderRadius: 20,
+    padding: 5,
+  },
+  profileDetails: {
+    flex: 1,
+    marginLeft: 20,
+  },
+  fullName: {
     fontSize: 22,
     fontWeight: 'bold',
   },
+  username: {
+    fontSize: 16,
+    color: '#777',
+  },
+  mobileNumber: {
+    fontSize: 16,
+    color: '#777',
+  },
+  settingsButton: {
+    padding: 5,
+  },
   statsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '60%',
-    marginVertical: 10,
+    justifyContent: 'space-around',
+    marginTop: 15,
+    width: '100%',
   },
   statText: {
     fontSize: 16,
-    color: '#555',
+    color: '#777',
   },
   statValue: {
     fontSize: 18,
     fontWeight: 'bold',
   },
-  followButton: {
-    backgroundColor: '#4CAF50',
-    padding: 10,
-    borderRadius: 30,
+  milestoneContainer: {
     marginTop: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+    backgroundColor: '#F8F8F8',
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 5,
   },
-  followButtonText: {
-    color: '#fff',
-    fontSize: 16,
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
   },
   milestoneIcons: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginVertical: 10,
+    justifyContent: 'space-around',
   },
   milestoneIcon: {
-    width: 30,
-    height: 30,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
   },
   progressBar: {
-    marginVertical: 10,
+    marginTop: 15,
   },
   milestoneText: {
+    marginTop: 10,
     fontSize: 14,
-    color: '#999',
-    textAlign: 'center',
-  
-  },
-  milestoneContainer: {
-    margin: 20,
-    padding: 15,
-    backgroundColor: '#fff',
-    borderRadius: 10,
+    color: '#555',
   },
   tabContainer: {
     flexDirection: 'row',
@@ -244,46 +314,42 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   tabButton: {
-    padding: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    backgroundColor: '#E0E0E0',
   },
   activeTab: {
-    borderBottomWidth: 2,
-    borderBottomColor: '#4CAF50',
+    backgroundColor: '#4CAF50',
   },
   tabText: {
     fontSize: 16,
-    color: '#888',
+    color: '#555',
   },
   activeTabText: {
-    color: '#4CAF50',
+    color: '#fff',
   },
   listContainer: {
+    flex: 1,
     paddingHorizontal: 20,
-    marginTop: 20,
   },
   listItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingVertical: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: '#E0E0E0',
   },
   listItemText: {
     fontSize: 16,
-    color: '#333',
   },
   listItemHours: {
     fontSize: 16,
-    color: '#4CAF50',
+    color: '#777',
   },
   footerContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 60,  // Adjust based on footer height
-    backgroundColor: '#f5f5f5',
-  }
+    marginTop: 10,
+  },
 });
 
 export default ProfileScreen;

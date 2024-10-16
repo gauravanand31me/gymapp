@@ -15,11 +15,13 @@
       "supportsTablet": true
     },
     "android": {
+      "versionCode": 1,
+      "package": "com.yupluck.mepluck",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.yupluck.mepluck"
+      "permissions": []
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -27,6 +29,11 @@
     "notification": {
       "icon": "./assets/icon.png",
       "color": "#000000"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "f6d47946-efbe-4b9c-80f1-60a205cd4d1b"
+      }
     }
   }
 }

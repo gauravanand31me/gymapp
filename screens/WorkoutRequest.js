@@ -8,7 +8,7 @@ const WorkoutRequest = () => {
   return (
     // Wrap the entire view with ImageBackground for the background image
     <ImageBackground 
-      source={require('../assets/gymBackground.png')} // Add your downloaded image path here
+      source={require('../assets/goldmedal.png')} // Add your downloaded image path here
       style={styles.background}
     >
       <View style={styles.container}>
