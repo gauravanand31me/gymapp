@@ -103,7 +103,7 @@ const UserProfileScreen = ({ navigation, route }) => {
             medalImage = require('../assets/bronzemedal.png');
             medalLabel = 'Bronze';
         } else {
-            medalImage = require('../assets/defaultmedal.jpg');
+            medalImage = require('../assets/diamondmedal.jpg');
             medalLabel = 'Beginner Mode';
         }
         return { medalImage, medalLabel };
