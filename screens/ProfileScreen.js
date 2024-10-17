@@ -201,7 +201,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    paddingTop: 50,
+    paddingTop: 30,
   },
   loader: {
     flex: 1,
@@ -278,13 +278,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
     paddingHorizontal: 10,
     paddingVertical: 10,
-    backgroundColor: '#F8F8F8',
-    borderRadius: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 5,
+    backgroundColor: '#fff',
   },
   sectionTitle: {
     fontSize: 18,
