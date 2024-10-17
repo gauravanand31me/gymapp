@@ -28,6 +28,31 @@ const ProfileScreen = ({ navigation }) => {
   const [selectedTab, setSelectedTab] = useState('Visited Gym');
   const [visitedBuddies, setVisitedBuddies] = useState([]);
 
+  // Milestone thresholds (in hours)
+  const milestones = {
+    bronze: 50,
+    silver: 100,
+    gold: 200,
+    diamond: 1000,
+  };
+
+  const getCurrentMilestone = (hours) => {
+    
+    if (parseInt(hours) <= milestones.diamond & parseInt(hours) > milestones.gold) return 'diamond';
+    if (parseInt(hours) <= milestones.gold && parseInt(hours) > milestones.silver) return 'gold';
+    if (parseInt(hours) <= milestones.silver && parseInt(hours) > milestones.bronze) return 'silver';
+    if (parseInt(hours) <= milestones.bronze) return 'bronze';
+    return null;
+  };
+
+  const getProgress = (hours) => {
+    if (hours >= milestones.diamond) return 1;
+    if (hours >= milestones.gold) return hours / milestones.diamond;
+    if (hours >= milestones.silver) return hours / milestones.gold;
+    if (hours >= milestones.bronze) return hours / milestones.silver;
+    return hours / milestones.bronze;
+  };
+
   // Fetch user data and visited gyms/buddies on component mount
   useEffect(() => {
     const fetchUserData = async () => {
@@ -95,6 +120,12 @@ const ProfileScreen = ({ navigation }) => {
     );
   }
 
+  // Calculate user's total workout hours
+  const totalWorkoutHours = userData?.total_work_out_time / 60 || 0;
+  const currentMilestone = getCurrentMilestone(totalWorkoutHours);
+  {console.log("Current milestone", currentMilestone)}
+  const progress = getProgress(totalWorkoutHours);
+
   return (
     <View style={styles.container}>
       {/* Profile Section */}
@@ -107,7 +138,23 @@ const ProfileScreen = ({ navigation }) => {
             </TouchableOpacity>
           </View>
           <View style={styles.profileDetails}>
-            <Text style={styles.fullName}>{userData?.full_name || 'N/A'}</Text>
+            <Text style={styles.fullName}>
+              {userData?.full_name || 'N/A'}
+              {currentMilestone && (
+                <Image
+                  source={
+                    currentMilestone === 'bronze'
+                      ? require('../assets/bronzemedal.png')
+                      : currentMilestone === 'silver'
+                      ? require('../assets/silvermedal.png')
+                      : currentMilestone === 'gold'
+                      ? require('../assets/goldmedal.png')
+                      : require('../assets/diamondmedal.jpg')
+                  }
+                  style={styles.milestoneIconNearName}
+                />
+              )}
+            </Text>
             <Text style={styles.username}>@{userData?.username || 'N/A'}</Text>
             <Text style={styles.mobileNumber}>{userData?.mobile_number || 'N/A'}</Text>
           </View>
@@ -122,7 +169,7 @@ const ProfileScreen = ({ navigation }) => {
         </View>
         <View style={styles.statsRow}>
           <Text style={styles.statValue}>{userData?.followers_count || 0}</Text>
-          <Text style={styles.statValue}>{userData?.total_work_out_time / 60 || 0} hrs.</Text>
+          <Text style={styles.statValue}>{totalWorkoutHours} hrs.</Text>
         </View>
       </View>
 
@@ -136,7 +183,7 @@ const ProfileScreen = ({ navigation }) => {
           <Image source={require('../assets/diamondmedal.jpg')} style={styles.milestoneIcon} />
         </View>
         <ProgressBar
-          progress={0.7}
+          progress={progress}
           width={null}
           height={10}
           color="#6FCF97"
@@ -144,7 +191,17 @@ const ProfileScreen = ({ navigation }) => {
           borderColor="transparent"
           style={styles.progressBar}
         />
-        <Text style={styles.milestoneText}>20 hours away from earning Bronze.</Text>
+        <Text style={styles.milestoneText}>
+          {milestones[currentMilestone] - totalWorkoutHours} hours away from earning{' '}
+          {currentMilestone === 'bronze'
+            ? 'Silver'
+            : currentMilestone === 'silver'
+            ? 'Gold'
+            : currentMilestone === 'gold'
+            ? 'Diamond'
+            : 'Bronze'}
+          .
+        </Text>
       </View>
 
       {/* Tabs for Visited Gyms and Gym Buddies */}
@@ -172,27 +229,25 @@ const ProfileScreen = ({ navigation }) => {
             renderItem={({ item }) => (
               <View style={styles.listItem}>
                 <Text style={styles.listItemText}>{item.gymName}</Text>
-                <Text style={styles.listItemHours}>{item.totalWorkoutHours / 60} h</Text>
+                <Text style={styles.listItemSubText}>{item.visits} visits</Text>
               </View>
             )}
           />
         ) : (
           <FlatList
             data={visitedBuddies}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item) => item.userId}
             renderItem={({ item }) => (
               <View style={styles.listItem}>
                 <Text style={styles.listItemText}>{item.buddyName}</Text>
-                <Text style={styles.listItemHours}>{item.totalWorkoutHours / 60} h</Text>
+                <Text style={styles.listItemSubText}>{item.workoutHours} hours together</Text>
               </View>
             )}
           />
         )}
       </View>
 
-      <View style={styles.footerContainer}>
-        <Footer navigation={navigation} />
-      </View>
+      <Footer />
     </View>
   );
 };
@@ -200,85 +255,77 @@ const ProfileScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    paddingTop: 30,
-  },
-  loader: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: '#F2F2F2',
   },
   profileSection: {
-    alignItems: 'center',
     padding: 20,
     backgroundColor: '#fff',
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
+    marginBottom: 10,
   },
   profileHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '100%',
+    marginBottom: 20,
   },
   profileImageContainer: {
     position: 'relative',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   profileImage: {
     width: 100,
     height: 100,
     borderRadius: 50,
-    borderWidth: 3,
+    borderWidth: 2,
     borderColor: '#4CAF50',
   },
   addPhotoButton: {
     position: 'absolute',
     bottom: 0,
-    right: -10,
+    right: 0,
     backgroundColor: '#4CAF50',
     borderRadius: 20,
     padding: 5,
   },
   profileDetails: {
-    flex: 1,
     marginLeft: 20,
+    flex: 1,
   },
   fullName: {
     fontSize: 22,
     fontWeight: 'bold',
   },
+  milestoneIconNearName: {
+    width: 30,
+    height: 30,
+    marginLeft: 5,
+  },
   username: {
     fontSize: 16,
-    color: '#777',
+    color: '#555',
   },
   mobileNumber: {
-    fontSize: 16,
-    color: '#777',
+    fontSize: 14,
+    color: '#888',
   },
   settingsButton: {
-    padding: 5,
+    marginLeft: 'auto',
   },
   statsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginTop: 15,
-    width: '100%',
+    justifyContent: 'space-between',
   },
   statText: {
     fontSize: 16,
-    color: '#777',
+    color: '#555',
   },
   statValue: {
     fontSize: 18,
     fontWeight: 'bold',
+    color: '#4CAF50',
   },
   milestoneContainer: {
-    marginTop: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 10,
     backgroundColor: '#fff',
+    padding: 20,
+    marginBottom: 10,
   },
   sectionTitle: {
     fontSize: 18,
@@ -287,62 +334,64 @@ const styles = StyleSheet.create({
   },
   milestoneIcons: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
+    marginBottom: 10,
   },
   milestoneIcon: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 40,
+    height: 40,
   },
   progressBar: {
-    marginTop: 15,
+    marginBottom: 10,
   },
   milestoneText: {
-    marginTop: 10,
     fontSize: 14,
     color: '#555',
   },
   tabContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginTop: 20,
+    marginBottom: 10,
+    backgroundColor: '#fff',
   },
   tabButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 20,
-    backgroundColor: '#E0E0E0',
-  },
-  activeTab: {
-    backgroundColor: '#4CAF50',
+    padding: 15,
+    flex: 1,
+    alignItems: 'center',
   },
   tabText: {
     fontSize: 16,
     color: '#555',
   },
+  activeTab: {
+    borderBottomWidth: 2,
+    borderBottomColor: '#4CAF50',
+  },
   activeTabText: {
-    color: '#fff',
+    color: '#4CAF50',
   },
   listContainer: {
     flex: 1,
-    paddingHorizontal: 20,
+    backgroundColor: '#fff',
+    padding: 10,
   },
   listItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 15,
+    padding: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: '#eee',
   },
   listItemText: {
     fontSize: 16,
+    fontWeight: 'bold',
   },
-  listItemHours: {
-    fontSize: 16,
-    color: '#777',
+  listItemSubText: {
+    fontSize: 14,
+    color: '#888',
   },
-  footerContainer: {
-    marginTop: 10,
+  loader: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 

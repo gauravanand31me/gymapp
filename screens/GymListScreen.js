@@ -172,9 +172,7 @@ export default function GymListScreen({ navigation }) {
       <Image source={{ uri: item.images?.[0]?.imageUrl || 'https://www.hussle.com/blog/wp-content/uploads/2020/12/Gym-structure-1080x675.png' }} style={styles.gymImage} />
       <View style={styles.gymInfo}>
         <Text style={styles.gymName}>{item.gymName}</Text>
-        <Text style={styles.gymDescription}>
-          {item.gymDescription ? item.gymDescription.substring(0, 100) + '...' : 'No description available'}
-        </Text>
+        
         <Text style={styles.gymPrice}>₹ {item.subscriptionPrices?.[0] || 'N/A'}/session</Text>
         <Text style={styles.gymDistance}>📍 {(item.distance ? item.distance.toFixed(1) : 'N/A')} km</Text>
         <Text style={styles.gymRating}>⭐ {item.gymRating || 'N/A'}</Text>

@@ -32,11 +32,14 @@ const SlotSelectionScreen = ({ navigation, gym }) => {
       gymId: gym.id,
       price: selectedSlot.price,
       slotId: selectedSlot.id,
-      capacity: selectedSlot.capacity,
       pricePerSlot: selectedSlot.price,
       subscriptionId: gym?.subscriptions[0].id
     };
     navigation.navigate('PaymentScreen', { slotDetails });
+  };
+
+  const formatTime = (timeString) => {
+    return timeString.replace(':00', ''); // Remove trailing ":00"
   };
 
   const buttonColor = '#28a745'; // Set uniform button color to green
@@ -70,7 +73,7 @@ const SlotSelectionScreen = ({ navigation, gym }) => {
         style={[styles.button, { backgroundColor: buttonColor }]}>
         <Icon name="time-outline" size={20} color="#fff" style={styles.icon} />
         <Text style={styles.buttonText}>
-          {selectedSlot ? selectedSlot.startTime : 'Select Time'}
+          {selectedSlot ? formatTime(selectedSlot.startTime) : 'Select Time'}
         </Text>
       </TouchableOpacity>
 
@@ -85,10 +88,10 @@ const SlotSelectionScreen = ({ navigation, gym }) => {
               }}
               style={styles.timeOption}>
               <Text style={styles.timeOptionText}>
-                {slot.startTime}
+                {formatTime(slot.startTime)}
               </Text>
               <Text style={styles.slotDetailsText}>
-                Capacity: {slot.capacity} | Price: ₹{slot.price}
+                Price: ₹{slot.price}
               </Text>
             </TouchableOpacity>
           ))}
