@@ -133,7 +133,7 @@ const ProfileScreen = ({ navigation }) => {
           <Image source={require('../assets/bronzemedal.png')} style={styles.milestoneIcon} />
           <Image source={require('../assets/silvermedal.png')} style={styles.milestoneIcon} />
           <Image source={require('../assets/goldmedal.png')} style={styles.milestoneIcon} />
-          <Image source={require('../assets/defaultmedal.jpg')} style={styles.milestoneIcon} />
+          <Image source={require('../assets/diamondmedal.jpg')} style={styles.milestoneIcon} />
         </View>
         <ProgressBar
           progress={0.7}
