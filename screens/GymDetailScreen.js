@@ -4,7 +4,6 @@ import { fetchIndividualGymData } from '../api/apiService';
 import SlotSelectionScreen from './SlotSelectionScreen';
 import AmenitiesListPopup from '../components/AmenitiesListPopup';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import Footer from '../components/Footer';
 
 // Get screen width
 const screenWidth = Dimensions.get('window').width;
@@ -102,6 +101,8 @@ const GymDetailScreen = ({ navigation, route }) => {
             onScroll={handleScroll}
             scrollEventThrottle={16}
             style={styles.imageScroll}
+            contentContainerStyle={styles.scrollViewContainer}
+            snapToInterval={screenWidth}
           >
             {(gymData.images || []).map((image, index) => (
               <TouchableOpacity key={index} onPress={() => openModal(image)}>
@@ -168,9 +169,7 @@ const GymDetailScreen = ({ navigation, route }) => {
         <View style={styles.bottomSpacing} />
       </ScrollView>
 
-      <TouchableOpacity style={styles.button} onPress={openSlotSelection}>
-        <Text style={styles.buttonText}>Select Slot </Text>
-      </TouchableOpacity>
+     
 
       {/* Image Modal */}
       <Modal visible={isModalVisible} transparent={true} animationType="fade">
@@ -202,8 +201,12 @@ const GymDetailScreen = ({ navigation, route }) => {
           )}
         </View>
       </Modal>
-      <Footer navigation={navigation} />
-    </View>
+      
+        <TouchableOpacity style={styles.button} onPress={openSlotSelection}>
+        <Text style={styles.buttonText}>Select Slot </Text>
+      </TouchableOpacity>
+     
+ </View>
   );
 };
 
@@ -214,6 +217,10 @@ const styles = StyleSheet.create({
   marginTop: 0,
   paddingTop: 20, // Add padding to the top
   },
+  scrollViewContainer: {
+    flexGrow: 1,
+    alignItems: 'center',
+  },
   scrollView: {
     flex: 1,
     padding: 10,
@@ -222,8 +229,8 @@ const styles = StyleSheet.create({
     paddingBottom: 80,
   },
   headerContainer: {
-    marginBottom: 15,
-    marginTop: 40,
+    marginBottom: 2,
+    marginTop: 25,
   },
   headerRow: {
     flexDirection: 'row',
@@ -236,14 +243,15 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     position: 'relative',
+    paddingTop: 0,
   },
   imageScroll: {
     marginTop: 10,
   },
   image: {
-    width: screenWidth, // Adjusted to fit the screen width
-    height: 200,
-    borderRadius: 10,
+    width: screenWidth, // Ensures the image takes up the full width of the screen
+  height: screenWidth * 0.45, // This maintains a 16:9 aspect ratio for the images
+  borderRadius: 10, // Optional: for rounded corners
   },
   dotContainer: {
     position: 'absolute',
@@ -341,13 +349,12 @@ const styles = StyleSheet.create({
     height: 50,
   },
   button: {
-    position: 'absolute',
-    bottom: 80, // Fixed position of the button at the bottom
-    left: 20,
-    right: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
     backgroundColor: '#4CAF50',
-    borderRadius: 10,
-    padding: 15,
+    borderRadius: 5,
+    margin: 20,
+    alignItems: 'center',
   },
   buttonText: {
     color: '#fff',
@@ -388,6 +395,14 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginTop: 10,
     textAlign: 'center',
+  },
+  footerContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 60,  // Adjust based on footer height
+    backgroundColor: '#f5f5f5',
   },
 
 });

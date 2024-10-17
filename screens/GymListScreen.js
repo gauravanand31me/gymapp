@@ -206,7 +206,12 @@ export default function GymListScreen({ navigation }) {
               placeholder="Enter pincode"
               placeholderTextColor="#ccc"
               value={pincode}
-              onChangeText={setPincode}
+              onChangeText={(text) => {
+                setPincode(text);
+                if (text === '') {
+                  setError('');  // Clear error when pincode is empty
+                }
+              }}
               keyboardType="numeric"
             />
           </View>
