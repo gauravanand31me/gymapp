@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#fff',
     marginLeft: 10,
-    fontFamily: 'bold',
+    fontWeight: 'bold',
   },
   bookingIdContainer: {
     marginTop: 16,
