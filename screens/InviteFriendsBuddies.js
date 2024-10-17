@@ -1,38 +1,35 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, FlatList, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, FlatList, Alert, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Footer from '../components/Footer';
-import { fetchFriends, inviteBuddyRequest, fetchBuddyInvites } from '../api/apiService'; // Add fetchInvitedBuddies
+import { fetchFriends, inviteBuddyRequest, fetchBuddyInvites } from '../api/apiService';
 
 const InviteFriendBuddiesScreen = ({ navigation, route }) => {
   const [searchText, setSearchText] = useState('');
   const [buddyList, setBuddyList] = useState([]);
-  const [invitedBuddies, setInvitedBuddies] = useState([]); // Track invited buddies
-  const [alreadyInvited, setAlreadyInvited] = useState([]); // Track already invited buddies
+  const [invitedBuddies, setInvitedBuddies] = useState([]);
+  const [alreadyInvited, setAlreadyInvited] = useState([]);
+  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
 
   let bookingId;
   if (route?.params?.bookingId) {
-    bookingId = route.params.bookingId; // Assuming bookingId is passed as a parameter
+    bookingId = route.params.bookingId;
   }
 
-  // Fetch friends on component mount
   const fetchBuddyList = async () => {
     try {
       const data = await fetchFriends();
-      setBuddyList(data.accepted); // Use the "accepted" array from the response
+      setBuddyList(data.accepted);
     } catch (error) {
       console.error('Error fetching buddy list:', error);
     }
   };
 
-  // Fetch already invited buddies for this booking
   const fetchAlreadyInvitedBuddies = async () => {
     try {
-      const data = await fetchBuddyInvites(bookingId); // Assuming this API returns invited users by bookingId
-      console.log("Data is", data);
-      const invitedIds = data.map(invite => invite.toUserId); // Assuming userId is in the response
-      console.log("invitedIds", invitedIds);
-      setAlreadyInvited(invitedIds); // Store already invited buddy IDs
+      const data = await fetchBuddyInvites(bookingId);
+      const invitedIds = data.map(invite => invite.toUserId);
+      setAlreadyInvited(invitedIds);
     } catch (error) {
       console.error('Error fetching invited buddies:', error);
     }
@@ -40,9 +37,27 @@ const InviteFriendBuddiesScreen = ({ navigation, route }) => {
 
   useEffect(() => {
     if (bookingId) {
-      fetchAlreadyInvitedBuddies(); // Fetch invited buddies if bookingId is present
+      fetchAlreadyInvitedBuddies();
     }
-    fetchBuddyList(); // Fetch the buddy list
+    fetchBuddyList();
+
+    const keyboardDidShowListener = Keyboard.addListener(
+      'keyboardDidShow',
+      () => {
+        setKeyboardVisible(true);
+      }
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      'keyboardDidHide',
+      () => {
+        setKeyboardVisible(false);
+      }
+    );
+
+    return () => {
+      keyboardDidHideListener.remove();
+      keyboardDidShowListener.remove();
+    };
   }, []);
 
   const searchUser = (user) => {
@@ -55,7 +70,7 @@ const InviteFriendBuddiesScreen = ({ navigation, route }) => {
       
       if (resp.status == "pending") {
         Alert.alert("Success", "Invitation sent successfully!");
-        setInvitedBuddies((prev) => [...prev, id]); // Add the buddy to the invited list
+        setInvitedBuddies((prev) => [...prev, id]);
       } else {
         Alert.alert("Error", "Failed to send the invitation.");
       }
@@ -64,7 +79,6 @@ const InviteFriendBuddiesScreen = ({ navigation, route }) => {
     }
   };
 
-  // Render a buddy
   const renderBuddy = ({ item }) => (
     <View style={styles.buddyItem}>
       <Image
@@ -78,7 +92,7 @@ const InviteFriendBuddiesScreen = ({ navigation, route }) => {
         <TouchableOpacity
           style={styles.inviteButton}
           onPress={() => inviteBuddy(bookingId, item.fromUserId)}
-          disabled={alreadyInvited.includes(item.fromUserId) || invitedBuddies.includes(item.fromUserId)} // Disable if already invited
+          disabled={alreadyInvited.includes(item.fromUserId) || invitedBuddies.includes(item.fromUserId)}
         >
           <Text style={styles.inviteButtonText}>
             {alreadyInvited.includes(item.fromUserId) || invitedBuddies.includes(item.fromUserId) ? 'Invited' : 'Invite buddy'}
@@ -95,24 +109,26 @@ const InviteFriendBuddiesScreen = ({ navigation, route }) => {
   );
 
   return (
-    <View style={styles.container}>
-      {/* Header with Invite buddies */}
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
       <View style={styles.header}>
-        <Text>
-          <Icon name="dumbbell" size={40} color="#fff" />
-        </Text>
+        {/* Back arrow button */}
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Icon name="arrow-left" size={30} color="#fff" />
+        </TouchableOpacity>
+        
         <View>
           <Text style={styles.headerTitle}>Invite Friends</Text>
           <Text style={styles.headerSubtitle}>Add your buddies for a workout!</Text>
         </View>
       </View>
 
-      {/* Display Booking ID */}
       <View style={styles.bookingIdContainer}>
         <Text style={styles.bookingIdText}>Booking ID: {bookingId}</Text>
       </View>
 
-      {/* Search bar */}
       <View style={styles.searchContainer}>
         <Text>
           <Icon name="magnify" size={24} color="#888" />
@@ -126,16 +142,16 @@ const InviteFriendBuddiesScreen = ({ navigation, route }) => {
         />
       </View>
 
-      {/* Buddy List */}
       <FlatList
         data={buddyList.filter((buddy) => buddy.full_name.toLowerCase().includes(searchText.toLowerCase()))}
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderBuddy}
         contentContainerStyle={styles.buddyList}
+        ListFooterComponent={<View style={{ height: 120 }} />} // Added enough padding at the bottom
       />
 
-      <Footer navigation={navigation} />
-    </View>
+      {!isKeyboardVisible && <Footer navigation={navigation} style={styles.footer} />}
+    </KeyboardAvoidingView>
   );
 };
 
@@ -143,12 +159,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+    paddingTop: Platform.OS === 'android' ? 40 : 0,  // Ensure space for Android devices
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
-    backgroundColor: '#000',
+    paddingHorizontal: 16,
+    backgroundColor: '#4CAF50',
+    paddingTop: Platform.OS === 'ios' ? 40 : 20,  // Adjust padding based on platform
+    height: Platform.OS === 'ios' ? 100 : 80,    // Adjust height for both platforms
+    width: '100%',  // Ensure the header takes full width
   },
   headerTitle: {
     fontSize: 18,
@@ -158,8 +178,9 @@ const styles = StyleSheet.create({
   },
   headerSubtitle: {
     fontSize: 14,
-    color: '#66BB6A',
+    color: '#fff',
     marginLeft: 10,
+    fontFamily: 'bold',
   },
   bookingIdContainer: {
     marginTop: 16,
@@ -218,6 +239,13 @@ const styles = StyleSheet.create({
   inviteButtonText: {
     color: '#fff',
     fontWeight: 'bold',
+  },
+  footer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#fff',
   },
 });
 
