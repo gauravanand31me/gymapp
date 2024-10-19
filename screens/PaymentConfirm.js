@@ -40,7 +40,7 @@ const PaymentScreen = ({ route, navigation }) => {
 
         const result = await WebBrowser.openBrowserAsync(orderResponse.paymentLink);
        
-   
+        console.log("Result is", result);
         // Step 3: After successful payment, create the booking
    
         if (requestId) {

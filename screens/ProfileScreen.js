@@ -38,10 +38,10 @@ const ProfileScreen = ({ navigation }) => {
 
   const getCurrentMilestone = (hours) => {
     
-    if (parseInt(hours) <= milestones.diamond & parseInt(hours) > milestones.gold) return 'diamond';
-    if (parseInt(hours) <= milestones.gold && parseInt(hours) > milestones.silver) return 'gold';
-    if (parseInt(hours) <= milestones.silver && parseInt(hours) > milestones.bronze) return 'silver';
-    if (parseInt(hours) <= milestones.bronze) return 'bronze';
+    if (parseInt(hours) >= milestones.diamond) return 'diamond';
+    if (parseInt(hours) >= milestones.gold) return 'gold';
+    if (parseInt(hours) >= milestones.silver) return 'silver';
+    if (parseInt(hours) >= milestones.bronze) return 'bronze';
     return null;
   };
 
@@ -194,7 +194,7 @@ const ProfileScreen = ({ navigation }) => {
           style={styles.progressBar}
         />
         <Text style={styles.milestoneText}>
-          {milestones[currentMilestone] - totalWorkoutHours} hours away from earning{' '}
+          {milestones[currentMilestone || 'bronze'] - totalWorkoutHours} hours away from earning{' '}
           {currentMilestone === 'bronze'
             ? 'Silver'
             : currentMilestone === 'silver'

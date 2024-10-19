@@ -12,6 +12,7 @@ export default function BookingsScreen({ navigation }) {
   const [showInviteModal, setShowInviteModal] = useState(false); // State for modal visibility
   const [invites, setInvites] = useState([]); // State to hold buddy invites
   const [currentBookingId, setCurrentBookingId] = useState(null); // To track current booking ID
+  const [isEmpty, setIsEmpty] = useState(false);
 
   useEffect(() => {
     const getBookings = async () => {
@@ -19,6 +20,9 @@ export default function BookingsScreen({ navigation }) {
       console.log("allBookings", allBookings);
       if (allBookings) {
         setBookings(allBookings);
+        if (allBookings.length == 0) {
+          setIsEmpty(true);
+        }
       }
     };
     getBookings();
@@ -84,7 +88,7 @@ export default function BookingsScreen({ navigation }) {
 
           {/* Invites and Add More Options */}
           <View style={styles.inviteAddMoreContainer}>
-            {console.log("Items is", item)}
+
             <TouchableOpacity onPress={() => fetchInvitesForBooking(item)}>
               <Text style={styles.inviteText}>
                 <Icon name="users" size={14} color="#777" /> {item.invites} Invites
@@ -141,12 +145,25 @@ export default function BookingsScreen({ navigation }) {
         </View>
 
         {/* Booking List */}
-        <FlatList
-          data={selectedTab === 'Upcoming' ? upcomingBookings : completedBookings}
-          keyExtractor={(item) => item.id}
-          renderItem={renderBooking}
-          contentContainerStyle={styles.listContent}
-        />
+        <View style={{ flex: 1 }}>
+          {isEmpty ? (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>Start your first booking with us!</Text>
+              <TouchableOpacity onPress={() => navigation.navigate("GymList")}>
+                <Text style={styles.linkText}>Go to Gym List</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <FlatList
+              data={selectedTab === 'Upcoming' ? upcomingBookings : completedBookings}
+              keyExtractor={(item) => item.id}
+              renderItem={renderBooking}
+              contentContainerStyle={styles.listContent}
+            />
+          )}
+        </View>
+
+
 
         {/* Invite Modal */}
         <Modal visible={showInviteModal} transparent={true} animationType="slide">
@@ -428,5 +445,24 @@ const styles = StyleSheet.create({
   footer: {
     height: 50,
     justifyContent: 'center',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  emptyText: {
+    fontSize: 18,
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  linkText: {
+    fontSize: 16,
+    color: '#007BFF', // Adjust the color to match your design
+    textAlign: 'center',
+  },
+  listContent: {
+    paddingBottom: 20,
   },
 });

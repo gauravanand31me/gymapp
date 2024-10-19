@@ -21,7 +21,7 @@ const Footer = ({ navigation }) => {
 
   return (
     <View style={styles.footer}>
-      <TouchableOpacity onPress={() => navigation.navigate('GymList')} style={styles.iconContainer}>
+      <TouchableOpacity onPress={() => navigation.navigate('GymList', {"id": 1})} style={styles.iconContainer}>
         <Icon name="home" size={22} color="#808080" />
         <Text style={styles.iconText}>Home</Text>
       </TouchableOpacity>

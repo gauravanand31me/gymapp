@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -37,10 +38,11 @@ export default function GymListScreen({ navigation }) {
   const [error, setError] = useState('');
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false); // Track keyboard visibility
   const limit = 9;
-
+ 
   const GOOGLE_MAPS_API_KEY = 'AIzaSyCe_VHcmc7i6jbNl0oFDVHwQyavPgYFU10';  // Replace with your actual API key
 
   useEffect(() => {
+    
     const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
       setIsKeyboardVisible(true);
     });
@@ -60,7 +62,7 @@ export default function GymListScreen({ navigation }) {
     setError('');
     try {
       const gymList = await fetchAllGyms(lat, long, searchText, limit, page, pincode);
-      
+
       if (gymList?.length > 0) {
         setGyms(gymList);
       } else {
@@ -137,6 +139,14 @@ export default function GymListScreen({ navigation }) {
     return true;
   };
 
+  useFocusEffect(
+    React.useCallback(() => {
+      // Re-fetch gyms or reset page whenever screen is focused
+      setPage(1);  // Reset the page if necessary
+      getLocation();  // Fetch location and gyms again when navigation focuses back on this screen
+    }, [])
+  );
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setLoading(true);
@@ -172,8 +182,12 @@ export default function GymListScreen({ navigation }) {
       <Image source={{ uri: item.images?.[0]?.imageUrl || 'https://www.hussle.com/blog/wp-content/uploads/2020/12/Gym-structure-1080x675.png' }} style={styles.gymImage} />
       <View style={styles.gymInfo}>
         <Text style={styles.gymName}>{item.gymName}</Text>
-        
+
         <Text style={styles.gymPrice}>₹ {item.subscriptionPrices?.[0] || 'N/A'}/session</Text>
+        <Text style={styles.gymAddress}>
+          <Text style={styles.locationIcon}>📍</Text>
+          {item.address ? item.address.split(',').pop().trim() : 'Address not available'}
+        </Text>
         <Text style={styles.gymDistance}>📍 {(item.distance ? item.distance.toFixed(1) : 'N/A')} km</Text>
         <Text style={styles.gymRating}>⭐ {item.gymRating || 'N/A'}</Text>
         <TouchableOpacity style={styles.bookNowButton} onPress={() => redirectToGymDetails(item.gymId)}>
@@ -227,7 +241,7 @@ export default function GymListScreen({ navigation }) {
         />
       </View>
 
-     
+
       {error && <Text style={styles.errorMessage}>{error}</Text>}
 
       <FlatList
@@ -238,7 +252,7 @@ export default function GymListScreen({ navigation }) {
           <>
             {loading ? <ActivityIndicator size="large" color="#f4511e" /> : null}
 
-            {!loading  && (
+            {!loading && (
               <TouchableOpacity style={styles.seeMoreButton} onPress={loadMoreGyms}>
                 <Text style={styles.seeMoreText}>See More Results</Text>
               </TouchableOpacity>
@@ -383,5 +397,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#fff',
     fontWeight: 'bold',
+  },
+  gymAddress: {
+    fontSize: 16,
+    color: '#4a4a4a',      // Softer grey for modern look
+    fontWeight: '500',      // Medium weight for emphasis
+    paddingVertical: 5,     // Add padding for better spacing
+    textAlign: 'left',      // Align left for readability
+  },
+  locationIcon: {
+    fontSize: 18,           // Make icon slightly larger than text
+    color: '#ff6347',       // Use a highlight color for the icon (e.g., a soft red)
+    paddingRight: 5,        // Space between icon and text
   },
 });
