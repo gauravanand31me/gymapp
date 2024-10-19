@@ -193,9 +193,7 @@ const UserProfileScreen = ({ navigation, route }) => {
                     </Text>
                 </TouchableOpacity>}
                   {/* Settings Icon */}
-                  <TouchableOpacity style={styles.settingsButton} onPress={() => navigation.navigate('Settings')}>
-                    <Icon name="cog" size={30} color="#555" />
-                  </TouchableOpacity>
+                  
                 </View>
                 <View style={styles.statsContainer}>
           <View>
