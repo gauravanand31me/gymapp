@@ -70,6 +70,7 @@ const ProfileScreen = ({ navigation }) => {
     const fetchVisitedGyms = async () => {
       try {
         const response = await getVisitedGyms();
+      
         setVisitedGyms(response.visitedGyms);
       } catch (error) {
         Alert.alert('Error', 'Could not fetch visited gyms. Please try again later.');
@@ -231,7 +232,7 @@ const ProfileScreen = ({ navigation }) => {
             renderItem={({ item }) => (
               <View style={styles.listItem}>
                 <Text style={styles.listItemText}>{item.gymName}</Text>
-                <Text style={styles.listItemSubText}>{item.visits} visits</Text>
+                <Text style={styles.listItemSubText}>{parseInt(item.totalWorkoutHours) / 60} hrs visits</Text>
               </View>
             )}
           />
@@ -261,14 +262,14 @@ const styles = StyleSheet.create({
     paddingTop: 30
   },
   profileSection: {
-    padding: 20,
+    padding: 10,
     backgroundColor: '#fff',
-    marginBottom: 5, 
+    marginBottom: 3, 
   },
   profileHeader: {
     alignItems: 'center',
     justifyContent: 'center', // Center the content horizontally and vertically
-    marginBottom: 20,
+    marginBottom: 0,
   },
   profileImageContainer: {
     position: 'relative',
@@ -338,8 +339,8 @@ const styles = StyleSheet.create({
     color: '#4CAF50', // Use the green theme color for consistency
   },
   milestoneContainer: {
-    marginTop: 5, // Reduced space above the milestone container
-    paddingHorizontal: 10,
+    marginTop: 0, // Reduced space above the milestone container
+    paddingHorizontal: 5,
     paddingVertical: 5, // Reduced vertical padding to shrink the container
     backgroundColor: '#fff',
     borderRadius: 10, // Optional: Adjusted for rounded corners
