@@ -36,7 +36,10 @@ const UserProfileScreen = ({ navigation, route }) => {
 
     const getFriendShip = async () => {
         const data = await fetchAllNearByUser(userData?.username);
-        setFriends(data[0]);
+        if (data) {
+          setFriends(data[0]);
+        }
+       
     }
 
     useEffect(() => {
@@ -77,7 +80,7 @@ const UserProfileScreen = ({ navigation, route }) => {
         fetchVisitedGyms();
         fetchVisitedBuddies();
         getFriendShip();
-    }, []);
+    }, [userData]);
 
     const sendFriendRequest = async (id) => {
         try {
@@ -188,6 +191,7 @@ const UserProfileScreen = ({ navigation, route }) => {
                         }
                     }}
                 >
+                 
                     <Text style={styles.sendRequestText}>
                         {friends?.invited?.accepted && !friends?.invited?.sent ? 'Friends' : friends?.invited?.sent && !friends?.invited?.accepted ? 'Request sent' : 'Send Request'}
                     </Text>

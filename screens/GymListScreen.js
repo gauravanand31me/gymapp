@@ -27,7 +27,6 @@ import { Link } from '@react-navigation/native';
 export default function GymListScreen({ navigation }) {
   const [searchText, setSearchText] = useState('');
   const [gyms, setGyms] = useState([]);
-  const [currentLocation, setCurrentLocation] = useState('');
   const [address, setAddress] = useState('');
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
