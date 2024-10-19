@@ -59,7 +59,7 @@ const InviteBuddiesScreen = ({ navigation }) => {
       )}
       {(item?.invited?.sent && !item?.invited?.accepted) && (
         <TouchableOpacity style={styles.invitedButton}>
-          <Text style={styles.invitedButtonText}>Invited</Text>
+          <Text style={styles.invitedButtonText}>Request Sent</Text>
         </TouchableOpacity>
       )}
       {(!item?.invited?.sent && !item?.invited?.accepted) && (

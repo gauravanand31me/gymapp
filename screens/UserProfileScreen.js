@@ -189,7 +189,7 @@ const UserProfileScreen = ({ navigation, route }) => {
                     }}
                 >
                     <Text style={styles.sendRequestText}>
-                        {friends?.invited?.accepted && !friends?.invited?.sent ? 'Friends' : friends?.invited?.sent && !friends?.invited?.accepted ? 'Invited' : 'Send Request'}
+                        {friends?.invited?.accepted && !friends?.invited?.sent ? 'Friends' : friends?.invited?.sent && !friends?.invited?.accepted ? 'Request sent' : 'Send Request'}
                     </Text>
                 </TouchableOpacity>}
                   {/* Settings Icon */}
