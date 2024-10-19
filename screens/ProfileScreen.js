@@ -227,15 +227,19 @@ const ProfileScreen = ({ navigation }) => {
       <View style={styles.listContainer}>
         {selectedTab === 'Visited Gym' ? (
           <FlatList
-            data={visitedGyms}
-            keyExtractor={(item) => item.gymId}
-            renderItem={({ item }) => (
-              <View style={styles.listItem}>
-                <Text style={styles.listItemText}>{item.gymName}</Text>
-                <Text style={styles.listItemSubText}>{parseInt(item.totalWorkoutHours) / 60} hrs visits</Text>
-              </View>
-            )}
-          />
+      data={visitedGyms}
+      keyExtractor={(item) => item.gymId.toString()}
+      renderItem={({ item }) => (
+        <View style={styles.listItem}>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('GymDetails', { gym_id: item.gymId })}
+          >
+            <Text style={styles.listItemText}>{item.gymName}</Text>
+          </TouchableOpacity>
+          <Text style={styles.listItemSubText}>{parseInt(item.totalWorkoutHours) / 60} hrs visits</Text>
+        </View>
+      )}
+    />
         ) : (
           <FlatList
             data={visitedBuddies}

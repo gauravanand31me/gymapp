@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image, Modal, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image, Modal, SafeAreaView, ActivityIndicator } from 'react-native';
 import { fetchAllBookings, fetchBuddyInvites } from '../api/apiService'; // Add the new API import
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
@@ -13,17 +13,20 @@ export default function BookingsScreen({ navigation }) {
   const [invites, setInvites] = useState([]); // State to hold buddy invites
   const [currentBookingId, setCurrentBookingId] = useState(null); // To track current booking ID
   const [isEmpty, setIsEmpty] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // State for loading
 
   useEffect(() => {
     const getBookings = async () => {
+      setIsLoading(true); // Start loader
       const allBookings = await fetchAllBookings();
       console.log("allBookings", allBookings);
       if (allBookings) {
-        setBookings(allBookings);
-        if (allBookings.length == 0) {
-          setIsEmpty(true);
-        }
+        // Sort bookings by date
+        const sortedBookings = allBookings.sort((a, b) => new Date(a.date) - new Date(b.date));
+        setBookings(sortedBookings);
+        setIsEmpty(sortedBookings.length === 0);
       }
+      setIsLoading(false); // Stop loader
     };
     getBookings();
   }, []);
@@ -37,15 +40,23 @@ export default function BookingsScreen({ navigation }) {
     setShowInviteModal(true); // Show the modal when invites are loaded
   };
 
+
   const upcomingBookings = bookings.filter(booking => {
     const bookingDate = new Date(booking.date);
+    console.log("bookingDate", bookingDate);
     const currentDate = new Date();
+    currentDate.setDate(currentDate.getDate() - 1);
+
     return bookingDate >= currentDate;
   });
 
   const completedBookings = bookings.filter(booking => {
     const bookingDate = new Date(booking.date);
+    
+    // Get current date and subtract one day
     const currentDate = new Date();
+    currentDate.setDate(currentDate.getDate() - 1);
+  
     return bookingDate < currentDate;
   });
 
@@ -62,7 +73,6 @@ export default function BookingsScreen({ navigation }) {
     }
   };
 
-
   const renderBooking = ({ item }) => (
     <View style={styles.bookingCard}>
       <View style={styles.cardHeader}>
@@ -74,7 +84,7 @@ export default function BookingsScreen({ navigation }) {
       </View>
 
       <View style={styles.cardBody}>
-        <Image source={{ uri: item.imageUrl }} style={styles.gymImage} />
+    
         <View style={styles.gymDetails}>
           <Text style={styles.gymName}>{item.gymName}</Text>
           <View style={styles.ratingContainer}>
@@ -88,7 +98,6 @@ export default function BookingsScreen({ navigation }) {
 
           {/* Invites and Add More Options */}
           <View style={styles.inviteAddMoreContainer}>
-
             <TouchableOpacity onPress={() => fetchInvitesForBooking(item)}>
               <Text style={styles.inviteText}>
                 <Icon name="users" size={14} color="#777" /> {item.invites} Invites
@@ -143,27 +152,29 @@ export default function BookingsScreen({ navigation }) {
             </Text>
           </TouchableOpacity>
         </View>
-
-        {/* Booking List */}
-        <View style={{ flex: 1 }}>
-          {isEmpty ? (
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>Start your first booking with us!</Text>
-              <TouchableOpacity onPress={() => navigation.navigate("GymList")}>
-                <Text style={styles.linkText}>Go to Gym List</Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <FlatList
-              data={selectedTab === 'Upcoming' ? upcomingBookings : completedBookings}
-              keyExtractor={(item) => item.id}
-              renderItem={renderBooking}
-              contentContainerStyle={styles.listContent}
-            />
-          )}
-        </View>
-
-
+    
+        {/* Loader */}
+        {isLoading ? (
+          <ActivityIndicator size="large" color="#0000ff" />
+        ) : (
+          <View style={{ flex: 1 }}>
+            {isEmpty ? (
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>Start your first booking with us!</Text>
+                <TouchableOpacity onPress={() => navigation.navigate("GymList")}>
+                  <Text style={styles.linkText}>Go to Gym List</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <FlatList
+                data={selectedTab === 'Upcoming' ? upcomingBookings : completedBookings}
+                keyExtractor={(item) => item.id}
+                renderItem={renderBooking}
+                contentContainerStyle={styles.listContent}
+              />
+            )}
+          </View>
+        )}
 
         {/* Invite Modal */}
         <Modal visible={showInviteModal} transparent={true} animationType="slide">
@@ -210,6 +221,7 @@ export default function BookingsScreen({ navigation }) {
     </SafeAreaView>
   );
 }
+
 
 const styles = StyleSheet.create({
   safeArea: {

@@ -84,7 +84,7 @@ const GymDetailScreen = ({ navigation, route }) => {
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <Icon name="chevron-left" size={24} color="#808080" />
           </TouchableOpacity>
-          <Text style={styles.bookingPrompt}>Want to book your gym sessions with just a tap?</Text>
+          <Text style={styles.bookingPrompt}>Book your gym now</Text>
         </View>
       </View>
 

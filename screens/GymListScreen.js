@@ -336,8 +336,8 @@ const styles = StyleSheet.create({
 
   },
   gymImage: {
-    width: 100,
-    height: 100,
+    width: 120,
+    height: 120,
     borderRadius: 10,
   },
   gymInfo: {
@@ -346,9 +346,10 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   gymName: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     marginTop: 20,
+    color: "#666"
   },
   gymDescription: {
     fontSize: 14,
