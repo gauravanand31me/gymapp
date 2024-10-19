@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 6,
-    margin: 16,
+    margin: 10,
     borderRadius: 8,
     height: 40,
     borderWidth: 1,

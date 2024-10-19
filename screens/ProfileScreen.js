@@ -134,7 +134,7 @@ const ProfileScreen = ({ navigation }) => {
           <View style={styles.profileImageContainer}>
             <Image source={{ uri: profileImage }} style={styles.profileImage} />
             <TouchableOpacity style={styles.addPhotoButton} onPress={selectProfileImage}>
-              <Icon name="plus-circle-outline" size={30} color="#fff" />
+              <Icon name="plus-circle-outline" size={25} color="#fff" />
             </TouchableOpacity>
           </View>
           <View style={styles.profileDetails}>
@@ -163,14 +163,16 @@ const ProfileScreen = ({ navigation }) => {
             <Icon name="cog" size={30} color="#555" />
           </TouchableOpacity>
         </View>
-        <View style={styles.statsRow}>
-          <Text style={styles.statText}>Friends</Text>
-          <Text style={styles.statText}>Workout Time</Text>
-        </View>
-        <View style={styles.statsRow}>
-          <Text style={styles.statValue}>{userData?.followers_count || 0}</Text>
-          <Text style={styles.statValue}>{totalWorkoutHours} hrs.</Text>
-        </View>
+        <View style={styles.statsContainer}>
+  <View>
+    <Text style={styles.statText}>Friends</Text>
+    <Text style={styles.statValue}>{userData?.followers_count || 0}</Text>
+  </View>
+  <View>
+    <Text style={styles.statText}>Workout Time</Text>
+    <Text style={styles.statValue}>{totalWorkoutHours} hrs.</Text>
+  </View>
+</View>
       </View>
 
       {/* Milestone Progress */}
@@ -247,7 +249,7 @@ const ProfileScreen = ({ navigation }) => {
         )}
       </View>
 
-      <Footer navigation={navigation}/>
+      <Footer navigation={navigation} />
     </View>
   );
 };
@@ -255,25 +257,27 @@ const ProfileScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F2F2F2',
+    backgroundColor: '#fff',
+    paddingTop: 30
   },
   profileSection: {
     padding: 20,
     backgroundColor: '#fff',
-    marginBottom: 10,
+    marginBottom: 5, 
   },
   profileHeader: {
-    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center', // Center the content horizontally and vertically
     marginBottom: 20,
   },
   profileImageContainer: {
     position: 'relative',
+    alignItems: 'center', // Center the profile image container
   },
   profileImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
     borderWidth: 2,
     borderColor: '#4CAF50',
   },
@@ -283,15 +287,16 @@ const styles = StyleSheet.create({
     right: 0,
     backgroundColor: '#4CAF50',
     borderRadius: 20,
-    padding: 5,
+    padding: 0,
   },
   profileDetails: {
-    marginLeft: 20,
-    flex: 1,
+    marginTop: 10,
+    alignItems: 'center', // Center the text elements
   },
   fullName: {
     fontSize: 22,
     fontWeight: 'bold',
+  
   },
   milestoneIconNearName: {
     width: 30,
@@ -307,52 +312,71 @@ const styles = StyleSheet.create({
     color: '#888',
   },
   settingsButton: {
-    marginLeft: 'auto',
+    position: 'absolute',
+    top: 10,
+    right: 10,
+  
   },
-  statsRow: {
+  statsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    backgroundColor: '#fff', // Light green background for the stats section
+    padding: 15, // Padding inside the container for a clean look
+    borderRadius: 10, // Rounded corners for a softer look
+    marginTop: 5, // Reduced margin to bring stats closer to profile section
+    marginHorizontal: 20, // Margin on sides to align with other content
   },
   statText: {
-    fontSize: 16,
-    color: '#555',
+    fontSize: 18, // Font size for better readability
+    fontWeight: '600', // Semi-bold for labels
+    color: '#333', // Darker text for a professional look
+    //marginBottom: 5, // Slight space between label and value
   },
   statValue: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#4CAF50',
+    fontSize: 20, // Font size increased for emphasis
+    fontWeight: 'bold', // Bold to make the values stand out
+    color: '#4CAF50', // Use the green theme color for consistency
   },
   milestoneContainer: {
+    marginTop: 5, // Reduced space above the milestone container
+    paddingHorizontal: 10,
+    paddingVertical: 5, // Reduced vertical padding to shrink the container
     backgroundColor: '#fff',
-    padding: 20,
-    marginBottom: 10,
+    borderRadius: 10, // Optional: Adjusted for rounded corners
+    marginHorizontal: 20, // Aligning with the profile section and stats
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 16, // Slightly smaller font for title
     fontWeight: 'bold',
-    marginBottom: 10,
+    marginBottom: 5, // Reduced space below the title
   },
   milestoneIcons: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 10,
+    justifyContent: 'space-around',
+    marginBottom: 5, // Reduced space below the icons
+    marginLeft: 20,  // This moves the icons slightly to the right
+    backgroundColor:'#fff'
   },
   milestoneIcon: {
-    width: 40,
-    height: 40,
+    width: 40, // Reduced icon size
+    height: 40, // Reduced icon size
   },
   progressBar: {
-    marginBottom: 10,
+    marginTop: 10, // Reduced space above the progress bar
+    height: 8, // Slightly thinner progress bar
   },
   milestoneText: {
-    fontSize: 14,
+    marginTop: 5, // Reduced space above the text
+    fontSize: 12, // Smaller font for milestone text
     color: '#555',
+
   },
   tabContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     marginBottom: 10,
     backgroundColor: '#fff',
+    
   },
   tabButton: {
     padding: 15,
@@ -362,6 +386,7 @@ const styles = StyleSheet.create({
   tabText: {
     fontSize: 16,
     color: '#555',
+    fontWeight:'bold',
   },
   activeTab: {
     borderBottomWidth: 2,
