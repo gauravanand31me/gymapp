@@ -247,7 +247,7 @@ const ProfileScreen = ({ navigation }) => {
         )}
       </View>
 
-      <Footer />
+      <Footer navigation={navigation}/>
     </View>
   );
 };
