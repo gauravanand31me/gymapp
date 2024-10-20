@@ -47,17 +47,30 @@ export default function BookingsScreen({ navigation }) {
     const currentDate = new Date();
     currentDate.setDate(currentDate.getDate() - 1);
 
-    return bookingDate >= currentDate;
+    return bookingDate >= currentDate && !booking.visited;
   });
+
+
 
   const completedBookings = bookings.filter(booking => {
     const bookingDate = new Date(booking.date);
-    
+
     // Get current date and subtract one day
     const currentDate = new Date();
     currentDate.setDate(currentDate.getDate() - 1);
-  
-    return bookingDate < currentDate;
+    console.log("booking.visited", booking.visited);
+    return (bookingDate < currentDate && booking.visited);
+  });
+
+
+  const noShowBooking = bookings.filter(booking => {
+    const bookingDate = new Date(booking.date);
+
+    // Get current date and subtract one day
+    const currentDate = new Date();
+    currentDate.setDate(currentDate.getDate() - 1);
+
+    return !booking.visited;
   });
 
   const getStatusStyle = (status) => {
@@ -84,7 +97,7 @@ export default function BookingsScreen({ navigation }) {
       </View>
 
       <View style={styles.cardBody}>
-    
+
         <View style={styles.gymDetails}>
           <Text style={styles.gymName}>{item.gymName}</Text>
           <View style={styles.ratingContainer}>
@@ -151,8 +164,19 @@ export default function BookingsScreen({ navigation }) {
               Completed
             </Text>
           </TouchableOpacity>
+
+
+
+          <TouchableOpacity
+            style={[styles.tabButton, selectedTab === 'NoShow' && styles.activeTabButton]}
+            onPress={() => setSelectedTab('noShow')}
+          >
+            <Text style={[styles.tabText, selectedTab === 'NoShow' && styles.activeTabText]}>
+              No SHow
+            </Text>
+          </TouchableOpacity>
         </View>
-    
+
         {/* Loader */}
         {isLoading ? (
           <ActivityIndicator size="large" color="#0000ff" />
@@ -167,8 +191,16 @@ export default function BookingsScreen({ navigation }) {
               </View>
             ) : (
               <FlatList
-                data={selectedTab === 'Upcoming' ? upcomingBookings : completedBookings}
-                keyExtractor={(item) => item.id}
+                data={
+                  selectedTab === 'Upcoming'
+                    ? upcomingBookings
+                    : selectedTab === 'Completed'
+                      ? completedBookings
+                      : selectedTab === 'noShow'
+                        ? noShowBooking
+                        : []
+                }
+                keyExtractor={(item) => item.id.toString()}
                 renderItem={renderBooking}
                 contentContainerStyle={styles.listContent}
               />
@@ -250,7 +282,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#e0e0e0',
     borderRadius: 10,
     marginHorizontal: 5,
-    width: '45%',
+    width: '25%',
     alignItems: 'center',
   },
   activeTabButton: {
@@ -259,6 +291,7 @@ const styles = StyleSheet.create({
   tabText: {
     color: '#777',
     fontWeight: 'bold',
+    fontSize: 12
   },
   activeTabText: {
     color: '#fff',
