@@ -118,23 +118,24 @@ export default function BookingsScreen({ navigation }) {
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => navigation.navigate('InviteFriendBuddy', { bookingId: item.id })}>
-              <View style={styles.addMoreButton}>
+              {selectedTab == "Upcoming" && <View style={styles.addMoreButton}>
                 <Text style={styles.addMoreButtonText}>+1</Text>
-              </View>
+              </View>}
             </TouchableOpacity>
           </View>
 
           {/* Message for QR Code */}
-          <Text style={styles.qrCodeText}>
+          {selectedTab == "Upcoming" && <Text style={styles.qrCodeText}>
             Please scan the QR code below to log your workout hours.
-          </Text>
+          </Text>}
+          
 
-          <BookingQRCode booking_id={item.bookingId} booking_date={item.date} type="daily" />
+          {selectedTab == "Upcoming" && <BookingQRCode booking_id={item.bookingId} booking_date={item.date} type="daily" />}
 
           {/* Cancellation Notice */}
-          <Text style={styles.cancellationText}>
+          {selectedTab == "Upcoming" && <Text style={styles.cancellationText}>
             For cancellations, please contact the administrator.
-          </Text>
+          </Text>}
         </View>
       </View>
     </View>
