@@ -22,7 +22,7 @@ export default function BookingsScreen({ navigation }) {
       console.log("allBookings", allBookings);
       if (allBookings) {
         // Sort bookings by date
-        const sortedBookings = allBookings.sort((a, b) => new Date(a.date) - new Date(b.date));
+        const sortedBookings = allBookings.sort((a, b) => new Date(a.create) - new Date(b.create));
         setBookings(sortedBookings);
         setIsEmpty(sortedBookings.length === 0);
       }
@@ -34,7 +34,7 @@ export default function BookingsScreen({ navigation }) {
   // Function to fetch invites for a booking
   const fetchInvitesForBooking = async (booking) => {
     const inviteList = await fetchBuddyInvites(booking.id);
-    console.log("inviteList", inviteList);
+    
     setInvites(inviteList);
     setCurrentBookingId(booking.bookingId); // Set the current booking id
     setShowInviteModal(true); // Show the modal when invites are loaded
@@ -43,7 +43,7 @@ export default function BookingsScreen({ navigation }) {
 
   const upcomingBookings = bookings.filter(booking => {
     const bookingDate = new Date(booking.date);
-    console.log("bookingDate", bookingDate);
+    
     const currentDate = new Date();
     currentDate.setDate(currentDate.getDate() - 1);
 
@@ -169,11 +169,11 @@ export default function BookingsScreen({ navigation }) {
 
 
           <TouchableOpacity
-            style={[styles.tabButton, selectedTab === 'NoShow' && styles.activeTabButton]}
+            style={[styles.tabButton, selectedTab === 'noShow' && styles.activeTabButton]}
             onPress={() => setSelectedTab('noShow')}
           >
-            <Text style={[styles.tabText, selectedTab === 'NoShow' && styles.activeTabText]}>
-              No SHow
+            <Text style={[styles.tabText, selectedTab === 'noShow' && styles.activeTabText]}>
+              No Show
             </Text>
           </TouchableOpacity>
         </View>
