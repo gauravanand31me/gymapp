@@ -12,6 +12,7 @@ const NotificationListScreen = ({ navigation }) => {
     const fetchNotifications = async () => {
       try {
         const data = await fetchAllNotifications();
+        console.log("Data is", data);
         if (data.notifications) {
           setNotifications(data.notifications); 
         } else {
@@ -107,10 +108,10 @@ const NotificationListScreen = ({ navigation }) => {
           </>
         )}
 
-        {/* {item.type === 'workoutRequestInvite' && (
+        {item.type === 'workoutRequestInvite' && (
           <TouchableOpacity 
             style={styles.viewButton} 
-            onPress={() => navigation.navigate('WorkoutInvitation')}
+            onPress={() => navigation.navigate('WorkoutInvitation', {relatedId: item.relatedId})}
             accessibilityLabel="View Workout Invitation"
           >
             <Text style={styles.buttonText}>View Details</Text>
@@ -124,7 +125,7 @@ const NotificationListScreen = ({ navigation }) => {
           >
             <Text style={styles.buttonText}>View Details</Text>
           </TouchableOpacity>
-        )} */}
+        )} 
       </View>
     </View>
   );
