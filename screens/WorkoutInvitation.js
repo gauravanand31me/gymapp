@@ -1,10 +1,12 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native'; // Import the hook for navigation
+import { acceptBuddyRequest } from '../api/apiService';
 
-const WorkoutInvitation = () => {
-  const navigation = useNavigation(); // Get the navigation object
-
+const WorkoutInvitation = ({navigation, route}) => {
+  const {relatedId} = route.params;
+  const [booking, setBooking] = useState({});
+  console.log("relatedId", relatedId);
   const handleAccept = () => {
     // Logic to handle acceptance of the invitation
     console.log('Invitation accepted!');
@@ -15,6 +17,32 @@ const WorkoutInvitation = () => {
     console.log('Invitation declined!');
   };
 
+
+  useEffect(() => {
+    const handleActionRequest = async (requestId) => {
+      const data = await acceptBuddyRequest(requestId);
+      console.log("data.booking", data.booking);
+      setBooking(data.booking);
+      console.log("Data is in this page", data);
+    }
+    handleActionRequest(relatedId);
+  }, [])
+
+  const {
+    bookingDate,
+    bookingDuration,
+    gymName,
+    slotStartTime,
+    subscriptionPrice,
+    gymRating,
+  } = booking;
+
+  // Format date and time display
+  const formattedDate = new Date(bookingDate).toDateString(); // Format date
+  const formattedTime = slotStartTime; // Assuming slotStartTime is already in HH:MM:SS format
+
+
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>
@@ -23,26 +51,41 @@ const WorkoutInvitation = () => {
 
       <View style={styles.detailsContainer}>
         <Text style={styles.label}>Invitation Details:</Text>
-        
+
         {/* Make the username clickable */}
         <Text style={styles.detailText}>
-          You've been invited by{' '}
-          <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
-            <Text style={styles.username}>John</Text>
-          </TouchableOpacity>
-          {' '}to join them for a gym session.
+          You've been invited to join a gym session at{' '}
+          <TouchableOpacity onPress={() => navigation.navigate('GymDetails')}>
+            <Text style={styles.username}>{gymName}</Text>
+          </TouchableOpacity>.
         </Text>
-        
-        <Text style={styles.detailText}>Session Date & Time: <Text style={styles.bold}>September 15, 2024, 9:00 AM - 10:00 AM</Text></Text>
-        <Text style={styles.detailText}>Session Duration: <Text style={styles.bold}>1 hour</Text></Text>
-        <Text style={styles.detailText}>Gym Location: <Text style={styles.bold}>Bhanshankari, Bengaluru, IN 560085</Text></Text>
+
+        <Text style={styles.detailText}>
+          Session Date & Time:{' '}
+          <Text style={styles.bold}>
+            {formattedDate}, {formattedTime}
+          </Text>
+        </Text>
+
+        <Text style={styles.detailText}>
+          Session Duration:{' '}
+          <Text style={styles.bold}>{bookingDuration} minutes</Text>
+        </Text>
+
+        <Text style={styles.detailText}>
+          Subscription Price: <Text style={styles.bold}>INR {subscriptionPrice}</Text>
+        </Text>
+
+        <Text style={styles.detailText}>
+          Gym Rating: <Text style={styles.bold}>{gymRating}</Text>
+        </Text>
       </View>
 
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={[styles.button, styles.acceptButton]} onPress={handleAccept}>
+        <TouchableOpacity style={[styles.button, styles.acceptButton]} onPress={() => navigation.navigate('PaymentScreen', { slotDetails: booking, requestId: relatedId })}>
           <Text style={styles.buttonText}>Accept</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.button, styles.declineButton]} onPress={handleDecline}>
+        <TouchableOpacity style={[styles.button, styles.declineButton]} onPress={() => console.log('Declined')}>
           <Text style={styles.buttonText}>Decline</Text>
         </TouchableOpacity>
       </View>
