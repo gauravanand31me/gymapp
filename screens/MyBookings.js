@@ -70,7 +70,7 @@ export default function BookingsScreen({ navigation }) {
     const currentDate = new Date();
     currentDate.setDate(currentDate.getDate() - 1);
 
-    return !booking.visited;
+    return bookingDate < currentDate && !booking.visited;
   });
 
   const getStatusStyle = (status) => {
