@@ -354,9 +354,10 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 40,
     borderColor: '#ccc',
-    borderWidth: 1,
+    borderWidth: 2,  // Increase the border width for a bolder look
     borderRadius: 5,
     paddingHorizontal: 10,
+  
   },
   searchButton: {
     marginLeft: 10,
