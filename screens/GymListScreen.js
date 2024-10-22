@@ -357,6 +357,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,  // Increase the border width for a bolder look
     borderRadius: 5,
     paddingHorizontal: 10,
+    backgroundColor: '#fff'
   
   },
   searchButton: {
@@ -366,6 +367,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     justifyContent: 'center',
     alignItems: 'center',
+    height: 40,
   },
   gymList: {
     paddingBottom: 80, // Add some padding at the bottom
