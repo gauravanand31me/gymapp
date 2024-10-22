@@ -61,7 +61,7 @@ export default function GymListScreen({ navigation }) {
     setError('');
     try {
       const gymList = await fetchAllGyms(lat, long, searchText, limit, page, pincode);
-      console.log("gymList", gymList);
+      console.log("gymList", searchText);
       if (gymList?.length > 0) {
         setGyms(gymList);
       } else {
@@ -76,7 +76,7 @@ export default function GymListScreen({ navigation }) {
     }
   };
 
-  const getLocation = async () => {
+  const getLocation = async (type) => {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
@@ -86,7 +86,12 @@ export default function GymListScreen({ navigation }) {
       }
 
       const location = await Location.getCurrentPositionAsync({});
-      fetchGyms(location.coords.latitude, location.coords.longitude, searchText, page);
+      if (type === "clear") {
+        fetchGyms(location.coords.latitude, location.coords.longitude, "", page);
+      } else {
+        fetchGyms(location.coords.latitude, location.coords.longitude, searchText, page);
+      }
+      
       fetchAddress(location.coords.latitude, location.coords.longitude);
     } catch (error) {
       console.error('Error getting location:', error);
@@ -144,6 +149,7 @@ export default function GymListScreen({ navigation }) {
     React.useCallback(() => {
       // Re-fetch gyms or reset page whenever screen is focused
       setPage(1);  // Reset the page if necessary
+
       getLocation();  // Fetch location and gyms again when navigation focuses back on this screen
     }, [])
   );
@@ -184,6 +190,11 @@ export default function GymListScreen({ navigation }) {
     setPincode('')
     getLocation(); 
   }
+
+  const clearSearch = () => {
+    setSearchText(''); // Clear the search text
+    getLocation("clear"); 
+  };
 
   const renderGym = ({ item }) => (
     <TouchableOpacity style={styles.gymCard} onPress={() => redirectToGymDetails(item.gymId)}>
@@ -248,6 +259,11 @@ export default function GymListScreen({ navigation }) {
         onFocus={() => setIsInputFocused(true)}
         onBlur={() => setIsInputFocused(false)}
       />
+      {searchText.length > 0 && (
+            <TouchableOpacity style={styles.clearButton} onPress={clearSearch}>
+              <Icon name="times" size={20} color="#ccc" />
+            </TouchableOpacity>
+      )}
       <TouchableOpacity  style={styles.searchButton} onPress={handleSearch}>
           <Icon name="search" size={24} color="#fff" />
       </TouchableOpacity>
