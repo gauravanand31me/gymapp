@@ -144,7 +144,7 @@ export default function BookingsScreen({ navigation }) {
               <Text style={styles.ratingPrompt}>Rate Your Experience:</Text>
               <View style={styles.starContainer}>
                 {[1, 2, 3, 4, 5].map((star) => (
-                  <TouchableOpacity key={star} onPress={() => handleRating(star)}>
+                  <TouchableOpacity key={star}>
                     <Icon
                       name="star"
                       size={20}
