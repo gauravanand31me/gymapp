@@ -149,7 +149,8 @@ export default function GymListScreen({ navigation }) {
     React.useCallback(() => {
       // Re-fetch gyms or reset page whenever screen is focused
       setPage(1);  // Reset the page if necessary
-
+      setPincode('');
+      setSearchText('');
       getLocation();  // Fetch location and gyms again when navigation focuses back on this screen
     }, [])
   );
