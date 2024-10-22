@@ -262,7 +262,8 @@ export const verifyOtp = async (mobileNumber, otp) => {
         bookingId: booking.bookingId,
         price: booking.subscriptionPrice, // Assuming you have this in your API response
         visited: booking.visited,
-        create: booking.create
+        create: booking.create,
+        gymId: booking.gymId
       }));
     } catch (error) {
       console.error("Error fetching bookings:", error);

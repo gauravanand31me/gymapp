@@ -4,6 +4,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Footer from '../components/Footer';
 import { fetchAllNearByUser } from '../api/apiService';
 import { addFriend } from '../api/apiService'; // Import the addFriend function
+import EmptyFriendsContainer from '../components/EmptyFriendContainer';
 
 const InviteBuddiesScreen = ({ navigation }) => {
   const [searchText, setSearchText] = useState('');
@@ -71,10 +72,7 @@ const InviteBuddiesScreen = ({ navigation }) => {
   );
 
   const renderEmptyList = () => (
-    <View style={styles.emptyContainer}>
-      <Text style={styles.emptyText}>Search friends by username or name</Text>
-      <Icon name="emoticon-sad-outline" size={48} color="#66BB6A" />
-    </View>
+    <EmptyFriendsContainer />
   );
 
   return (

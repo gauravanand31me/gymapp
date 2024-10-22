@@ -58,7 +58,7 @@ export default function BookingsScreen({ navigation }) {
     // Get current date and subtract one day
     const currentDate = new Date();
     currentDate.setDate(currentDate.getDate() - 1);
-    console.log("booking.visited", booking.visited);
+    
     return (bookingDate < currentDate && booking.visited);
   });
 
@@ -99,7 +99,10 @@ export default function BookingsScreen({ navigation }) {
       <View style={styles.cardBody}>
 
         <View style={styles.gymDetails}>
-          <Text style={styles.gymName}>{item.gymName}</Text>
+          <TouchableOpacity onPress={() => navigation.navigate("GymDetails", {gym_id: item.gymId})}>
+              <Text style={styles.gymName}>{item.gymName}</Text>
+          </TouchableOpacity>
+          
           <View style={styles.ratingContainer}>
             <Icon name="star" size={14} color="#FFD700" />
             <Text style={styles.ratingText}>{item.rating} ({item.reviews} Reviews)</Text>

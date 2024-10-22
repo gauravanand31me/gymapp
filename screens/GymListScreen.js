@@ -23,6 +23,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import CustomHeader from '../components/Header';
 import { Link } from '@react-navigation/native';
+import { Button } from 'react-native-elements';
 
 export default function GymListScreen({ navigation }) {
   const [searchText, setSearchText] = useState('');
@@ -56,12 +57,11 @@ export default function GymListScreen({ navigation }) {
   }, []);
 
   const fetchGyms = async (lat, long, searchText = '', page = 1) => {
-    if ((loading || !hasMoreGyms) && !searchText) return;
     setLoading(true);
     setError('');
     try {
       const gymList = await fetchAllGyms(lat, long, searchText, limit, page, pincode);
-
+      console.log("gymList", gymList);
       if (gymList?.length > 0) {
         setGyms(gymList);
       } else {
@@ -114,6 +114,7 @@ export default function GymListScreen({ navigation }) {
     setError('');
     try {
       const response = await axios.get(`https://maps.googleapis.com/maps/api/geocode/json?address=${pincode}&key=${GOOGLE_MAPS_API_KEY}`);
+      
       if (response.data.results && response.data.results?.length > 0) {
         const location = response.data.results[0].geometry.location;
         fetchAddress(location.lat, location.lng);
@@ -132,6 +133,7 @@ export default function GymListScreen({ navigation }) {
   };
 
   const validatePincode = () => {
+    
     if (!pincode || pincode?.length !== 6 || isNaN(pincode)) {
       return false;
     }
@@ -147,6 +149,7 @@ export default function GymListScreen({ navigation }) {
   );
 
   useEffect(() => {
+    
     const timer = setTimeout(() => {
       setLoading(true);
       if (!validatePincode()) {
@@ -158,9 +161,10 @@ export default function GymListScreen({ navigation }) {
     }, 2000); // Delay of 2 seconds
 
     return () => clearTimeout(timer);
-  }, [page, searchText]);
+  }, [page]);
 
   useEffect(() => {
+   
     if (validatePincode()) {
       fetchLatLongFromPincode();  // Fetch location based on pincode when changed
     }
@@ -175,6 +179,11 @@ export default function GymListScreen({ navigation }) {
   const redirectToGymDetails = (gymId) => {
     navigation.navigate('GymDetails', { gym_id: gymId });
   };
+
+  const handleSearch = async () => {
+    setPincode('')
+    getLocation(); 
+  }
 
   const renderGym = ({ item }) => (
     <TouchableOpacity style={styles.gymCard} onPress={() => redirectToGymDetails(item.gymId)}>
@@ -229,15 +238,20 @@ export default function GymListScreen({ navigation }) {
 
         </View>
         <Text style={styles.greetingText}>Hey {fullName}, looking for a gym or a workout buddy?</Text>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search nearby gyms"
-          placeholderTextColor="#ccc"
-          value={searchText}
-          onChangeText={setSearchText}
-          onFocus={() => setIsInputFocused(true)}
-          onBlur={() => setIsInputFocused(false)}
-        />
+        <View style={styles.searchContainer}>
+      <TextInput
+        style={styles.searchInput}
+        placeholder="Search nearby gyms"
+        placeholderTextColor="#ccc"
+        value={searchText}
+        onChangeText={setSearchText}
+        onFocus={() => setIsInputFocused(true)}
+        onBlur={() => setIsInputFocused(false)}
+      />
+      <TouchableOpacity  style={styles.searchButton} onPress={handleSearch}>
+          <Icon name="search" size={24} color="#fff" />
+      </TouchableOpacity>
+    </View>
       </View>
 
 
@@ -297,15 +311,15 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   pincodeInput: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 10,
-    padding: 5,
-    backgroundColor: '#fff',
-    width: 100, // Adjust width as necessary
-    textAlign: 'center',
-    marginLeft: 5,
-    height: 30, // Reduced margin to move closer to location text
+    flex: 1,
+    height: 30,
+    color: '#000',
+  },
+  iconLeft: {
+    marginRight: 10,
+  },
+  iconRight: {
+    marginLeft: 10,
   },
   greetingText: {
     fontSize: 18,
@@ -314,13 +328,26 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginVertical: 10,
   },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 10,
+  },
   searchInput: {
-    borderWidth: 1,
+    flex: 1,
+    height: 40,
     borderColor: '#ccc',
-    borderRadius: 10,
-    padding: 8, // Adjust padding if needed
-    backgroundColor: '#fff',
-    height: 40, // Reduced height
+    borderWidth: 1,
+    borderRadius: 5,
+    paddingHorizontal: 10,
+  },
+  searchButton: {
+    marginLeft: 10,
+    backgroundColor: '#66BB6A',  // Customize your button color
+    padding: 10,
+    borderRadius: 5,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   gymList: {
     paddingBottom: 80, // Add some padding at the bottom
