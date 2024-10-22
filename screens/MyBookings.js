@@ -14,7 +14,7 @@ export default function BookingsScreen({ navigation }) {
   const [currentBookingId, setCurrentBookingId] = useState(null); // To track current booking ID
   const [isEmpty, setIsEmpty] = useState(false);
   const [isLoading, setIsLoading] = useState(true); // State for loading
-
+  const [rating, setRating] = useState(0); // initial rating from the item
   useEffect(() => {
     const getBookings = async () => {
       setIsLoading(true); // Start loader
@@ -137,6 +137,25 @@ export default function BookingsScreen({ navigation }) {
             For cancellations, please contact the administrator.
           </Text>}
         </View>
+
+        {/* Star Rating for Completed Bookings */}
+        {selectedTab === "Completed" && (
+            <View style={styles.starRatingContainer}>
+              <Text style={styles.ratingPrompt}>Rate Your Experience:</Text>
+              <View style={styles.starContainer}>
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <TouchableOpacity key={star} onPress={() => handleRating(star)}>
+                    <Icon
+                      name="star"
+                      size={20}
+                      color={star <= rating ? '#FFD700' : '#CCC'}
+                      style={styles.starIcon}
+                    />
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+        )}
       </View>
     </View>
   );
@@ -510,5 +529,21 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingBottom: 20,
+  },
+  starRatingContainer: {
+    marginTop: 10,
+    alignItems: 'center',
+  },
+  ratingPrompt: {
+    fontSize: 16,
+    color: '#555',
+    marginBottom: 5,
+  },
+  starContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+  starIcon: {
+    marginHorizontal: 2,
   },
 });
