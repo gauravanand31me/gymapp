@@ -22,7 +22,7 @@ export default function BookingsScreen({ navigation }) {
       console.log("allBookings", allBookings);
       if (allBookings) {
         // Sort bookings by date
-        const sortedBookings = allBookings.sort((a, b) => new Date(a.create) - new Date(b.create));
+        const sortedBookings = allBookings.sort((a, b) => new Date(b.create) - new Date(a.create));
         setBookings(sortedBookings);
         setIsEmpty(sortedBookings.length === 0);
       }
