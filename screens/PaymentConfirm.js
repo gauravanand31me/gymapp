@@ -21,7 +21,7 @@ const PaymentScreen = ({ route, navigation }) => {
       // Step 1: Create the payment order first
       const orderResponse = await createOrder(slotDetails.price * (slotDetails.duration / 60) || slotDetails.subscriptionPrice);
       console.log("orderResponse", orderResponse);
-      if (orderResponse && orderResponse.id) {
+      if (orderResponse && orderResponse.orderId) {
         // Step 2: Open Razorpay payment link in the browser
         const paymentOptions = {
           description: 'Slot Booking Payment',
@@ -46,6 +46,8 @@ const PaymentScreen = ({ route, navigation }) => {
         if (requestId) {
           slotDetails.requestId = requestId;
         }
+
+        
         if (result.type === 'opened') {
           const bookingResponse = await createBooking(slotDetails); // Create booking on success
           if (bookingResponse) {
