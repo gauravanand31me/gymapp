@@ -58,8 +58,9 @@ export default function AutocompleteSearchComponent({ lat, long, onSearch, onCle
 
   const renderSuggestion = ({ item }) => (
     <TouchableOpacity style={styles.suggestionItem} onPress={() => handleSelect(item)}>
-      <Text style={styles.suggestionText}>{item.gymName}</Text>
-      <Text style={styles.locationText}>{item.location}</Text>
+      <Text style={styles.suggestionText}>{item.gymName} <Icon name="chevron-right" size={16} color="#555"  /></Text>
+    
+     
     </TouchableOpacity>
   );
 
@@ -162,7 +163,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   suggestionText: {
-    fontSize: 16,
+    fontSize: 12,
     color: '#333',
   },
   locationText: {
@@ -180,5 +181,8 @@ const styles = StyleSheet.create({
   selectedGymLocation: {
     fontSize: 14,
     color: '#777',
+  },
+  arrowIcon: {
+    marginRight: 0, // Spacing between text and icon
   },
 });
