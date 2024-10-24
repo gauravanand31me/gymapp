@@ -123,13 +123,13 @@ const UserProfileScreen = ({ navigation, route }) => {
         let medalImage, medalLabel;
 
         if (workoutHours > 1000) {
-            medalImage = require('../assets/goldmedal.png');
+            medalImage = require('../assets/goldmedal.jpg');
             medalLabel = 'Pro';
         } else if (workoutHours > 500) {
-            medalImage = require('../assets/silvermedal.png');
+            medalImage = require('../assets/silvermedal.jpg');
             medalLabel = 'Advance';
         } else if (workoutHours > 100) {
-            medalImage = require('../assets/bronzemedal.png');
+            medalImage = require('../assets/bronzemedal.jpg');
             medalLabel = 'Bronze';
         } else {
             medalImage = require('../assets/diamondmedal.jpg');
@@ -169,11 +169,11 @@ const UserProfileScreen = ({ navigation, route }) => {
                         <Image
                           source={
                             currentMilestone === 'bronze'
-                              ? require('../assets/bronzemedal.png')
+                              ? require('../assets/bronzemedal.jpg')
                               : currentMilestone === 'silver'
-                              ? require('../assets/silvermedal.png')
+                              ? require('../assets/silvermedal.jpg')
                               : currentMilestone === 'gold'
-                              ? require('../assets/goldmedal.png')
+                              ? require('../assets/goldmedal.jpg')
                               : require('../assets/diamondmedal.jpg')
                           }
                           style={styles.milestoneIconNearName}
@@ -215,9 +215,9 @@ const UserProfileScreen = ({ navigation, route }) => {
               <View style={styles.milestoneContainer}>
                 <Text style={styles.sectionTitle}>Milestone Progress</Text>
                 <View style={styles.milestoneIcons}>
-                  <Image source={require('../assets/bronzemedal.png')} style={styles.milestoneIcon} />
-                  <Image source={require('../assets/silvermedal.png')} style={styles.milestoneIcon} />
-                  <Image source={require('../assets/goldmedal.png')} style={styles.milestoneIcon} />
+                  <Image source={require('../assets/bronzemedal.jpg')} style={styles.milestoneIcon} />
+                  <Image source={require('../assets/silvermedal.jpg')} style={styles.milestoneIcon} />
+                  <Image source={require('../assets/goldmedal.jpg')} style={styles.milestoneIcon} />
                   <Image source={require('../assets/diamondmedal.jpg')} style={styles.milestoneIcon} />
                 </View>
                 <ProgressBar

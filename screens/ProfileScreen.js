@@ -145,11 +145,11 @@ const ProfileScreen = ({ navigation }) => {
                 <Image
                   source={
                     currentMilestone === 'bronze'
-                      ? require('../assets/bronzemedal.png')
+                      ? require('../assets/bronzemedal.jpg')
                       : currentMilestone === 'silver'
-                      ? require('../assets/silvermedal.png')
+                      ? require('../assets/silvermedal.jpg')
                       : currentMilestone === 'gold'
-                      ? require('../assets/goldmedal.png')
+                      ? require('../assets/goldmedal.jpg')
                       : require('../assets/diamondmedal.jpg')
                   }
                   style={styles.milestoneIconNearName}
@@ -180,9 +180,9 @@ const ProfileScreen = ({ navigation }) => {
       <View style={styles.milestoneContainer}>
         <Text style={styles.sectionTitle}>Milestone Progress</Text>
         <View style={styles.milestoneIcons}>
-          <Image source={require('../assets/bronzemedal.png')} style={styles.milestoneIcon} />
-          <Image source={require('../assets/silvermedal.png')} style={styles.milestoneIcon} />
-          <Image source={require('../assets/goldmedal.png')} style={styles.milestoneIcon} />
+          <Image source={require('../assets/bronzemedal.jpg')} style={styles.milestoneIcon} />
+          <Image source={require('../assets/silvermedal.jpg')} style={styles.milestoneIcon} />
+          <Image source={require('../assets/goldmedal.jpg')} style={styles.milestoneIcon} />
           <Image source={require('../assets/diamondmedal.jpg')} style={styles.milestoneIcon} />
         </View>
         <ProgressBar
