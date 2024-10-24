@@ -106,7 +106,7 @@ const PaymentScreen = ({ route, navigation }) => {
         </View>
 
         {isExpired ? (
-          <Text style={styles.expiredText}>This invitation is expired.</Text>
+          <Text style={styles.expiredText}>This booking time has expired.</Text>
         ) : (
           <TouchableOpacity style={styles.button} onPress={handlePayment} disabled={loading}>
             {loading ? (
