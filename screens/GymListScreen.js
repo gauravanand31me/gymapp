@@ -165,9 +165,10 @@ export default function GymListScreen({ navigation }) {
   );
 
   useEffect(() => {
-    
+    setLoading(true);
+    setGyms([]);
     const timer = setTimeout(() => {
-      setLoading(true);
+      
       if (!validatePincode()) {
         getLocation();
       } else {
@@ -177,7 +178,7 @@ export default function GymListScreen({ navigation }) {
     }, 2000); // Delay of 2 seconds
 
     return () => clearTimeout(timer);
-  }, [page]);
+  }, [page, searchText]);
 
   useEffect(() => {
    
@@ -203,8 +204,8 @@ export default function GymListScreen({ navigation }) {
 
   const handleSearchData = async (query) => {
     
-    await setSearchText(query);
-    await getLocation(); 
+    setSearchText(query);
+   
   }
 
   const clearSearch = () => {

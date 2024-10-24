@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ImageBackground, Alert, ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import * as WebBrowser from 'expo-web-browser';
@@ -8,11 +8,22 @@ import { createBooking, createOrder } from '../api/apiService';
 const PaymentScreen = ({ route, navigation }) => {
   const { slotDetails, requestId } = route.params; // Extract slot details from navigation parameters
   const [loading, setLoading] = useState(false); // Loading state for button
+  const [isExpired, setIsExpired] = useState(false); // State to check if the booking is expired
 
+  // Effect to check if the booking is expired
+  useEffect(() => {
+    const checkExpiration = () => {
+      const currentDate = new Date(); // Get current date and time
+      const slotDateTime = new Date(`${slotDetails.date} ${slotDetails.time}`); // Combine date and time
+      
+      // Check if the current date and time is greater than the slot date and time
+      if (currentDate > slotDateTime) {
+        setIsExpired(true); // Set expired state
+      }
+    };
 
-
-  // Function to create an order by calling your backend
-
+    checkExpiration(); // Run the expiration check
+  }, [slotDetails.date, slotDetails.time]); // Dependency array includes date and time
 
   const handlePayment = async () => {
     try {
@@ -42,12 +53,10 @@ const PaymentScreen = ({ route, navigation }) => {
        
         console.log("Result is", result);
         // Step 3: After successful payment, create the booking
-   
         if (requestId) {
           slotDetails.requestId = requestId;
         }
 
-        
         if (result.type === 'opened') {
           const bookingResponse = await createBooking(slotDetails); // Create booking on success
           if (bookingResponse) {
@@ -69,21 +78,14 @@ const PaymentScreen = ({ route, navigation }) => {
     }
   };
 
-
-  
-
   return (
-    <ImageBackground
-      style={styles.background}
-    >
+    <ImageBackground style={styles.background}>
       <View style={styles.container}>
-
         {/* Gym Information Section */}
         <View style={styles.card}>
           <Text style={styles.gymName}>{slotDetails.gymName}</Text>
           <Text style={styles.gymDescription}>
             Please verify the details before booking this gym. Welcome to {slotDetails.gymName}, your ultimate fitness destination!
-           
           </Text>
           <Text style={styles.gymLocation}>{slotDetails.location}</Text>
         </View>
@@ -103,13 +105,17 @@ const PaymentScreen = ({ route, navigation }) => {
           <Text style={styles.price}>Price: INR {slotDetails.price * (slotDetails.duration / 60) || slotDetails.subscriptionPrice}</Text>
         </View>
 
-        <TouchableOpacity style={styles.button} onPress={handlePayment} disabled={loading}>
-          {loading ? (
-            <ActivityIndicator size="small" color="#fff" />
-          ) : (
-            <Text style={styles.buttonText}>Proceed</Text>
-          )}
-        </TouchableOpacity>
+        {isExpired ? (
+          <Text style={styles.expiredText}>This invitation is expired.</Text>
+        ) : (
+          <TouchableOpacity style={styles.button} onPress={handlePayment} disabled={loading}>
+            {loading ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Text style={styles.buttonText}>Proceed</Text>
+            )}
+          </TouchableOpacity>
+        )}
 
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Text style={styles.backButtonText}>Go Back</Text>
@@ -199,6 +205,13 @@ const styles = StyleSheet.create({
   backButtonText: {
     color: '#2e7d32',
     fontSize: 18,
+  },
+  expiredText: {
+    color: 'red',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginTop: 20,
+    textAlign: 'center',
   },
 });
 

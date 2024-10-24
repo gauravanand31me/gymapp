@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, TextInput, FlatList, TouchableOpacity, Text, StyleSheet, ActivityIndicator, Keyboard, Alert } from 'react-native';
+import { View, TextInput, FlatList, TouchableOpacity, Text, StyleSheet, ActivityIndicator, Keyboard } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { fetchAllGyms } from '../api/apiService';
 import { useNavigation } from '@react-navigation/native';
@@ -41,11 +41,11 @@ export default function AutocompleteSearchComponent({ lat, long, onSearch, onCle
   };
 
   const handleSearchSubmit = () => {
- 
+    if (query.length > 2) {
       onSearch(query);
       setSuggestions([]);
       Keyboard.dismiss();
-   
+    }
   };
 
   // Function to clear the search input and suggestions
@@ -75,9 +75,9 @@ export default function AutocompleteSearchComponent({ lat, long, onSearch, onCle
           returnKeyType="search"
           onSubmitEditing={handleSearchSubmit}
         />
-        <TouchableOpacity onPress={handleClearSearch} style={styles.clearButton}>
-          <Icon name="times-circle" size={20} color="#666" />
-        </TouchableOpacity>
+        {query && <TouchableOpacity onPress={handleClearSearch} style={styles.clearButton}>
+          <Icon name="times-circle" size={22} color="#fff" />
+        </TouchableOpacity> }
         <Icon name="search" size={20} color="#666" style={styles.searchIcon} onPress={handleSearchSubmit} />
       </View>
 
@@ -86,7 +86,7 @@ export default function AutocompleteSearchComponent({ lat, long, onSearch, onCle
       {suggestions.length > 0 && (
         <FlatList
           data={suggestions}
-          keyExtractor={(item) => item.gymId}
+          keyExtractor={(item) => item.gymId.toString()}
           renderItem={renderSuggestion}
           style={styles.suggestionList}
         />
@@ -105,7 +105,6 @@ export default function AutocompleteSearchComponent({ lat, long, onSearch, onCle
 const styles = StyleSheet.create({
   container: {
     padding: 10,
-    backgroundColor: '#f0f0f0',
     borderRadius: 10,
     marginVertical: 20,
   },
@@ -129,13 +128,20 @@ const styles = StyleSheet.create({
   },
   searchIcon: {
     position: 'absolute',
-    right: 50, // Adjusted to accommodate the clear button
+    right: 60, // Adjusted to accommodate the clear button
     top: 15,
   },
   clearButton: {
     position: 'absolute',
     right: 20,
     top: 10,
+    width: 36, // Increased size for better click area
+    height: 36, // Increased size for better click area
+    borderRadius: 18, // Circular button
+
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 2, // Slight shadow for depth
   },
   suggestionList: {
     maxHeight: 200,
