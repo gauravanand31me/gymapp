@@ -24,6 +24,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import CustomHeader from '../components/Header';
 import { Link } from '@react-navigation/native';
 import { Button } from 'react-native-elements';
+import AutocompleteSearchComponent from '../components/AutoCompleteInput';
 
 export default function GymListScreen({ navigation }) {
   const [searchText, setSearchText] = useState('');
@@ -37,6 +38,8 @@ export default function GymListScreen({ navigation }) {
   const [pincode, setPincode] = useState('');
   const [error, setError] = useState('');
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false); // Track keyboard visibility
+  const [lat, setLat] = useState("");
+  const [long, setLong] = useState("");
   const limit = 9;
  
   const GOOGLE_MAPS_API_KEY = 'AIzaSyCe_VHcmc7i6jbNl0oFDVHwQyavPgYFU10';  // Replace with your actual API key
@@ -86,9 +89,13 @@ export default function GymListScreen({ navigation }) {
       }
 
       const location = await Location.getCurrentPositionAsync({});
+      setLat(location.coords.latitude);
+      setLong(location.coords.longitude);
       if (type === "clear") {
         fetchGyms(location.coords.latitude, location.coords.longitude, "", page);
+        
       } else {
+        console.log("Search Text received here", searchText);
         fetchGyms(location.coords.latitude, location.coords.longitude, searchText, page);
       }
       
@@ -122,6 +129,8 @@ export default function GymListScreen({ navigation }) {
       
       if (response.data.results && response.data.results?.length > 0) {
         const location = response.data.results[0].geometry.location;
+        setLat(location.lat);
+        setLong(location.lng);
         fetchAddress(location.lat, location.lng);
         fetchGyms(location.lat, location.lng, searchText, 1); // Fetch gyms for the new location
       } else {
@@ -192,6 +201,12 @@ export default function GymListScreen({ navigation }) {
     getLocation(); 
   }
 
+  const handleSearchData = async (query) => {
+    
+    await setSearchText(query);
+    await getLocation(); 
+  }
+
   const clearSearch = () => {
     setSearchText(''); // Clear the search text
     getLocation("clear"); 
@@ -250,30 +265,15 @@ export default function GymListScreen({ navigation }) {
 
         </View>
         <Text style={styles.greetingText}>Hey {fullName}, looking for a gym or a workout buddy?</Text>
-        <View style={styles.searchContainer}>
-      <TextInput
-        style={styles.searchInput}
-        placeholder="Search nearby gyms"
-        placeholderTextColor="#ccc"
-        value={searchText}
-        onChangeText={setSearchText}
-        onFocus={() => setIsInputFocused(true)}
-        onBlur={() => setIsInputFocused(false)}
-      />
-      {searchText.length > 0 && (
-            <TouchableOpacity style={styles.clearButton} onPress={clearSearch}>
-              <Icon name="times" size={20} color="#ccc" />
-            </TouchableOpacity>
-      )}
-      <TouchableOpacity  style={styles.searchButton} onPress={handleSearch}>
-          <Icon name="search" size={24} color="#fff" />
-      </TouchableOpacity>
-    </View>
+    
+        <AutocompleteSearchComponent lat={lat} long={long} onSearch={handleSearchData} onClear={clearSearch}/>
+      
+ 
       </View>
 
 
       {error && <Text style={styles.errorMessage}>{error}</Text>}
-
+      
       <FlatList
         data={gyms}
         renderItem={renderGym}
@@ -305,13 +305,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
   },
   header: {
-    padding: 20,
-    backgroundColor: '#4CAF50',
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-    elevation: 5,
-    height: 200,
+      backgroundColor: '#4CAF50',
   },
+
   headerContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
