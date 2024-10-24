@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   View,
@@ -22,7 +22,6 @@ import Footer from '../components/Footer';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import CustomHeader from '../components/Header';
-import { debounce } from 'lodash'; // Import debounce
 import { Link } from '@react-navigation/native';
 import { Button } from 'react-native-elements';
 
@@ -37,12 +36,13 @@ export default function GymListScreen({ navigation }) {
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [pincode, setPincode] = useState('');
   const [error, setError] = useState('');
-  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false); // Track keyboard visibility
   const limit = 9;
-
-  const GOOGLE_MAPS_API_KEY = 'AIzaSyCe_VHcmc7i6jbNl0oFDVHwQyavPgYFU10'; // Replace with your actual API key
+ 
+  const GOOGLE_MAPS_API_KEY = 'AIzaSyCe_VHcmc7i6jbNl0oFDVHwQyavPgYFU10';  // Replace with your actual API key
 
   useEffect(() => {
+    
     const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
       setIsKeyboardVisible(true);
     });
@@ -61,6 +61,7 @@ export default function GymListScreen({ navigation }) {
     setError('');
     try {
       const gymList = await fetchAllGyms(lat, long, searchText, limit, page, pincode);
+      console.log("gymList", searchText);
       if (gymList?.length > 0) {
         setGyms(gymList);
       } else {
@@ -137,6 +138,7 @@ export default function GymListScreen({ navigation }) {
   };
 
   const validatePincode = () => {
+    
     if (!pincode || pincode?.length !== 6 || isNaN(pincode)) {
       return false;
     }
@@ -145,6 +147,7 @@ export default function GymListScreen({ navigation }) {
 
   useFocusEffect(
     React.useCallback(() => {
+      // Re-fetch gyms or reset page whenever screen is focused
       setPage(1);  // Reset the page if necessary
       setPincode('');
       setSearchText('');
@@ -153,6 +156,7 @@ export default function GymListScreen({ navigation }) {
   );
 
   useEffect(() => {
+    
     const timer = setTimeout(() => {
       setLoading(true);
       if (!validatePincode()) {
@@ -167,6 +171,7 @@ export default function GymListScreen({ navigation }) {
   }, [page]);
 
   useEffect(() => {
+   
     if (validatePincode()) {
       fetchLatLongFromPincode();  // Fetch location based on pincode when changed
     }
@@ -182,24 +187,10 @@ export default function GymListScreen({ navigation }) {
     navigation.navigate('GymDetails', { gym_id: gymId });
   };
 
-  // Debounced search function
-  const debouncedSearch = useCallback(
-    debounce(async (searchText) => {
-      setPage(1); // Reset to the first page on a new search
-      if (searchText.trim()) {
-        const { coords } = await Location.getCurrentPositionAsync({});
-        fetchGyms(coords.latitude, coords.longitude, searchText, 1);
-      } else {
-        getLocation("clear"); // Get all gyms if search text is empty
-      }
-    }, 300), // 300 ms delay
-    []
-  );
-
-  const handleSearch = (text) => {
-    setSearchText(text);
-    debouncedSearch(text);
-  };
+  const handleSearch = async () => {
+    setPincode('')
+    getLocation(); 
+  }
 
   const clearSearch = () => {
     setSearchText(''); // Clear the search text
@@ -211,6 +202,7 @@ export default function GymListScreen({ navigation }) {
       <Image source={{ uri: item.images?.[0]?.imageUrl || 'https://www.hussle.com/blog/wp-content/uploads/2020/12/Gym-structure-1080x675.png' }} style={styles.gymImage} />
       <View style={styles.gymInfo}>
         <Text style={styles.gymName}>{item.gymName}</Text>
+
         <Text style={styles.gymPrice}>₹ {item.subscriptionPrices?.[0] || 'N/A'}/session</Text>
         <Text style={styles.gymAddress}>
           <Text style={styles.locationIcon}>📍</Text>
@@ -255,28 +247,30 @@ export default function GymListScreen({ navigation }) {
               keyboardType="numeric"
             />
           </View>
+
         </View>
-        <Text style={styles.greetingText}>Hey {fullName}, looking for a workout?</Text>
+        <Text style={styles.greetingText}>Hey {fullName}, looking for a gym or a workout buddy?</Text>
         <View style={styles.searchContainer}>
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search nearby gyms"
-            placeholderTextColor="#ccc"
-            value={searchText}
-            onChangeText={handleSearch} // Use the debounced search function
-            onFocus={() => setIsInputFocused(true)}
-            onBlur={() => setIsInputFocused(false)}
-          />
-          {searchText.length > 0 && (
+      <TextInput
+        style={styles.searchInput}
+        placeholder="Search nearby gyms"
+        placeholderTextColor="#ccc"
+        value={searchText}
+        onChangeText={setSearchText}
+        onFocus={() => setIsInputFocused(true)}
+        onBlur={() => setIsInputFocused(false)}
+      />
+      {searchText.length > 0 && (
             <TouchableOpacity style={styles.clearButton} onPress={clearSearch}>
               <Icon name="times" size={20} color="#ccc" />
             </TouchableOpacity>
-          )}
-          <TouchableOpacity style={styles.searchButton} onPress={() => handleSearch(searchText)}>
-            <Icon name="search" size={24} color="#fff" />
-          </TouchableOpacity>
-        </View>
+      )}
+      <TouchableOpacity  style={styles.searchButton} onPress={handleSearch}>
+          <Icon name="search" size={24} color="#fff" />
+      </TouchableOpacity>
+    </View>
       </View>
+
 
       {error && <Text style={styles.errorMessage}>{error}</Text>}
 
@@ -297,10 +291,13 @@ export default function GymListScreen({ navigation }) {
         }
       />
 
+
+
       {!isKeyboardVisible && <Footer navigation={navigation} />}
     </KeyboardAvoidingView>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {
