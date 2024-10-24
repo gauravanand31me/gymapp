@@ -33,7 +33,7 @@ const WorkoutRequest = ({ route, navigation }) => {
 
   return (
     <ImageBackground 
-      source={require('../assets/goldmedal.png')} // Add your downloaded image path here
+      //source={require('../assets/goldmedal.png')} // Add your downloaded image path here
       style={styles.background}
     >
       <View style={styles.container}>

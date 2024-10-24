@@ -85,8 +85,11 @@ const WorkoutInvitation = ({navigation, route}) => {
         <TouchableOpacity style={[styles.button, styles.acceptButton]} onPress={() => navigation.navigate('PaymentScreen', { slotDetails: booking, requestId: relatedId })}>
           <Text style={styles.buttonText}>Accept</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.button, styles.declineButton]} onPress={() => console.log('Declined')}>
+        <TouchableOpacity style={[styles.button, styles.declineButton]} onPress={handleDecline}>
           <Text style={styles.buttonText}>Decline</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.button, styles.backButton]} onPress={() => navigation.goBack()}>
+          <Text style={styles.buttonText}>Back</Text>
         </TouchableOpacity>
       </View>
 
@@ -156,7 +159,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 15,
     flex: 1,
-    marginHorizontal: 10,
+    marginHorizontal: 5, // Adjusted to fit all buttons
     elevation: 3,
   },
   acceptButton: {
@@ -164,6 +167,9 @@ const styles = StyleSheet.create({
   },
   declineButton: {
     backgroundColor: '#F44336',
+  },
+  backButton: {
+    backgroundColor: '#000000', // Black color for the back button
   },
   buttonText: {
     color: '#ffffff',
