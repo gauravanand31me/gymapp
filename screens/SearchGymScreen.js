@@ -52,7 +52,7 @@ export default function SearchGymList({ navigation, route }) {
   const fetchGyms = async () => {
     setLoading(true);
     try {
-        const gymList = await fetchAllGyms(lat, long, searchText, limit, page);
+      const gymList = await fetchAllGyms(lat, long, searchText, limit, page);
       if (gymList?.length > 0) {
         setGyms(gymList);
       } else {
@@ -96,7 +96,7 @@ export default function SearchGymList({ navigation, route }) {
         <Text style={styles.headerText}>Results for "{searchText}"</Text>
       </View>
 
-     
+
 
       <FlatList
         data={gyms}
@@ -112,7 +112,15 @@ export default function SearchGymList({ navigation, route }) {
             )}
           </>
         }
+        ListEmptyComponent={
+          !loading && (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>No results found</Text>
+            </View>
+          )
+        }
       />
+
       {!isKeyboardVisible && <Footer navigation={navigation} />}
     </KeyboardAvoidingView>
   );
@@ -208,4 +216,15 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
   },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+},
+emptyText: {
+    fontSize: 16,
+    color: '#888',
+    textAlign: 'center',
+},
 });

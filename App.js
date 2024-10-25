@@ -26,6 +26,7 @@ import VisitedGymScreen from './screens/VisitedGymScreen'; // Import the screen
 import UserProfileScreen from './screens/UserProfileScreen';
 import SearchListScreen from './screens/SearchGymScreen';
 import AutocompleteSearchComponent from './components/AutoCompleteInput';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Stack = createStackNavigator();
 
@@ -55,8 +56,15 @@ export default function App() {
 
     // Get the token that uniquely identifies this device
     const token = (await Notifications.getExpoPushTokenAsync()).data;
-
-    console.log(token);
+    console.log("Token is", token);
+     // Store the token in AsyncStorage
+     try {
+      await AsyncStorage.setItem('expoPushToken', token);
+      console.log('Push token stored:', token);
+    } catch (error) {
+      console.error('Error storing the push token:', error);
+    }
+     
   };
 
   React.useEffect(() => {

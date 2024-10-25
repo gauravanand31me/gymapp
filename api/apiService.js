@@ -51,10 +51,15 @@ export const registerUser = async (fullName, phoneNumber) => {
 // Function to handle OTP verification
 export const verifyOtp = async (mobileNumber, otp) => {
     try {
+      
+      const storedToken = await AsyncStorage.getItem('expoPushToken');
+        console.log('Stored token:', storedToken);
+    
       console.log(`${BASE_URL}/auth/verify-otp`);
       const response = await axios.post(`${BASE_URL}/auth/verify-otp`, {
         mobile_number: mobileNumber,
         otp: otp,
+        expoPushToken: storedToken
       });
       console.log("OTP Verification Response Data", response.data);
       return response.data; // Return the data on success
@@ -84,6 +89,8 @@ export const verifyOtp = async (mobileNumber, otp) => {
     }
   };
   
+
+ 
 
   export const fetchIndividualGymData = async (gym_id) => {
     try {
@@ -168,7 +175,7 @@ export const verifyOtp = async (mobileNumber, otp) => {
       const userToken = await AsyncStorage.getItem('authToken'); // Fetch token if needed
       const response = await axios.post(
         `${BASE_URL}/friends/add`,
-        { userId: userId },
+        { userId: userId,  },
         {
           headers: {
             Authorization: `Bearer ${userToken}`,  // Add the Bearer token here
