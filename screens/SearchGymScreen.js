@@ -130,22 +130,24 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
-    marginTop: 10
+    marginTop: 10,
+    paddingTop: 30,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#fff',
     paddingHorizontal: 15,
     paddingVertical: 10,
   },
   backButton: {
     marginRight: 10,
+    backgroundColor: '#4CAF50',
   },
   headerText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#4CAF50',
   },
   searchContainer: {
     flexDirection: 'row',
@@ -198,7 +200,8 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     paddingHorizontal: 15,
     borderRadius: 5,
-    marginTop: 10,
+    alignSelf: 'flex-end',
+    marginTop: -15,
   },
   bookNowText: {
     color: '#fff',

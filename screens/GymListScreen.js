@@ -163,10 +163,7 @@ export default function GymListScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
-      <View style={styles.messageContainer}>
-        <Text style={styles.messageText}>Book 10,000+ gyms anytime, anywhere</Text>
-      </View>
-
+   
       {loading ? (
         <ActivityIndicator size="large" color="#4CAF50" style={styles.loader} />
       ) : (
@@ -186,6 +183,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#E8F5E9',
+    paddingtop: 30
   },
   header: {
     backgroundColor: '#4CAF50',
@@ -200,35 +198,39 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 10,
+    paddingTop: 30,
   },
   messageContainer: {
-    backgroundColor: '#FFF3E0',
-    padding: 10,
+    backgroundColor: '#fff',
     marginHorizontal: 15,
-    borderRadius: 10,
     marginTop: 10,
   },
   messageText: {
     fontSize: 18,
     fontWeight: 'bold',
     textAlign: 'center',
-    color: '#FF6F00',
+    color: '#4CAF50',
   },
   pincodeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#388E3C',
-    padding: 8,
+    backgroundColor: '#fff', // Change background color to white
+    paddingVertical: 4, // Reduce vertical padding for height adjustment
+    paddingHorizontal: 8,
     borderRadius: 5,
+    height: 35, // Set a specific height for the pincode container
   },
   pincodeInput: {
     flex: 1,
-    color: '#fff',
+    color: '#000', // Make text color black for better contrast
     padding: 5,
+    height: '100%', // Ensure it takes up the full container height
   },
   searchButton: {
     padding: 5,
     marginLeft: 5,
+    backgroundColor: '#4CAF50', // Set search button background to black
+    borderRadius: 5,
   },
   searchGymButton: {
     flexDirection: 'row',
@@ -281,7 +283,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   bookNowButton: {
-    backgroundColor: '#FF5722', // Vibrant orange color
+    backgroundColor: '#4CAF50', // Vibrant orange color
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 30,

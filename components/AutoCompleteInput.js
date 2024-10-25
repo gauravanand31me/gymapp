@@ -76,25 +76,26 @@ export default function AutocompleteSearchComponent({ route }) {
   return (
     <View style={styles.container}>
       {/* Back Button */}
-      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-        <Icon name="arrow-left" size={24} color="#000" />
-      </TouchableOpacity>
+ 
 
       <View style={styles.searchContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Search gym..."
-          placeholderTextColor="#999"
-          value={query}
-          onChangeText={setQuery}
-          returnKeyType="search"
-          onSubmitEditing={handleSearchSubmit}
-        />
-        {query && <TouchableOpacity onPress={handleClearSearch} style={styles.clearButton}>
-          <Icon name="times-circle" size={22} color="#fff" />
-        </TouchableOpacity>}
-        <Icon name="search" size={20} color="#666" style={styles.searchIcon} onPress={handleSearchSubmit} />
-      </View>
+  <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+    <Icon name="arrow-left" size={24} color="#333" />
+  </TouchableOpacity>
+  <TextInput
+    style={styles.input}
+    placeholder="Search gym..."
+    placeholderTextColor="#999"
+    value={query}
+    onChangeText={setQuery}
+    returnKeyType="search"
+    onSubmitEditing={handleSearchSubmit}
+  />
+  {query && <TouchableOpacity onPress={handleClearSearch} style={styles.clearButton}>
+    <Icon name="times-circle" size={22} color="#fff" />
+  </TouchableOpacity>}
+  <Icon name="search" size={20} color="#666" style={styles.searchIcon} onPress={handleSearchSubmit} />
+</View>
 
       {loading && <ActivityIndicator size="small" color="#0000ff" />}
 
@@ -122,48 +123,41 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 10,
     marginVertical: 20,
-  },
-  backButton: {
-    position: 'absolute',
-    top: 10,
-    left: 10,
-    zIndex: 1,
-    padding: 5,
+
   },
   searchContainer: {
-    position: 'relative',
-    marginTop: 40, // Spacing to accommodate the back button
-  },
-  input: {
-    height: 50,
+    flexDirection: 'row', // Align elements in a row
+    alignItems: 'center', // Vertically center items
+    backgroundColor: '#fff',
     borderColor: '#ddd',
     borderWidth: 1,
     borderRadius: 25,
-    paddingHorizontal: 20,
-    fontSize: 16,
-    backgroundColor: '#fff',
-    color: '#333',
+    paddingHorizontal: 15,
+    height: 50,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 2,
     elevation: 2,
+    marginTop: 25,
+  },
+  backButton: {
+    marginRight: 10,
+    padding: 5,
+  },
+  input: {
+    flex: 1, // Take up remaining space
+    fontSize: 16,
+    color: '#333',
+  
   },
   searchIcon: {
-    position: 'absolute',
-    right: 60,
-    top: 15,
+    marginLeft: 10,
+
   },
   clearButton: {
-    position: 'absolute',
-    right: 20,
-    top: 10,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 2,
+    padding: 5,
+    marginLeft: 10,
   },
   suggestionList: {
     maxHeight: 200,
