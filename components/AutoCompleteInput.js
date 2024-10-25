@@ -5,7 +5,7 @@ import { fetchAllGyms } from '../api/apiService';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 
 export default function AutocompleteSearchComponent({ route }) {
-  const [query, setQuery] = useState('A');
+  const [query, setQuery] = useState('Fit');
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedGym, setSelectedGym] = useState(null);
