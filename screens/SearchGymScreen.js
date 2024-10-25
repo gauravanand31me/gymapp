@@ -78,7 +78,7 @@ export default function SearchGymList({ navigation, route }) {
         </Text>
         <Text style={styles.gymDistance}>📍 {(item.distance ? item.distance.toFixed(1) : 'N/A')} km</Text>
         <Text style={styles.gymRating}>⭐ {item.gymRating || 'N/A'}</Text>
-        <TouchableOpacity style={styles.bookNowButton}>
+        <TouchableOpacity style={styles.bookNowButton} onPress={() => navigation.navigate('GymDetails', { gym_id: item.gymId })}>
           <Text style={styles.bookNowText}>
             <Icon name="check-circle" size={18} color="#fff" /> Book Now
           </Text>

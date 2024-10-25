@@ -133,15 +133,17 @@ export default function GymListScreen({ navigation }) {
 
   const renderGym = ({ item }) => (
     <View style={styles.gymCard}>
+      <TouchableOpacity  onPress={() => navigation.navigate('GymDetails', { gym_id: item.gymId })}>
       <Image source={{ uri: item.images?.[0]?.imageUrl || 'https://example.com/default-gym.png' }} style={styles.gymImage} />
       <View style={styles.gymInfo}>
         <Text style={styles.gymName}>{item.gymName}</Text>
         <Text style={styles.gymDistance}>📍 {item.distance ? item.distance.toFixed(1) : 'N/A'} km away</Text>
         <Text style={styles.gymPrice}>₹ {item.subscriptionPrices?.[0] || 'N/A'}/session</Text>
-        <TouchableOpacity style={styles.bookNowButton} onPress={() => navigation.navigate('GymDetails', { gym_id: item.gymId })}>
+        <TouchableOpacity style={styles.bookNowButton}>
           <Text style={styles.bookNowText}>Book Now</Text>
         </TouchableOpacity>
       </View>
+      </TouchableOpacity>
     </View>
   );
 
