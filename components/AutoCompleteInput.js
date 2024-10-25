@@ -12,6 +12,10 @@ export default function AutocompleteSearchComponent({ lat, long, onSearch, onCle
   const navigation = useNavigation();
 
   useEffect(() => {
+    setSuggestions([]);
+  }, [])
+
+  useEffect(() => {
     if (query.length > 2) {
       fetchSuggestions(query);
     } else {

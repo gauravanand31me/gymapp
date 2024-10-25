@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert, Modal, ActivityIndicator } from 'react-native';
-import { loginUser } from '../api/apiService'; // Import the loginUser function
+import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
+import { loginUser, userDetails } from '../api/apiService'; // Import the loginUser function
 import { Ionicons } from '@expo/vector-icons'; // For adding icons
 
 const LoginScreen = ({ navigation }) => {
@@ -8,6 +9,25 @@ const LoginScreen = ({ navigation }) => {
   const [errorMessage, setErrorMessage] = useState('');
   const [errorVisible, setErrorVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false); // New state for loader
+
+  // Check AsyncStorage on component mount
+  useEffect(() => {
+    const checkLoginStatus = async () => {
+      const data = await userDetails();
+      console.log("Data is", data);
+      // try {
+      //   const storedValue = await AsyncStorage.getItem('userToken'); // Change 'userToken' to your actual key
+      //   if (storedValue) {
+      //     // If value exists, navigate to GymList screen
+      //     navigation.navigate('GymList');
+      //   }
+      // } catch (error) {
+      //   console.error("Failed to fetch user token", error);
+      // }
+    };
+
+    checkLoginStatus();
+  }, [navigation]); // Adding navigation as a dependency
 
   const handleLogin = async () => {
     if (!phoneNumber) {
@@ -22,6 +42,7 @@ const LoginScreen = ({ navigation }) => {
 
       // Navigate to OTP screen on successful login
       if (data.status) {
+        await AsyncStorage.setItem('userToken', phoneNumber); // Store user token
         navigation.navigate('OTPVerification', { mobileNumber: phoneNumber });
       } else {
         console.log("Data received", data);

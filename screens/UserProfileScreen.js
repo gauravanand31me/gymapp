@@ -30,19 +30,15 @@ const UserProfileScreen = ({ navigation, route }) => {
     const [visitedGyms, setVisitedGyms] = useState([]);
     const [selectedTab, setSelectedTab] = useState('Visited Gym');
     const [visitedBuddies, setVisitedBuddies] = useState([]);
-    const [friends, setFriends] = useState({});
+    const [friends, setFriends] = useState({ invited: { accepted: false, sent: false } });
+    const [loadFriend, setLoadFriend] = useState(false);
 
     const { userId } = route.params;
 
-    const getFriendShip = async () => {
-        const data = await fetchAllNearByUser(userData?.username);
-        if (data) {
-          setFriends(data[0]);
-        }
-       
-    }
+   
 
     useEffect(() => {
+        setLoadFriend(true);
         const fetchUserData = async () => {
             try {
                 const data = await userDetails(userId);
@@ -79,8 +75,24 @@ const UserProfileScreen = ({ navigation, route }) => {
         fetchUserData();
         fetchVisitedGyms();
         fetchVisitedBuddies();
+        
+    }, []);
+
+    const getFriendShip = async () => {
+      const data = await fetchAllNearByUser(userData?.username);
+      console.log("Data received", data)
+      setLoadFriend(false);
+      setFriends(data[0]);
+  }
+
+
+    useEffect(() => {
+      const timer = setTimeout(() => {
         getFriendShip();
-    }, [userData]);
+      }, 2000);
+
+      return () => clearTimeout(timer);
+    }, [loadFriend]);
 
     const sendFriendRequest = async (id) => {
         try {
@@ -183,6 +195,7 @@ const UserProfileScreen = ({ navigation, route }) => {
                     <Text style={styles.username}>@{userData?.username || 'N/A'}</Text>
                     <Text style={styles.mobileNumber}>{userData?.mobile_number || 'N/A'}</Text>
                   </View>
+                  {console.log("Friend Request is", friends)}
                   {friends && <TouchableOpacity
                     style={styles.sendRequestButton}
                     onPress={() => {
@@ -191,10 +204,14 @@ const UserProfileScreen = ({ navigation, route }) => {
                         }
                     }}
                 >
-                 
-                    <Text style={styles.sendRequestText}>
+                    {!loadFriend && <Text style={styles.sendRequestText}>
                         {friends?.invited?.accepted && !friends?.invited?.sent ? 'Friends' : friends?.invited?.sent && !friends?.invited?.accepted ? 'Request sent' : 'Send Request'}
-                    </Text>
+                    </Text>}
+
+                    {loadFriend && <Text style={styles.sendRequestText}>
+                        Loading...
+                    </Text>}
+                    
                 </TouchableOpacity>}
                   {/* Settings Icon */}
                   

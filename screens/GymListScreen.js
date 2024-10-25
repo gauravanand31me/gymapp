@@ -161,6 +161,7 @@ export default function GymListScreen({ navigation }) {
       setPincode('');
       setSearchText('');
       getLocation();  // Fetch location and gyms again when navigation focuses back on this screen
+      clearSearch();
     }, [])
   );
 
@@ -197,10 +198,7 @@ export default function GymListScreen({ navigation }) {
     navigation.navigate('GymDetails', { gym_id: gymId });
   };
 
-  const handleSearch = async () => {
-    setPincode('')
-    getLocation(); 
-  }
+  
 
   const handleSearchData = async (query) => {
     
