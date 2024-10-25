@@ -49,7 +49,7 @@ export default function AutocompleteSearchComponent({ route }) {
     setQuery(gym.gymName);
     setSelectedGym(gym);
     setSuggestions([]);
-    navigation.navigate('GymDetails', { gym_id: gym.gymId });
+    navigation.navigate('SearchGymList', { query:gym.gymName, lat, long });
   };
 
   const handleSearchSubmit = () => {
