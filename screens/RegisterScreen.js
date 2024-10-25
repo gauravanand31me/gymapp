@@ -20,7 +20,7 @@ const RegisterScreen = ({ navigation }) => {
       console.log("Registration Success:", response);
       setLoading(false); // Hide loader after successful registration
       // Navigate to OTP screen with phoneNumber
-      navigation.navigate('OTPVerification', { mobileNumber: phoneNumber });
+      navigation.navigate('OTPVerification', { mobileNumber: phoneNumber, got_otp:  response.otp});
     } catch (error) {
       setLoading(false); // Hide loader if there's an error
       console.error('Registration failed:', error);

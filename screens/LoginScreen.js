@@ -39,11 +39,11 @@ const LoginScreen = ({ navigation }) => {
     setIsLoading(true); // Start the loader
     try {
       const data = await loginUser(phoneNumber); // Call the API service
-
+      console.log("Data received", data);
       // Navigate to OTP screen on successful login
       if (data.status) {
         await AsyncStorage.setItem('userToken', phoneNumber); // Store user token
-        navigation.navigate('OTPVerification', { mobileNumber: phoneNumber });
+        navigation.navigate('OTPVerification', { mobileNumber: phoneNumber, got_otp: data.data.otp});
       } else {
         console.log("Data received", data);
         setErrorMessage(data.message);

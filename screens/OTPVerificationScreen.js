@@ -4,7 +4,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage'; // Import 
 import { verifyOtp } from '../api/apiService'; // Import the verifyOtp function
 
 export default function OTPVerificationScreen({ route, navigation }) {
-  const [otp, setOtp] = useState('');
+  const { got_otp } = route.params; // Get the mobile number passed from the Login Screen
+  console.log("got_otp", got_otp);
+  const [otp, setOtp] = useState(got_otp);
   const { mobileNumber } = route.params; // Get the mobile number passed from the Login Screen
 
   const handleVerifyOtp = async () => {
