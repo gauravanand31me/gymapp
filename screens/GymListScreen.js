@@ -136,6 +136,10 @@ export default function GymListScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
+      <View style={styles.messageContainer}>
+        <Text style={styles.messageText}>Book 10,000+ gyms anytime, anywhere</Text>
+      </View>
+
       {loading ? (
         <ActivityIndicator size="large" color="#4CAF50" style={styles.loader} />
       ) : (
@@ -169,6 +173,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 10,
+  },
+  messageContainer: {
+    backgroundColor: '#FFF3E0',
+    padding: 10,
+    marginHorizontal: 15,
+    borderRadius: 10,
+    marginTop: 10,
+  },
+  messageText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    color: '#FF6F00',
   },
   pincodeContainer: {
     flexDirection: 'row',
@@ -247,7 +264,6 @@ const styles = StyleSheet.create({
   bookNowText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '700',
-    textAlign: 'center',
+    fontWeight: '600',
   },
 });
