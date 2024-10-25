@@ -1,19 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { View, TextInput, FlatList, TouchableOpacity, Text, StyleSheet, ActivityIndicator, Keyboard } from 'react-native';
+import { View, TextInput, FlatList, TouchableOpacity, Text, StyleSheet, ActivityIndicator, Keyboard, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { fetchAllGyms } from '../api/apiService';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 
-export default function AutocompleteSearchComponent({ lat, long, onSearch, onClear }) {
-  const [query, setQuery] = useState('');
+export default function AutocompleteSearchComponent({ route }) {
+  const [query, setQuery] = useState('A');
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedGym, setSelectedGym] = useState(null);
   const navigation = useNavigation();
 
+  const {lat, long} = route.params;
+
   useEffect(() => {
     setSuggestions([]);
-  }, [])
+  }, []);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      setSuggestions([]);
+    }, [])
+  );
 
   useEffect(() => {
     if (query.length > 2) {
@@ -46,30 +54,32 @@ export default function AutocompleteSearchComponent({ lat, long, onSearch, onCle
 
   const handleSearchSubmit = () => {
     if (query.length > 2) {
-      onSearch(query);
+      navigation.navigate("SearchGymList", {query, lat, long})
       setSuggestions([]);
       Keyboard.dismiss();
     }
   };
 
-  // Function to clear the search input and suggestions
   const handleClearSearch = () => {
     setQuery('');
     setSuggestions([]);
     setSelectedGym(null);
-    onClear();
+    
   };
 
   const renderSuggestion = ({ item }) => (
     <TouchableOpacity style={styles.suggestionItem} onPress={() => handleSelect(item)}>
-      <Text style={styles.suggestionText}>{item.gymName} <Icon name="chevron-right" size={16} color="#555"  /></Text>
-    
-     
+      <Text style={styles.suggestionText}>{item.gymName} <Icon name="chevron-right" size={16} color="#555" /></Text>
     </TouchableOpacity>
   );
 
   return (
     <View style={styles.container}>
+      {/* Back Button */}
+      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <Icon name="arrow-left" size={24} color="#000" />
+      </TouchableOpacity>
+
       <View style={styles.searchContainer}>
         <TextInput
           style={styles.input}
@@ -82,7 +92,7 @@ export default function AutocompleteSearchComponent({ lat, long, onSearch, onCle
         />
         {query && <TouchableOpacity onPress={handleClearSearch} style={styles.clearButton}>
           <Icon name="times-circle" size={22} color="#fff" />
-        </TouchableOpacity> }
+        </TouchableOpacity>}
         <Icon name="search" size={20} color="#666" style={styles.searchIcon} onPress={handleSearchSubmit} />
       </View>
 
@@ -113,8 +123,16 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginVertical: 20,
   },
+  backButton: {
+    position: 'absolute',
+    top: 10,
+    left: 10,
+    zIndex: 1,
+    padding: 5,
+  },
   searchContainer: {
     position: 'relative',
+    marginTop: 40, // Spacing to accommodate the back button
   },
   input: {
     height: 50,
@@ -133,20 +151,19 @@ const styles = StyleSheet.create({
   },
   searchIcon: {
     position: 'absolute',
-    right: 60, // Adjusted to accommodate the clear button
+    right: 60,
     top: 15,
   },
   clearButton: {
     position: 'absolute',
     right: 20,
     top: 10,
-    width: 36, // Increased size for better click area
-    height: 36, // Increased size for better click area
-    borderRadius: 18, // Circular button
-
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
-    elevation: 2, // Slight shadow for depth
+    elevation: 2,
   },
   suggestionList: {
     maxHeight: 200,
@@ -170,10 +187,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#333',
   },
-  locationText: {
-    fontSize: 14,
-    color: '#777',
-  },
   selectedGymContainer: {
     marginTop: 15,
   },
@@ -185,8 +198,5 @@ const styles = StyleSheet.create({
   selectedGymLocation: {
     fontSize: 14,
     color: '#777',
-  },
-  arrowIcon: {
-    marginRight: 0, // Spacing between text and icon
   },
 });

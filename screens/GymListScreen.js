@@ -41,11 +41,11 @@ export default function GymListScreen({ navigation }) {
   const [lat, setLat] = useState("");
   const [long, setLong] = useState("");
   const limit = 9;
- 
+
   const GOOGLE_MAPS_API_KEY = 'AIzaSyCe_VHcmc7i6jbNl0oFDVHwQyavPgYFU10';  // Replace with your actual API key
 
   useEffect(() => {
-    
+
     const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
       setIsKeyboardVisible(true);
     });
@@ -93,12 +93,12 @@ export default function GymListScreen({ navigation }) {
       setLong(location.coords.longitude);
       if (type === "clear") {
         fetchGyms(location.coords.latitude, location.coords.longitude, "", page);
-        
+
       } else {
         console.log("Search Text received here", searchText);
         fetchGyms(location.coords.latitude, location.coords.longitude, searchText, page);
       }
-      
+
       fetchAddress(location.coords.latitude, location.coords.longitude);
     } catch (error) {
       console.error('Error getting location:', error);
@@ -126,7 +126,7 @@ export default function GymListScreen({ navigation }) {
     setError('');
     try {
       const response = await axios.get(`https://maps.googleapis.com/maps/api/geocode/json?address=${pincode}&key=${GOOGLE_MAPS_API_KEY}`);
-      
+
       if (response.data.results && response.data.results?.length > 0) {
         const location = response.data.results[0].geometry.location;
         setLat(location.lat);
@@ -147,7 +147,7 @@ export default function GymListScreen({ navigation }) {
   };
 
   const validatePincode = () => {
-    
+
     if (!pincode || pincode?.length !== 6 || isNaN(pincode)) {
       return false;
     }
@@ -169,7 +169,7 @@ export default function GymListScreen({ navigation }) {
     setLoading(true);
     setGyms([]);
     const timer = setTimeout(() => {
-      
+
       if (!validatePincode()) {
         getLocation();
       } else {
@@ -182,7 +182,7 @@ export default function GymListScreen({ navigation }) {
   }, [page, searchText]);
 
   useEffect(() => {
-   
+
     if (validatePincode()) {
       fetchLatLongFromPincode();  // Fetch location based on pincode when changed
     }
@@ -198,17 +198,17 @@ export default function GymListScreen({ navigation }) {
     navigation.navigate('GymDetails', { gym_id: gymId });
   };
 
-  
+
 
   const handleSearchData = async (query) => {
-    
+
     setSearchText(query);
-   
+
   }
 
   const clearSearch = () => {
     setSearchText(''); // Clear the search text
-    getLocation("clear"); 
+    getLocation("clear");
   };
 
   const renderGym = ({ item }) => (
@@ -264,15 +264,30 @@ export default function GymListScreen({ navigation }) {
 
         </View>
         <Text style={styles.greetingText}>Hey {fullName}, looking for a gym or a workout buddy?</Text>
-    
-        <AutocompleteSearchComponent lat={lat} long={long} onSearch={handleSearchData} onClear={clearSearch}/>
-      
- 
+
+        <View style={styles.searchContainer}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search nearby gyms"
+            placeholderTextColor="#ccc"
+            value={searchText}
+            onChangeText={setSearchText}
+            onFocus={() => navigation.navigate("SearchGym", {lat, long})}
+            onBlur={() => setIsInputFocused(false)}
+          />
+          
+          <TouchableOpacity style={styles.searchButton}>
+            <Icon name="search" size={24} color="#fff" />
+          </TouchableOpacity>
+        </View>
       </View>
 
 
+
+
+
       {error && <Text style={styles.errorMessage}>{error}</Text>}
-      
+
       <FlatList
         data={gyms}
         renderItem={renderGym}
@@ -304,7 +319,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
   },
   header: {
-      backgroundColor: '#4CAF50',
+    backgroundColor: '#4CAF50',
   },
 
   headerContent: {
@@ -353,7 +368,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     paddingHorizontal: 10,
     backgroundColor: '#fff'
-  
+
   },
   searchButton: {
     marginLeft: 10,

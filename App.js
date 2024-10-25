@@ -24,6 +24,8 @@ import SettingsScreen from './screens/SettingsScreen';
 import SplashScreen from './components/SplashScreen'; // Import the SplashScreen component
 import VisitedGymScreen from './screens/VisitedGymScreen'; // Import the screen
 import UserProfileScreen from './screens/UserProfileScreen';
+import SearchListScreen from './screens/SearchGymScreen';
+import AutocompleteSearchComponent from './components/AutoCompleteInput';
 
 const Stack = createStackNavigator();
 
@@ -98,6 +100,8 @@ export default function App() {
             <Stack.Screen name="InviteFriendBuddy" component={InviteFriendBuddiesScreen} />
             <Stack.Screen name="Settings" component={SettingsScreen} />
             <Stack.Screen name="UserProfile" component={UserProfileScreen} />
+            <Stack.Screen name="SearchGym" component={AutocompleteSearchComponent} />
+            <Stack.Screen name="SearchGymList" component={SearchListScreen} />
             <Stack.Screen name="VisitedGymScreen" component={VisitedGymScreen} options={{ title: 'Visited Gyms' }} />
           </>
         )}
