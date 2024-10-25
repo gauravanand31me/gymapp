@@ -21,6 +21,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { fetchAllGyms } from '../api/apiService';
 import Footer from '../components/Footer';
+
 const GOOGLE_MAPS_API_KEY = 'AIzaSyCe_VHcmc7i6jbNl0oFDVHwQyavPgYFU10';
 
 export default function GymListScreen({ navigation }) {
@@ -30,26 +31,36 @@ export default function GymListScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
   const [lat, setLat] = useState('');
   const [long, setLong] = useState('');
+  const [isFooterVisible, setIsFooterVisible] = useState(true); // New state for footer visibility
 
   useEffect(() => {
     getLocation();
+
+    // Keyboard event listeners
+    const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
+      setIsFooterVisible(false); // Hide footer when keyboard is shown
+    });
+
+    const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
+      setIsFooterVisible(true); // Show footer when keyboard is hidden
+    });
+
+    // Cleanup listeners on component unmount
+    return () => {
+      keyboardDidShowListener.remove();
+      keyboardDidHideListener.remove();
+    };
   }, []);
 
   useFocusEffect(
     useCallback(() => {
-      // Code to run every time the screen is focused
       setPincode("");
       getLocation();
-
-      // Optionally, return a cleanup function if needed
       return () => {
         console.log("Screen is unfocused!");
       };
     }, [])
   );
-
-
-
 
   const getLocation = async () => {
     try {
@@ -102,7 +113,6 @@ export default function GymListScreen({ navigation }) {
       const location = response.data.results[0].geometry.location;
       const addressComponents = response.data.results[0].address_components;
 
-      // Find the city by checking the types in each component
       const cityComponent = addressComponents.find(component =>
         component.types.includes("locality") || component.types.includes("administrative_area_level_2")
       );
@@ -151,7 +161,7 @@ export default function GymListScreen({ navigation }) {
             keyboardType="numeric"
           />
           <TouchableOpacity onPress={fetchGymsByPincode} style={styles.searchButton}>
-            <Icon name="search" size={20} color="#fff" />
+            <Icon name="search" size={18} color="#666" />
           </TouchableOpacity>
         </View>
         <TouchableOpacity
@@ -163,7 +173,6 @@ export default function GymListScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
-   
       {loading ? (
         <ActivityIndicator size="large" color="#4CAF50" style={styles.loader} />
       ) : (
@@ -174,7 +183,7 @@ export default function GymListScreen({ navigation }) {
           contentContainerStyle={styles.gymList}
         />
       )}
-      <Footer navigation={navigation} />
+      {isFooterVisible && <Footer navigation={navigation} />} 
     </KeyboardAvoidingView>
   );
 }
@@ -229,7 +238,6 @@ const styles = StyleSheet.create({
   searchButton: {
     padding: 5,
     marginLeft: 5,
-    backgroundColor: '#4CAF50', // Set search button background to black
     borderRadius: 5,
   },
   searchGymButton: {
