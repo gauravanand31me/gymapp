@@ -101,7 +101,7 @@ export default function GymListScreen({ navigation }) {
         <Text style={styles.gymName}>{item.gymName}</Text>
         <Text style={styles.gymDistance}>📍 {item.distance ? item.distance.toFixed(1) : 'N/A'} km away</Text>
         <Text style={styles.gymPrice}>₹ {item.subscriptionPrices?.[0] || 'N/A'}/session</Text>
-        <TouchableOpacity style={styles.bookNowButton} onPress={() => navigation.navigate('Booking', { gymId: item.gymId })}>
+        <TouchableOpacity style={styles.bookNowButton} onPress={() => navigation.navigate('GymDetails', { gym_id: item.gymId })}>
           <Text style={styles.bookNowText}>Book Now</Text>
         </TouchableOpacity>
       </View>
