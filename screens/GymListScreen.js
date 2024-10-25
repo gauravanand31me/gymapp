@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import {
   Keyboard
 } from 'react-native';
 import * as Location from 'expo-location';
+import { useFocusEffect } from '@react-navigation/native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -33,6 +34,22 @@ export default function GymListScreen({ navigation }) {
   useEffect(() => {
     getLocation();
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      // Code to run every time the screen is focused
+      setPincode("");
+      getLocation();
+
+      // Optionally, return a cleanup function if needed
+      return () => {
+        console.log("Screen is unfocused!");
+      };
+    }, [])
+  );
+
+
+
 
   const getLocation = async () => {
     try {
@@ -83,6 +100,16 @@ export default function GymListScreen({ navigation }) {
     try {
       const response = await axios.get(`https://maps.googleapis.com/maps/api/geocode/json?address=${pincode}&key=${GOOGLE_MAPS_API_KEY}`);
       const location = response.data.results[0].geometry.location;
+      const addressComponents = response.data.results[0].address_components;
+
+      // Find the city by checking the types in each component
+      const cityComponent = addressComponents.find(component =>
+        component.types.includes("locality") || component.types.includes("administrative_area_level_2")
+      );
+
+      const city = cityComponent ? cityComponent.long_name : null;
+      setAddress(city || 'Unknown location');
+      console.log("location", response.data.results[0].geometry);
       setLat(location.lat);
       setLong(location.lng);
       fetchGyms(location.lat, location.lng);
