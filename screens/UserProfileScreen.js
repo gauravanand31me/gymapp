@@ -36,22 +36,23 @@ const UserProfileScreen = ({ navigation, route }) => {
 
   const { userId } = route.params;
 
+  const fetchUserData = async () => {
+    try {
+      const data = await userDetails(userId);
+      setUserData(data);
+      setProfileImage(data.profile_pic || profileImage);
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      Alert.alert('Error', 'Could not fetch user data. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
 
   useEffect(() => {
     setLoadFriend(true);
-    const fetchUserData = async () => {
-      try {
-        const data = await userDetails(userId);
-        setUserData(data);
-        setProfileImage(data.profile_pic || profileImage);
-      } catch (error) {
-        console.error('Error fetching user data:', error);
-        Alert.alert('Error', 'Could not fetch user data. Please try again later.');
-      } finally {
-        setLoading(false);
-      }
-    };
+    
 
     const fetchVisitedGyms = async () => {
       try {
@@ -92,6 +93,7 @@ const UserProfileScreen = ({ navigation, route }) => {
     try {
       const data = await rejectFriendRequest(id);
       console.log("Data received", data);
+      fetchUserData();
       getFriendShip();
     }  catch (e) {
       console.log("Error is", e);
@@ -240,10 +242,15 @@ const UserProfileScreen = ({ navigation, route }) => {
                 }
               }}
             >
-              <Text style={styles.sendRequestText}>
+              {!loadFriend && <Text style={styles.sendRequestText}>
                 {friends?.invited?.accepted ? 'Unfriend' :
                   friends?.invited?.sent ? 'Cancel Request' : 'Send Request'}
-              </Text>
+              </Text>}
+
+              {loadFriend && <Text style={styles.sendRequestText}>
+                Loading...
+              </Text>}
+
             </TouchableOpacity>
           )}
           {/* Settings Icon */}
