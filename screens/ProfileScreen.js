@@ -20,7 +20,7 @@ import {
   getVisitedBuddies,
 } from '../api/apiService'; // Custom API services to get user details, gyms, and buddies
 
-const ProfileScreen = ({ navigation }) => {
+const ProfileScreen = ({ navigation, route }) => {
   const [profileImage, setProfileImage] = useState('https://via.placeholder.com/150');
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -53,19 +53,27 @@ const ProfileScreen = ({ navigation }) => {
     return hours / milestones.bronze;
   };
 
+  const fetchUserData = async () => {
+    try {
+      const data = await userDetails();
+      setUserData(data);
+      setProfileImage(data.profile_pic || profileImage);
+    } catch (error) {
+      Alert.alert('Error', 'Could not fetch user data. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+
+  useEffect(() => {
+    fetchUserData();
+
+  }, [route.params]);
+
   // Fetch user data and visited gyms/buddies on component mount
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const data = await userDetails();
-        setUserData(data);
-        setProfileImage(data.profile_pic || profileImage);
-      } catch (error) {
-        Alert.alert('Error', 'Could not fetch user data. Please try again later.');
-      } finally {
-        setLoading(false);
-      }
-    };
+  
 
     const fetchVisitedGyms = async () => {
       try {
@@ -160,7 +168,7 @@ const ProfileScreen = ({ navigation }) => {
             <Text style={styles.mobileNumber}>{userData?.mobile_number || 'N/A'}</Text>
           </View>
           {/* Settings Icon */}
-          <TouchableOpacity style={styles.settingsButton} onPress={() => navigation.navigate('Settings')}>
+          <TouchableOpacity style={styles.settingsButton} onPress={() => navigation.navigate('Settings', {fullName: userData?.full_name})}>
             <Icon name="cog" size={30} color="#555" />
           </TouchableOpacity>
         </View>

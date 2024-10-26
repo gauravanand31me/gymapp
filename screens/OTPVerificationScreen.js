@@ -1,13 +1,30 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
-import { verifyOtp } from '../api/apiService'; // Import the verifyOtp function
+import { userDetails, verifyOtp } from '../api/apiService'; // Import the verifyOtp function
+import { CommonActions } from '@react-navigation/native';
 
 export default function OTPVerificationScreen({ route, navigation }) {
   const { got_otp } = route.params; // Get the mobile number passed from the Login Screen
   console.log("got_otp", got_otp);
   const [otp, setOtp] = useState(got_otp);
   const { mobileNumber } = route.params; // Get the mobile number passed from the Login Screen
+
+  useEffect(() => {
+    const checkLoginStatus = async () => {
+      const data = await userDetails();
+      if (data.id) {
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [{ name: 'GymList' }],
+          })
+        );
+      }
+    };
+  
+    checkLoginStatus();
+  }, []);
 
   const handleVerifyOtp = async () => {
 

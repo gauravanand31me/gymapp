@@ -21,6 +21,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { fetchAllGyms } from '../api/apiService';
 import Footer from '../components/Footer';
+import * as Linking from 'expo-linking';
 
 const GOOGLE_MAPS_API_KEY = 'AIzaSyCe_VHcmc7i6jbNl0oFDVHwQyavPgYFU10';
 
@@ -66,10 +67,20 @@ export default function GymListScreen({ navigation }) {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert('Permission Denied', 'Location permission is required to access your location.');
+        Alert.alert(
+          'Location Permission Required',
+          'This app requires location permission to show gyms nearby. Please enable location permissions in settings.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            {
+              text: 'Go to Settings',
+              onPress: () => Linking.openSettings(), // Open app settings for the user
+            },
+          ]
+        );
         return;
       }
-
+  
       const location = await Location.getCurrentPositionAsync({});
       setLat(location.coords.latitude);
       setLong(location.coords.longitude);
@@ -79,7 +90,7 @@ export default function GymListScreen({ navigation }) {
       console.error('Error getting location:', error);
       Alert.alert('Error', 'Could not retrieve location. Please try again later.');
     }
-  };
+};
 
   const fetchGyms = async (lat, long) => {
     setLoading(true);

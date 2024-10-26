@@ -163,7 +163,7 @@ export const verifyOtp = async (mobileNumber, otp) => {
       return data.loggedInUser;
     
     } catch (error) {
-      console.error('Error fetching user data:', error);
+      // console.error('Error fetching user data:', error);
      
     }
   }
@@ -191,6 +191,16 @@ export const verifyOtp = async (mobileNumber, otp) => {
 
   export const createBookingUrl = (bookingId)  => {
     return `${BASE_URL}/booking/verify?bookingId=${bookingId}`;
+  }
+
+  export const declineBuddyRequest = async (requestId) => {
+    const userToken = await AsyncStorage.getItem('authToken'); // Fetch token if needed
+    const response = await axios.delete(`${BASE_URL}/booking/deleteBuddyRequest/${requestId}`,{
+      headers: {
+        Authorization: `Bearer ${userToken}`,  // Add the Bearer token here
+      },
+    });
+    return response.data;
   }
 
   export const createBooking = async (slotDetails) => {
@@ -552,5 +562,20 @@ export const getVisitedBuddies = async (userId="") => {
     throw error;
   }
 };
+
+export const updateName = async (name) => {
+  try {
+    const userToken = await AsyncStorage.getItem('authToken'); // Fetch token if needed
+    const response = await axios.put(`${BASE_URL}/users/update-fullname`, { full_name: name,  }, {
+      headers: {
+        Authorization: `Bearer ${userToken}`,  // Add the Bearer token here
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching visited gyms:', error);
+    throw error;
+  }
+}
 
 

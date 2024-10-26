@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert, Moda
 import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
 import { loginUser, userDetails } from '../api/apiService'; // Import the loginUser function
 import { Ionicons } from '@expo/vector-icons'; // For adding icons
+import { CommonActions } from '@react-navigation/native';
 
 const LoginScreen = ({ navigation }) => {
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -14,20 +15,18 @@ const LoginScreen = ({ navigation }) => {
   useEffect(() => {
     const checkLoginStatus = async () => {
       const data = await userDetails();
-      console.log("Data is", data);
-      // try {
-      //   const storedValue = await AsyncStorage.getItem('userToken'); // Change 'userToken' to your actual key
-      //   if (storedValue) {
-      //     // If value exists, navigate to GymList screen
-      //     navigation.navigate('GymList');
-      //   }
-      // } catch (error) {
-      //   console.error("Failed to fetch user token", error);
-      // }
+      if (data.id) {
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [{ name: 'GymList' }],
+          })
+        );
+      }
     };
-
+  
     checkLoginStatus();
-  }, [navigation]); // Adding navigation as a dependency
+  }, []);
 
   const handleLogin = async () => {
     if (!phoneNumber) {

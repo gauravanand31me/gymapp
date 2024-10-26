@@ -18,10 +18,10 @@
       "versionCode": 1,
       "package": "com.yupluck.mepluck",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#ffffff"
       },
-      "permissions": []
+      "permissions": ["NOTIFICATION", "VIBRATE", "RECEIVE_BOOT_COMPLETED"]
     },
     "web": {
       "favicon": "./assets/favicon.png"

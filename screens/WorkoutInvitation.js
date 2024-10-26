@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native'; // Import the hook for navigation
-import { acceptBuddyRequest } from '../api/apiService';
+import { acceptBuddyRequest, declineBuddyRequest } from '../api/apiService';
 
 const WorkoutInvitation = ({navigation, route}) => {
   const {relatedId} = route.params;
@@ -12,9 +12,11 @@ const WorkoutInvitation = ({navigation, route}) => {
     console.log('Invitation accepted!');
   };
 
-  const handleDecline = () => {
+  const handleDecline = async () => {
     // Logic to handle declining the invitation
-    console.log('Invitation declined!');
+    const declineRequest = await declineBuddyRequest(relatedId);
+    Alert.alert("Buddy Request declined");
+    navigation.navigate("GymList");
   };
 
 

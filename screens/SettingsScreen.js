@@ -1,25 +1,20 @@
-// screens/SettingsScreen.js
-
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { updateName } from '../api/apiService';
 
-const SettingsScreen = ({ navigation }) => {
-  const [name, setName] = useState('');
-
-  const handleUpdateName = () => {
-    // Here you would typically send the updated name to your backend
-    Alert.alert('Success', `Name updated to: ${name}`);
-    // Reset the input field after updating
-    setName('');
+const SettingsScreen = ({ navigation, route }) => {
+  const {fullName} = route.params;
+  const [name, setName] = useState(fullName);
+  
+  const handleUpdateName = async () => {
+    await updateName(name);
+    navigation.navigate("Profile", {reload: true});
   };
 
   const handleLogout = async () => {
     try {
-      // Remove authToken from AsyncStorage
       await AsyncStorage.removeItem('authToken');
-      
-      // Navigate to the login screen
       navigation.navigate('Login');
       Alert.alert('Logged Out', 'You have been logged out successfully.');
     } catch (error) {
@@ -30,6 +25,11 @@ const SettingsScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
+      {/* Back Button */}
+      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+        <Text style={styles.backButtonText}>Back</Text>
+      </TouchableOpacity>
+
       <Text style={styles.title}>Settings</Text>
 
       <TextInput
@@ -54,10 +54,19 @@ const SettingsScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
+    paddingTop: 40, // Added padding to ensure back button is visible at the top
+    paddingHorizontal: 20,
     backgroundColor: '#fff',
+    alignItems: 'center',
+  },
+  backButton: {
+    alignSelf: 'flex-start',
+    marginBottom: 20,
+    padding: 10,
+  },
+  backButtonText: {
+    color: '#007bff',
+    fontSize: 16,
   },
   title: {
     fontSize: 24,
