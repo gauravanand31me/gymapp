@@ -19,6 +19,7 @@ const InviteFriendBuddiesScreen = ({ navigation, route }) => {
   const fetchBuddyList = async () => {
     try {
       const data = await fetchFriends();
+      console.log("Data is", data);
       setBuddyList(data.accepted);
     } catch (error) {
       console.error('Error fetching buddy list:', error);
