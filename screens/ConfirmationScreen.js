@@ -18,7 +18,7 @@ const ConfirmationScreen = ({ route, navigation }) => {
           <View style={styles.overlay} />
         </ImageBackground>
       </View>
-
+  
       <View style={styles.textContainer}>
         <Text style={styles.title}>Confirmed! Get ready to sweat.</Text>
         <Text style={styles.subtitle}>Spot secured! Get ready for a great workout.</Text>

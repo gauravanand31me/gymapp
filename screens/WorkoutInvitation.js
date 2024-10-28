@@ -6,7 +6,7 @@ import { acceptBuddyRequest, declineBuddyRequest } from '../api/apiService';
 const WorkoutInvitation = ({navigation, route}) => {
   const {relatedId} = route.params;
   const [booking, setBooking] = useState({});
-  console.log("relatedId", relatedId);
+
   const handleAccept = () => {
     // Logic to handle acceptance of the invitation
     console.log('Invitation accepted!');

@@ -126,6 +126,15 @@ const NotificationListScreen = ({ navigation }) => {
             <Text style={styles.buttonText}>View Details</Text>
           </TouchableOpacity>
         )} 
+        {item.type === 'declinedBuddyRequest' && (
+          <TouchableOpacity 
+            style={styles.viewButton} 
+            onPress={() => navigation.navigate('WorkoutRequest', {relatedId: item.relatedId, message: item.message})}
+            accessibilityLabel="View Workout Request"
+          >
+            <Text style={styles.buttonText}>View Details</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
