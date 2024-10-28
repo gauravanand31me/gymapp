@@ -13,6 +13,12 @@ const SlotSelectionScreen = ({ navigation, gym }) => {
   const durations = [60, 90, 120, 180];
   const availableSlots = gym.slots;
 
+  availableSlots.sort((a, b) => {
+    const timeA = new Date(`1970-01-01T${a.startTime}`);
+    const timeB = new Date(`1970-01-01T${b.startTime}`);
+    return timeA - timeB;
+  });
+
   const onDateChange = (event, selectedDate) => {
     const currentDate = selectedDate || date;
     setShowDatePicker(false);
