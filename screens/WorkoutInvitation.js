@@ -87,9 +87,9 @@ const WorkoutInvitation = ({navigation, route}) => {
         <TouchableOpacity style={[styles.button, styles.acceptButton]} onPress={() => navigation.navigate('PaymentScreen', { slotDetails: booking, requestId: relatedId })}>
           <Text style={styles.buttonText}>Accept</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.button, styles.declineButton]} onPress={handleDecline}>
+        {/* <TouchableOpacity style={[styles.button, styles.declineButton]} onPress={handleDecline}>
           <Text style={styles.buttonText}>Decline</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
         <TouchableOpacity style={[styles.button, styles.backButton]} onPress={() => navigation.goBack()}>
           <Text style={styles.buttonText}>Back</Text>
         </TouchableOpacity>
