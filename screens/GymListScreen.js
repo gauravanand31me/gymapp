@@ -32,21 +32,19 @@ export default function GymListScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
   const [lat, setLat] = useState('');
   const [long, setLong] = useState('');
-  const [isFooterVisible, setIsFooterVisible] = useState(true); // New state for footer visibility
+  const [isFooterVisible, setIsFooterVisible] = useState(true);
 
   useEffect(() => {
     getLocation();
 
-    // Keyboard event listeners
     const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
-      setIsFooterVisible(false); // Hide footer when keyboard is shown
+      setIsFooterVisible(false);
     });
 
     const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
-      setIsFooterVisible(true); // Show footer when keyboard is hidden
+      setIsFooterVisible(true);
     });
 
-    // Cleanup listeners on component unmount
     return () => {
       keyboardDidShowListener.remove();
       keyboardDidHideListener.remove();
@@ -74,7 +72,7 @@ export default function GymListScreen({ navigation }) {
             { text: 'Cancel', style: 'cancel' },
             {
               text: 'Go to Settings',
-              onPress: () => Linking.openSettings(), // Open app settings for the user
+              onPress: () => Linking.openSettings(),
             },
           ]
         );
@@ -130,7 +128,6 @@ export default function GymListScreen({ navigation }) {
 
       const city = cityComponent ? cityComponent.long_name : null;
       setAddress(city || 'Unknown location');
-      console.log("location", response.data.results[0].geometry);
       setLat(location.lat);
       setLong(location.lng);
       fetchGyms(location.lat, location.lng);
@@ -187,7 +184,12 @@ export default function GymListScreen({ navigation }) {
       </View>
 
       {loading ? (
-        <ActivityIndicator size="large" color="#4CAF50" style={styles.loader} />
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color="#4CAF50" style={styles.loader} />
+          <View style={styles.footerContainer}>
+            {isFooterVisible && <Footer navigation={navigation} />}
+          </View>
+        </View>
       ) : (
         <FlatList
           data={gyms}
@@ -196,7 +198,7 @@ export default function GymListScreen({ navigation }) {
           contentContainerStyle={styles.gymList}
         />
       )}
-      {isFooterVisible && <Footer navigation={navigation} />} 
+      {!loading && isFooterVisible && <Footer navigation={navigation} />} 
     </KeyboardAvoidingView>
   );
 }
@@ -205,7 +207,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#E8F5E9',
-    paddingtop: 30
   },
   header: {
     backgroundColor: '#4CAF50',
@@ -222,31 +223,20 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     paddingTop: 30,
   },
-  messageContainer: {
-    backgroundColor: '#fff',
-    marginHorizontal: 15,
-    marginTop: 10,
-  },
-  messageText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    color: '#4CAF50',
-  },
   pincodeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff', // Change background color to white
-    paddingVertical: 4, // Reduce vertical padding for height adjustment
+    backgroundColor: '#fff',
+    paddingVertical: 4,
     paddingHorizontal: 8,
     borderRadius: 5,
-    height: 35, // Set a specific height for the pincode container
+    height: 35,
   },
   pincodeInput: {
     flex: 1,
-    color: '#000', // Make text color black for better contrast
+    color: '#000',
     padding: 5,
-    height: '100%', // Ensure it takes up the full container height
+    height: '100%',
   },
   searchButton: {
     padding: 5,
@@ -303,8 +293,19 @@ const styles = StyleSheet.create({
   loader: {
     marginTop: 20,
   },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+  },
+  footerContainer: {
+    position: 'absolute',
+    bottom: 0,
+    width: '100%',
+  },
   bookNowButton: {
-    backgroundColor: '#4CAF50', // Vibrant orange color
+    backgroundColor: '#4CAF50',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 30,
