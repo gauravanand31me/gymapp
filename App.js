@@ -100,6 +100,7 @@ export default function App() {
             <Stack.Screen name="UserProfile" component={UserProfileScreen} />
             <Stack.Screen name="SearchGym" component={AutocompleteSearchComponent} />
             <Stack.Screen name="SearchGymList" component={SearchListScreen} />
+            <Stack.Screen name="SlotSelection" component={SlotSelectionScreen} />
             <Stack.Screen name="VisitedGymScreen" component={VisitedGymScreen} options={{ title: 'Visited Gyms' }} />
           </>
         )}

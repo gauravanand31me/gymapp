@@ -12,11 +12,18 @@ const PaymentScreen = ({ route, navigation }) => {
 
   // Effect to check if the booking is expired
   useEffect(() => {
+    let formattedDate;
+
+    if (slotDetails.date) {
+      const [day, month, year] = slotDetails.date.split("/");
+      formattedDate = `${year}-${month}-${day}`;
+    }
+    
     console.log("`${slotDetails.date} ${slotDetails.time}`", `${slotDetails.date} ${slotDetails.time}`);
     const checkExpiration = () => {
       const currentDate = new Date(); // Get current date and time
       console.log("bookingDate", slotDetails);
-      const slotDateTime = new Date(`${slotDetails.bookingDate} ${slotDetails.slotStartTime}`); // Combine date and time
+      const slotDateTime = new Date(`${formattedDate || slotDetails.bookingDate} ${slotDetails.time  || slotDetails.slotStartTime}`); // Combine date and time
       
       // Check if the current date and time is greater than the slot date and time
       if (currentDate > slotDateTime) {

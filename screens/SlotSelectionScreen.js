@@ -3,7 +3,8 @@ import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView } from 'rea
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Icon from 'react-native-vector-icons/Ionicons'; // Importing Ionicons for icons
 
-const SlotSelectionScreen = ({ navigation, gym }) => {
+const SlotSelectionScreen = ({ navigation, route }) => {
+  const { gym } = route.params;
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedDuration, setSelectedDuration] = useState(60); // Default duration
@@ -39,7 +40,7 @@ const SlotSelectionScreen = ({ navigation, gym }) => {
       price: selectedSlot.price,
       slotId: selectedSlot.id,
       pricePerSlot: selectedSlot.price,
-      subscriptionId: gym?.subscriptions[0].id
+      subscriptionId: gym?.subscriptions[0].id,
     };
     navigation.navigate('PaymentScreen', { slotDetails });
   };
@@ -52,11 +53,20 @@ const SlotSelectionScreen = ({ navigation, gym }) => {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      {/* Back Button */}
+      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <Icon name="arrow-back" size={24} color="#333" />
+        <Text style={styles.backButtonText}>Back</Text>
+      </TouchableOpacity>
+
+      {/* Gym Name */}
+      <Text style={styles.gymName}>{gym.name}</Text>
+
       <Text style={styles.title}>Select a Slot</Text>
 
       {/* Date Picker */}
-      <TouchableOpacity 
-        onPress={() => setShowDatePicker(true)} 
+      <TouchableOpacity
+        onPress={() => setShowDatePicker(true)}
         style={[styles.button, { backgroundColor: buttonColor }]}>
         <Icon name="calendar-outline" size={20} color="#fff" style={styles.icon} />
         <Text style={styles.buttonText}>{`Date: ${date.toLocaleDateString()}`}</Text>
@@ -113,10 +123,10 @@ const SlotSelectionScreen = ({ navigation, gym }) => {
             onPress={() => setSelectedDuration(duration)}
             style={[
               styles.durationButton,
-              selectedDuration === duration && styles.selectedDurationButton
+              selectedDuration === duration && styles.selectedDurationButton,
             ]}>
             <Text style={[styles.durationText, { color: selectedDuration === duration ? '#fff' : '#333' }]}>
-              {duration} 
+              {duration}
             </Text>
           </TouchableOpacity>
         ))}
@@ -134,17 +144,34 @@ const SlotSelectionScreen = ({ navigation, gym }) => {
 
 const styles = StyleSheet.create({
   container: {
-    flexGrow: 1, // Allow scrolling
+    flexGrow: 1,
     padding: 20,
-    backgroundColor: '#f8f9fa', // Light grey background for a modern look
+    backgroundColor: '#f8f9fa',
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  backButtonText: {
+    fontSize: 16,
+    color: '#333',
+    marginLeft: 5,
+  },
+  gymName: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    color: '#333',
+    marginBottom: 10,
   },
   title: {
     fontSize: 28,
-    color: '#333', // Dark text for better readability
+    color: '#333',
     marginBottom: 20,
     textAlign: 'center',
-    fontFamily: 'Roboto', // Consistent font
-    fontWeight: 'bold', // Make title bold
+    fontFamily: 'Roboto',
+    fontWeight: 'bold',
   },
   button: {
     flexDirection: 'row',
@@ -152,14 +179,14 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 10,
     marginBottom: 10,
-    elevation: 3, // Shadow for the button
+    elevation: 3,
   },
   buttonText: {
     color: '#fff',
     fontSize: 15,
     textAlign: 'center',
-    marginLeft: 10, // Spacing between icon and text
-    fontFamily: 'Roboto', // Consistent font
+    marginLeft: 10,
+    fontFamily: 'Roboto',
     flex: 1,
   },
   icon: {
@@ -167,29 +194,29 @@ const styles = StyleSheet.create({
   },
   timeTitle: {
     color: '#333',
-    fontSize: 20, // Slightly larger for emphasis
+    fontSize: 20,
     marginVertical: 10,
     textAlign: 'center',
-    fontWeight: '600', // Semi-bold for better visibility
+    fontWeight: '600',
   },
   timeDropdown: {
-    backgroundColor: '#ffffff', // White background for dropdown
+    backgroundColor: '#ffffff',
     borderRadius: 5,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#28a745', // Border color matching button color
+    borderColor: '#28a745',
     padding: 10,
-    elevation: 2, // Slight elevation for dropdown
+    elevation: 2,
   },
   timeOption: {
     padding: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#ddd', // Light grey border for options
+    borderBottomColor: '#ddd',
   },
   timeOptionText: {
     color: '#333',
     fontSize: 18,
-    fontWeight: '500', // Semi-bold for better visibility
+    fontWeight: '500',
   },
   slotDetailsText: {
     color: '#666',
@@ -201,27 +228,27 @@ const styles = StyleSheet.create({
     fontSize: 20,
     marginBottom: 10,
     textAlign: 'center',
-    fontWeight: '600', // Semi-bold for better visibility
+    fontWeight: '600',
   },
   durationsContainer: {
     alignItems: 'center',
     marginBottom: 20,
     flexDirection: 'row',
-    justifyContent: 'space-around', // Space out duration buttons
+    justifyContent: 'space-around',
   },
   durationButton: {
-    width: 70, // Fixed width for uniformity
+    width: 70,
     padding: 10,
     borderWidth: 2,
-    borderColor: '#28a745', // Green border color
+    borderColor: '#28a745',
     borderRadius: 10,
-    marginHorizontal: 5, // Spacing between buttons
+    marginHorizontal: 5,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#fff', // White background for buttons
+    backgroundColor: '#fff',
   },
   selectedDurationButton: {
-    backgroundColor: '#28a745', // Green background for selected button
+    backgroundColor: '#28a745',
   },
   durationText: {
     fontSize: 16,

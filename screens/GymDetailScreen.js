@@ -49,7 +49,9 @@ const GymDetailScreen = ({ navigation, route }) => {
   };
 
   const openSlotSelection = () => {
-    setSlotSelectionVisible(true);
+    // setSlotSelectionVisible(true);
+
+    navigation.navigate("SlotSelection", {gym: gymData});
   };
 
   const closeSlotSelection = () => {
