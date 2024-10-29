@@ -37,15 +37,16 @@ const PaymentScreen = ({ route, navigation }) => {
   const handlePayment = async () => {
     try {
       setLoading(true);
-
+      const bookingResponse = await createBooking(slotDetails); // Create booking on success
+      console.log("bookingResponse is", bookingResponse);
       // Step 1: Create the payment order first
-      const orderResponse = await createOrder(slotDetails.price * (slotDetails.duration / 60) || slotDetails.subscriptionPrice);
+      const orderResponse = await createOrder(slotDetails.price * (slotDetails.duration / 60) || slotDetails.subscriptionPrice, bookingResponse.bookingId);
       console.log("orderResponse", orderResponse);
       if (orderResponse && orderResponse.orderId) {
         // Step 2: Open Razorpay payment link in the browser
         const paymentOptions = {
           description: 'Slot Booking Payment',
-          image: 'https://your-logo-url.com',
+          image: 'https://yupluck.com/static/media/White%20on%20transparent.666e533d08807303a6fa.png',
           currency: orderResponse.currency,
           key: 'rzp_test_EldByscIlZGrQb', // Your Razorpay key
           amount: orderResponse.amount, // Amount in paise
@@ -65,9 +66,9 @@ const PaymentScreen = ({ route, navigation }) => {
         if (requestId) {
           slotDetails.requestId = requestId;
         }
-
+       
         if (result.type === 'opened') {
-          const bookingResponse = await createBooking(slotDetails); // Create booking on success
+          
           if (bookingResponse) {
             // Navigate to confirmation page after booking
             navigation.replace('ConfirmationScreen', { slotDetails, data: bookingResponse });

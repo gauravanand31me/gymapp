@@ -95,23 +95,27 @@ export default function BookingsScreen({ navigation }) {
           <Text style={styles.locationText}>{item.location}</Text>
         </View>
       </View>
-
+  
       <View style={styles.cardBody}>
-
         <View style={styles.gymDetails}>
           <TouchableOpacity onPress={() => navigation.navigate("GymDetails", {gym_id: item.gymId})}>
-              <Text style={styles.gymName}>{item.gymName}</Text>
+            <Text style={styles.gymName}>{item.gymName}</Text>
           </TouchableOpacity>
-          
+  
           <View style={styles.ratingContainer}>
             <Icon name="star" size={14} color="#FFD700" />
             <Text style={styles.ratingText}>{item.rating} ({item.reviews} Reviews)</Text>
           </View>
-
-          {/* Add Price and Booking ID */}
+  
+          {/* Payment Status Display */}
+          <Text style={[styles.paymentStatus, item.paymentStatus === 'Paid' ? styles.paid : styles.notPaid]}>
+            {item.paymentStatus === 'Paid' ? 'Paid' : 'Not Paid'}
+          </Text>
+  
+          {/* Booking ID and Price */}
           <Text style={styles.bookingIdText}>Booking ID: {item.bookingId}</Text>
           <Text style={styles.priceText}>Price: ₹ {item.price}</Text>
-
+  
           {/* Invites and Add More Options */}
           <View style={styles.inviteAddMoreContainer}>
             <TouchableOpacity onPress={() => fetchInvitesForBooking(item)}>
@@ -126,21 +130,20 @@ export default function BookingsScreen({ navigation }) {
               </View>}
             </TouchableOpacity>
           </View>
-
-          {/* Message for QR Code */}
+  
+          {/* QR Code Message */}
           {selectedTab == "Upcoming" && <Text style={styles.qrCodeText}>
             Please scan the QR code below to log your workout hours.
           </Text>}
           
-
           {selectedTab == "Upcoming" && <BookingQRCode booking_id={item.bookingId} booking_date={item.date} type="daily" />}
-
+  
           {/* Cancellation Notice */}
           {selectedTab == "Upcoming" && <Text style={styles.cancellationText}>
             For cancellations, please contact the administrator.
           </Text>}
         </View>
-
+  
         {/* Star Rating for Completed Bookings */}
         {selectedTab === "Completed" && (
             <View style={styles.starRatingContainer}>
@@ -548,5 +551,16 @@ const styles = StyleSheet.create({
   },
   starIcon: {
     marginHorizontal: 2,
+  },
+  paymentStatus: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginVertical: 5,
+  },
+  paid: {
+    color: '#4CAF50', // Green for paid
+  },
+  notPaid: {
+    color: '#F44336', // Red for not paid
   },
 });

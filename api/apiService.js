@@ -264,7 +264,7 @@ export const verifyOtp = async (mobileNumber, otp) => {
         },
       }); // Your API endpoint
       const data = await response.json();
-      
+      console.log("Booking data received", data);
       // Assuming data.Booking contains the bookings
       return data.Booking.map(booking => ({
         id: booking.id, // Assuming bookingId is unique
@@ -280,7 +280,8 @@ export const verifyOtp = async (mobileNumber, otp) => {
         price: booking.subscriptionPrice, // Assuming you have this in your API response
         visited: booking.visited,
         create: booking.create,
-        gymId: booking.gymId
+        gymId: booking.gymId,
+        paymentStatus: booking.isPaid == true ? "Paid" : "Not Paid"
       }));
     } catch (error) {
       console.error("Error fetching bookings:", error);
@@ -497,11 +498,13 @@ export const getUserImage = async (userId, page = 1) => {
 }
 
 
-export const createOrder = async (amount) => {
+export const createOrder = async (amount, bookingId) => {
+  console.log("Booking id sent", bookingId);
   try {
     const userToken = await AsyncStorage.getItem('authToken'); // Fetch token if needed
     const response = await axios.post(`${BASE_URL}/booking/initiate`, {
       amount: amount, // Send the amount to your backend (e.g., 500 for INR 500)
+      bookingId
     },{
       headers: {
         Authorization: `Bearer ${userToken}`,  // Add the Bearer token here
