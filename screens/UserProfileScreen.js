@@ -209,7 +209,7 @@ const UserProfileScreen = ({ navigation, route }) => {
               )}
             </Text>
             <Text style={styles.username}>@{userData?.username || 'N/A'}</Text>
-            <Text style={styles.mobileNumber}>{userData?.mobile_number || 'N/A'}</Text>
+            {/* <Text style={styles.mobileNumber}>{userData?.mobile_number || 'N/A'}</Text> */}
           </View>
           {console.log("Friend Request is", friends)}
           {friends && (

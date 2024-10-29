@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ImageBackground, Alert, Activ
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import * as WebBrowser from 'expo-web-browser';
 import axios from 'axios';
-import { createBooking, createOrder } from '../api/apiService';
+import { acceptBuddyRequest, createBooking, createOrder } from '../api/apiService';
 
 const PaymentScreen = ({ route, navigation }) => {
   const { slotDetails, requestId } = route.params; // Extract slot details from navigation parameters
@@ -60,15 +60,15 @@ const PaymentScreen = ({ route, navigation }) => {
         };
 
         const result = await WebBrowser.openBrowserAsync(orderResponse.paymentLink);
-       
-        console.log("Result is", result);
         // Step 3: After successful payment, create the booking
         if (requestId) {
           slotDetails.requestId = requestId;
         }
-       
+        
         if (result.type === 'opened') {
-          
+
+          const indvBooking = await acceptBuddyRequest(bookingResponse.bookingId);
+          console.log("indvBooking", indvBooking);
           if (bookingResponse) {
             // Navigate to confirmation page after booking
             navigation.replace('ConfirmationScreen', { slotDetails, data: bookingResponse });

@@ -499,7 +499,7 @@ export const getUserImage = async (userId, page = 1) => {
 
 
 export const createOrder = async (amount, bookingId) => {
-  console.log("Booking id sent", bookingId);
+ 
   try {
     const userToken = await AsyncStorage.getItem('authToken'); // Fetch token if needed
     const response = await axios.post(`${BASE_URL}/booking/initiate`, {
@@ -529,7 +529,7 @@ export const acceptBuddyRequest = async (requestId) => {
     
     return response.data; // This should include the Razorpay order_id, amount, currency, etc.
   } catch (error) {
-    console.log('Error creating order:', error);
+    console.log('Error fetching booking:', error);
     throw error; // Handle error accordingly
   }
 }
