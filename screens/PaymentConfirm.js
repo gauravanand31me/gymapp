@@ -68,8 +68,8 @@ const PaymentScreen = ({ route, navigation }) => {
         if (result.type === 'opened') {
 
           const indvBooking = await acceptBuddyRequest(bookingResponse.bookingId);
-          console.log("indvBooking", indvBooking);
-          if (bookingResponse) {
+          console.log("indvBooking", indvBooking.isPaid);
+          if (indvBooking) {
             // Navigate to confirmation page after booking
             navigation.replace('ConfirmationScreen', { slotDetails, data: bookingResponse });
           } else {
