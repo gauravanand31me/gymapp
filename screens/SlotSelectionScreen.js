@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Icon from 'react-native-vector-icons/Ionicons'; // Importing Ionicons for icons
+import Icon2 from 'react-native-vector-icons/FontAwesome';
+
 
 const SlotSelectionScreen = ({ navigation, route }) => {
   const { gym } = route.params;
@@ -55,8 +57,7 @@ const SlotSelectionScreen = ({ navigation, route }) => {
     <ScrollView contentContainerStyle={styles.container}>
       {/* Back Button */}
       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-        <Icon name="arrow-back" size={24} color="#333" />
-        <Text style={styles.backButtonText}>Back</Text>
+      <Icon2 name="chevron-left" size={24} color="#808080" />
       </TouchableOpacity>
 
       {/* Gym Name */}
@@ -147,6 +148,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     padding: 20,
     backgroundColor: '#f8f9fa',
+    marginTop : 30,
   },
   backButton: {
     flexDirection: 'row',
@@ -167,11 +169,11 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    color: '#333',
+    color: '#333', // Dark text for better readability
     marginBottom: 20,
     textAlign: 'center',
-    fontFamily: 'Roboto',
-    fontWeight: 'bold',
+    fontFamily: 'Roboto', // Consistent font
+    fontWeight: 'bold', // Make title bold
   },
   button: {
     flexDirection: 'row',
@@ -179,14 +181,14 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 10,
     marginBottom: 10,
-    elevation: 3,
+    elevation: 3, // Shadow for the button
   },
   buttonText: {
     color: '#fff',
     fontSize: 15,
     textAlign: 'center',
-    marginLeft: 10,
-    fontFamily: 'Roboto',
+    marginLeft: 10, // Spacing between icon and text
+    fontFamily: 'Roboto', // Consistent font
     flex: 1,
   },
   icon: {
@@ -194,29 +196,29 @@ const styles = StyleSheet.create({
   },
   timeTitle: {
     color: '#333',
-    fontSize: 20,
+    fontSize: 20, // Slightly larger for emphasis
     marginVertical: 10,
     textAlign: 'center',
-    fontWeight: '600',
+    fontWeight: '600', // Semi-bold for better visibility
   },
   timeDropdown: {
-    backgroundColor: '#ffffff',
+    backgroundColor: '#ffffff', // White background for dropdown
     borderRadius: 5,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#28a745',
+    borderColor: '#28a745', // Border color matching button color
     padding: 10,
-    elevation: 2,
+    elevation: 2, // Slight elevation for dropdown
   },
   timeOption: {
     padding: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
+    borderBottomColor: '#ddd', // Light grey border for options
   },
   timeOptionText: {
     color: '#333',
     fontSize: 18,
-    fontWeight: '500',
+    fontWeight: '500', // Semi-bold for better visibility
   },
   slotDetailsText: {
     color: '#666',
@@ -228,27 +230,27 @@ const styles = StyleSheet.create({
     fontSize: 20,
     marginBottom: 10,
     textAlign: 'center',
-    fontWeight: '600',
+    fontWeight: '600', // Semi-bold for better visibility
   },
   durationsContainer: {
     alignItems: 'center',
     marginBottom: 20,
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-around', // Space out duration buttons
   },
   durationButton: {
-    width: 70,
+    width: 70, // Fixed width for uniformity
     padding: 10,
     borderWidth: 2,
-    borderColor: '#28a745',
+    borderColor: '#28a745', // Green border color
     borderRadius: 10,
-    marginHorizontal: 5,
+    marginHorizontal: 5, // Spacing between buttons
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: '#fff', // White background for buttons
   },
   selectedDurationButton: {
-    backgroundColor: '#28a745',
+    backgroundColor: '#28a745', // Green background for selected button
   },
   durationText: {
     fontSize: 16,
@@ -260,5 +262,4 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
-
 export default SlotSelectionScreen;
