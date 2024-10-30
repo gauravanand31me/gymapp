@@ -140,15 +140,20 @@ const GymDetailScreen = ({ navigation, route }) => {
 
         <View style={styles.card}>
           <View style={styles.priceAvailabilityContainer}>
-            <View style={styles.cityContainer}>
-              <Text style={styles.city}>{gymData.addressLine1}: {gymData.city}</Text>
-              <TouchableOpacity
-                style={styles.mapButton}
-                onPress={() => openGoogleMaps(gymData.latitude, gymData.longitude)}
-              >
-                <Icon name="map-marker" size={30} color="#4CAF50" />
-              </TouchableOpacity>
-            </View>
+          <View style={styles.cityContainer}>
+  <Text style={styles.city}>
+    {gymData.addressLine1.length > 45 
+      ? `${gymData.addressLine1.slice(0, 45)}\n${gymData.addressLine1.slice(45)}` 
+      : gymData.addressLine1}
+    : {gymData.city}
+  </Text>
+  <TouchableOpacity
+    style={styles.mapButton}
+    onPress={() => openGoogleMaps(gymData.latitude, gymData.longitude)}
+  >
+    <Icon name="map-marker" size={30} color="#4CAF50" />
+  </TouchableOpacity>
+</View>
           </View>
         </View>
 
