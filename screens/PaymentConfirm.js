@@ -2,14 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ImageBackground, Alert, ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import * as WebBrowser from 'expo-web-browser';
-import axios from 'axios';
 import { acceptBuddyRequest, createBooking, createOrder } from '../api/apiService';
+
 
 const PaymentScreen = ({ route, navigation }) => {
   const { slotDetails, requestId } = route.params; // Extract slot details from navigation parameters
   const [loading, setLoading] = useState(false); // Loading state for button
   const [isExpired, setIsExpired] = useState(false); // State to check if the booking is expired
-
+  const [openModel, setOpenModel] = useState(true);
+  const [paymentLink, setPaymentLink] = useState("");
   // Effect to check if the booking is expired
   useEffect(() => {
     let formattedDate;
@@ -37,8 +38,11 @@ const PaymentScreen = ({ route, navigation }) => {
   const handlePayment = async () => {
     try {
       setLoading(true);
+      if (requestId) {
+        slotDetails.requestId = requestId;
+      }
       const bookingResponse = await createBooking(slotDetails); // Create booking on success
-      console.log("bookingResponse is", bookingResponse);
+
       // Step 1: Create the payment order first
       const orderResponse = await createOrder(slotDetails.price * (slotDetails.duration / 60) || slotDetails.subscriptionPrice, bookingResponse.bookingId);
       console.log("orderResponse", orderResponse);
@@ -56,25 +60,37 @@ const PaymentScreen = ({ route, navigation }) => {
             contact: '9191919191',
             name: 'User Name',
           },
+          handler: function (response) {
+            // Payment success handler
+            console.log(response);
+            // Handle successful payment here
+          },
+          modal: {
+            ondismiss: function() {
+              console.log("Razorpay window closed by the user");
+              // Handle the modal close event here
+            },
+          },
           theme: { color: '#F37254' },
         };
 
+        setOpenModel(true);
+        setPaymentLink(orderResponse.paymentLink)
         const result = await WebBrowser.openBrowserAsync(orderResponse.paymentLink);
         // Step 3: After successful payment, create the booking
-        if (requestId) {
-          slotDetails.requestId = requestId;
-        }
         
+        if (result.type === 'dismiss') {
+          // Handle the case where the user closed or dismissed the browser
+          console.log('User dismissed the payment page');
+          // You can add additional logic here to notify the user or retry payment
+      } else if (result.type === 'opened') {
+          // Browser was successfully opened
+          console.log('Payment page opened');
+      }
+      
+      
         if (result.type === 'opened') {
-
-          const indvBooking = await acceptBuddyRequest(bookingResponse.bookingId);
-          console.log("indvBooking", indvBooking.isPaid);
-          if (indvBooking) {
-            // Navigate to confirmation page after booking
-            navigation.replace('ConfirmationScreen', { slotDetails, data: bookingResponse });
-          } else {
-            Alert.alert('Booking creation failed.');
-          }
+          pollPaymentStatus(bookingResponse.bookingId, bookingResponse);
         } else {
           Alert.alert('Payment was not completed.');
         }
@@ -87,6 +103,22 @@ const PaymentScreen = ({ route, navigation }) => {
       setLoading(false);
     }
   };
+
+
+  async function pollPaymentStatus(orderId, bookingResponse) {
+    const pollInterval = setInterval(async () => {
+        const indvBooking = await acceptBuddyRequest(orderId);
+
+        if (indvBooking.booking.isPaid) {
+            clearInterval(pollInterval); // Stop polling when payment is successful
+            navigation.replace('ConfirmationScreen', { slotDetails, data: bookingResponse });
+        } else {
+            clearInterval(pollInterval); // Stop polling when payment fails
+            navigation.replace('PaymentFailed');
+        }
+    }, 3000); // Poll every 3 seconds
+}
+
 
   return (
     <ImageBackground style={styles.background}>

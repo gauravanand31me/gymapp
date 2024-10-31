@@ -26,6 +26,7 @@ import VisitedGymScreen from './screens/VisitedGymScreen';
 import UserProfileScreen from './screens/UserProfileScreen';
 import SearchListScreen from './screens/SearchGymScreen';
 import AutocompleteSearchComponent from './components/AutoCompleteInput';
+import PaymentFailedScreen from './screens/PaymentFailedScreen';
 
 const Stack = createStackNavigator();
 
@@ -101,6 +102,7 @@ export default function App() {
             <Stack.Screen name="SearchGym" component={AutocompleteSearchComponent} />
             <Stack.Screen name="SearchGymList" component={SearchListScreen} />
             <Stack.Screen name="SlotSelection" component={SlotSelectionScreen} />
+            <Stack.Screen name="PaymentFailed" component={PaymentFailedScreen} />
             <Stack.Screen name="VisitedGymScreen" component={VisitedGymScreen} options={{ title: 'Visited Gyms' }} />
           </>
         )}
