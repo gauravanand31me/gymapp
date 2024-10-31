@@ -19,7 +19,7 @@ export default function BookingsScreen({ navigation }) {
     const getBookings = async () => {
       setIsLoading(true); // Start loader
       const allBookings = await fetchAllBookings();
-      console.log("allBookings", allBookings);
+ 
       if (allBookings) {
         // Sort bookings by date
         const sortedBookings = allBookings.sort((a, b) => new Date(b.create) - new Date(a.create));

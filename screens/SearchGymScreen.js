@@ -19,7 +19,6 @@ import { fetchAllGyms } from '../api/apiService';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import Footer from '../components/Footer';
-;
 
 export default function SearchGymList({ navigation, route }) {
   const { query, lat, long } = route.params;
@@ -47,22 +46,31 @@ export default function SearchGymList({ navigation, route }) {
       showSubscription.remove();
       hideSubscription.remove();
     };
-  }, []);
+  }, [page]);
 
   const fetchGyms = async () => {
+    if (loading) return; // Prevent multiple requests at the same time
+
     setLoading(true);
     try {
       const gymList = await fetchAllGyms(lat, long, searchText, limit, page);
+      console.log("page", page);
       if (gymList?.length > 0) {
-        setGyms(gymList);
+        setGyms(prevGyms => [...prevGyms, ...gymList]); // Append new gyms to existing list
       } else {
-        setHasMoreGyms(false);
+        setHasMoreGyms(false); // No more gyms to load
       }
     } catch (error) {
       console.error('Error fetching gyms:', error);
       Alert.alert('Error', 'Failed to load gyms. Please try again later.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadMoreGyms = () => {
+    if (!loading && hasMoreGyms) {
+      setPage(prevPage => prevPage + 1); // Increment page number
     }
   };
 
@@ -96,21 +104,14 @@ export default function SearchGymList({ navigation, route }) {
         <Text style={styles.headerText}>Results for "{searchText}"</Text>
       </View>
 
-
-
       <FlatList
         data={gyms}
         renderItem={renderGym}
         keyExtractor={(item) => item.gymId.toString()}
+        onEndReached={loadMoreGyms} // Load more gyms when reaching the end of the list
+        onEndReachedThreshold={0.5}
         ListFooterComponent={
-          <>
-            {loading ? <ActivityIndicator size="large" color="#f4511e" /> : null}
-            {!loading && (
-              <TouchableOpacity style={styles.seeMoreButton}>
-                <Text style={styles.seeMoreText}>See More Results</Text>
-              </TouchableOpacity>
-            )}
-          </>
+          loading ? <ActivityIndicator size="large" color="#f4511e" /> : null
         }
         ListEmptyComponent={
           !loading && (
@@ -149,27 +150,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#4CAF50',
   },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 10,
-    paddingHorizontal: 10,
-  },
-  searchInput: {
-    flex: 1,
-    height: 40,
-    borderColor: '#ccc',
-    borderWidth: 2,
-    borderRadius: 5,
-    paddingHorizontal: 10,
-    backgroundColor: '#fff',
-  },
-  searchButton: {
-    marginLeft: 10,
-    backgroundColor: '#66BB6A',
-    padding: 10,
-    borderRadius: 5,
-  },
   gymCard: {
     flexDirection: 'row',
     padding: 10,
@@ -207,27 +187,16 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
   },
-  seeMoreButton: {
-    padding: 10,
-    backgroundColor: '#4CAF50',
-    borderRadius: 5,
-    margin: 20,
-    alignItems: 'center',
-  },
-  seeMoreText: {
-    fontSize: 16,
-    color: '#fff',
-    fontWeight: 'bold',
-  },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-},
-emptyText: {
+  },
+  emptyText: {
     fontSize: 16,
     color: '#888',
     textAlign: 'center',
-},
+  },
 });
+
