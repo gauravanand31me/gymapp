@@ -175,7 +175,9 @@ const ProfileScreen = ({ navigation, route }) => {
         <View style={styles.statsContainer}>
   <View>
     <Text style={styles.statText}>Friends</Text>
-    <Text style={styles.statValue}>{userData?.followers_count || 0}</Text>
+    <TouchableOpacity onPress={() => navigation.navigate("InviteFriendBuddy")}>
+      <Text style={styles.statValue}>{userData?.followers_count || 0}</Text>
+    </TouchableOpacity>
   </View>
   <View>
     <Text style={styles.statText}>Workout Time</Text>
@@ -431,6 +433,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  
 });
 
 export default ProfileScreen;
