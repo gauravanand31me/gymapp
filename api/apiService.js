@@ -72,7 +72,7 @@ export const verifyOtp = async (mobileNumber, otp) => {
 
   export const fetchAllGyms = async (latitude = 12.9716, longitude = 77.5946,  searchText='', limit = 9, page = 1) => {
     try {
-      console.log("SearchText received", searchText);
+      
       const userToken = await AsyncStorage.getItem('authToken'); // Fetch token if needed
       const response = await axios.get(
         `${BASE_URL}/gym/get?lat=${latitude}&long=${longitude}&limit=${limit}&page=${page}&search=${searchText}`,
@@ -189,9 +189,10 @@ export const verifyOtp = async (mobileNumber, otp) => {
     }
   };
 
-  export const createBookingUrl = (bookingId)  => {
-    return `${BASE_URL}/booking/verify?bookingId=${bookingId}`;
-  }
+  export const createBookingUrl = (bookingId) => {
+    const updatedBaseUrl = BASE_URL.replace('user', 'gym');
+    return `${updatedBaseUrl}/booking/verify?bookingId=${bookingId}`;
+  };
 
   export const declineBuddyRequest = async (requestId) => {
     const userToken = await AsyncStorage.getItem('authToken'); // Fetch token if needed
