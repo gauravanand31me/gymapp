@@ -1,12 +1,13 @@
 // screens/RegisterScreen.js
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert, ActivityIndicator, Linking } from 'react-native';
 import { registerUser } from '../api/apiService'; // Import the registerUser function
 
 const RegisterScreen = ({ navigation }) => {
   const [fullName, setFullName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [loading, setLoading] = useState(false); // Add loading state
+  const [isPolicyAccepted, setIsPolicyAccepted] = useState(false); // State for policy checkbox
 
   const handleRegister = async () => {
     if (!fullName || !phoneNumber) {
@@ -20,7 +21,7 @@ const RegisterScreen = ({ navigation }) => {
       console.log("Registration Success:", response);
       setLoading(false); // Hide loader after successful registration
       // Navigate to OTP screen with phoneNumber
-      navigation.navigate('OTPVerification', { mobileNumber: phoneNumber, got_otp:  response.otp});
+      navigation.navigate('OTPVerification', { mobileNumber: phoneNumber, got_otp: response.otp });
     } catch (error) {
       setLoading(false); // Hide loader if there's an error
       console.error('Registration failed:', error);
@@ -42,27 +43,40 @@ const RegisterScreen = ({ navigation }) => {
       <TextInput
         style={styles.input}
         placeholder="Full Name"
-        placeholderTextColor='#808080' // light grey placeholder for better visibility
+        placeholderTextColor='#808080'
         value={fullName}
-        onChangeText={setFullName} // Update fullName state
+        onChangeText={setFullName}
       />
       <TextInput
         style={styles.input}
         placeholder="Mobile Number"
         keyboardType="phone-pad"
-        maxLength={10} // Assuming a 10-digit mobile number
-        placeholderTextColor='#808080' // light grey placeholder for better visibility
+        maxLength={10}
+        placeholderTextColor='#808080'
         value={phoneNumber}
-        onChangeText={setPhoneNumber} // Update phoneNumber state
+        onChangeText={setPhoneNumber}
       />
 
+      {/* Privacy Policy Section */}
+      <View style={styles.policyContainer}>
+        <TouchableOpacity onPress={() => Linking.openURL('https://yupluck.com/privacy')}>
+          <Text style={styles.policyLink}>I have read and agree to the Privacy Policy</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.checkbox}
+          onPress={() => setIsPolicyAccepted(!isPolicyAccepted)}
+        >
+          <View style={isPolicyAccepted ? styles.checkboxSelected : styles.checkboxUnselected} />
+        </TouchableOpacity>
+      </View>
+
       <TouchableOpacity
-        style={styles.button}
+        style={[styles.button, !isPolicyAccepted && styles.buttonDisabled]}
         onPress={handleRegister}
-        disabled={loading} // Disable button while loading
+        disabled={!isPolicyAccepted || loading} // Disable button while loading or if policy is not accepted
       >
         {loading ? (
-          <ActivityIndicator size="small" color="#fff" /> // Show loader inside button
+          <ActivityIndicator size="small" color="#fff" />
         ) : (
           <Text style={styles.buttonText}>Register</Text>
         )}
@@ -84,19 +98,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#FFFFFF', // white background
+    backgroundColor: '#FFFFFF',
   },
-
   title: {
     fontSize: 28,
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 10,
-    color: '#0ED94A', // Green text
+    color: '#0ED94A',
   },
   subtitle: {
     fontSize: 16,
-    color: '#808080', // Grey text
+    color: '#808080',
     textAlign: 'center',
     marginBottom: 40,
   },
@@ -106,21 +119,55 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 5,
     padding: 15,
-    backgroundColor: '#D3D3D3', // light gray input background
-    color: '#333', // Dark text
+    backgroundColor: '#D3D3D3',
+    color: '#333',
     marginBottom: 20,
     fontSize: 18,
     fontWeight: 'bold',
   },
+  policyContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+    width: '100%',
+    justifyContent: 'space-between',
+  },
+  policyLink: {
+    color: '#0ED94A',
+    textDecorationLine: 'underline',
+    fontSize: 14,
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderWidth: 1,
+    borderColor: '#0ED94A',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 3,
+  },
+  checkboxUnselected: {
+    width: 16,
+    height: 16,
+    backgroundColor: 'transparent',
+  },
+  checkboxSelected: {
+    width: 16,
+    height: 16,
+    backgroundColor: '#0ED94A',
+  },
   button: {
-    backgroundColor: '#28a745', // Green button color
+    backgroundColor: '#28a745',
     padding: 15,
     borderRadius: 5,
     width: '100%',
     alignItems: 'center',
   },
+  buttonDisabled: {
+    backgroundColor: '#94d3a2', // Light green for disabled state
+  },
   buttonText: {
-    color: '#fff', // White text for button
+    color: '#fff',
     fontWeight: 'bold',
     fontSize: 16,
   },
@@ -132,7 +179,7 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   linkText: {
-    color: '#28a745', // Green link text
+    color: '#28a745',
     fontWeight: 'bold',
   },
   logo: {
