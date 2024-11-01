@@ -114,7 +114,7 @@ const InviteFriendBuddiesScreen = ({ navigation, route }) => {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <View style={styles.header}>
+      {bookingId && <View style={styles.header}>
         {/* Back arrow button */}
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Icon name="arrow-left" size={30} color="#fff" />
@@ -124,11 +124,11 @@ const InviteFriendBuddiesScreen = ({ navigation, route }) => {
           <Text style={styles.headerTitle}>Invite Friends</Text>
           <Text style={styles.headerSubtitle}>Add your buddies for a workout!</Text>
         </View>
-      </View>
+      </View>}
 
-      <View style={styles.bookingIdContainer}>
+      {bookingId && <View style={styles.bookingIdContainer}>
         <Text style={styles.bookingIdText}>Booking ID: {bookingId}</Text>
-      </View>
+      </View> }
 
       <View style={styles.searchContainer}>
         <Text>
