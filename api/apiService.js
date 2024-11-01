@@ -499,13 +499,14 @@ export const getUserImage = async (userId, page = 1) => {
 }
 
 
-export const createOrder = async (amount, bookingId) => {
+export const createOrder = async (amount, bookingId, requestId) => {
  
   try {
     const userToken = await AsyncStorage.getItem('authToken'); // Fetch token if needed
     const response = await axios.post(`${BASE_URL}/booking/initiate`, {
       amount: amount, // Send the amount to your backend (e.g., 500 for INR 500)
-      bookingId
+      bookingId,
+      requestId
     },{
       headers: {
         Authorization: `Bearer ${userToken}`,  // Add the Bearer token here

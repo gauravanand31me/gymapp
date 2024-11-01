@@ -21,7 +21,8 @@
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#ffffff"
       },
-      "permissions": ["NOTIFICATION", "VIBRATE", "RECEIVE_BOOT_COMPLETED"]
+      "permissions": ["NOTIFICATION", "VIBRATE", "RECEIVE_BOOT_COMPLETED"],
+      "useNextNotificationsApi": true
     },
     "web": {
       "favicon": "./assets/favicon.png"
