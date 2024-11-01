@@ -18,7 +18,7 @@ export default function BookingsScreen({ navigation }) {
   useEffect(() => {
     const getBookings = async () => {
       setIsLoading(true); // Start loader
-      const allBookings = await fetchAllBookings();
+      const allBookings = await fetchAllBookings(selectedTab);
  
       if (allBookings) {
         // Sort bookings by date
@@ -29,7 +29,7 @@ export default function BookingsScreen({ navigation }) {
       setIsLoading(false); // Stop loader
     };
     getBookings();
-  }, []);
+  }, [selectedTab]);
 
   // Function to fetch invites for a booking
   const fetchInvitesForBooking = async (booking) => {
@@ -41,37 +41,37 @@ export default function BookingsScreen({ navigation }) {
   };
 
 
-  const upcomingBookings = bookings.filter(booking => {
-    const bookingDate = new Date(booking.date);
+  // const upcomingBookings = bookings.filter(booking => {
+  //   const bookingDate = new Date(booking.date);
     
-    const currentDate = new Date();
-    currentDate.setDate(currentDate.getDate() - 1);
+  //   const currentDate = new Date();
+  //   currentDate.setDate(currentDate.getDate() - 1);
 
-    return bookingDate >= currentDate && !booking.visited;
-  });
+  //   return bookingDate >= currentDate && !booking.visited;
+  // });
 
 
 
-  const completedBookings = bookings.filter(booking => {
-    const bookingDate = new Date(booking.date);
+  // const completedBookings = bookings.filter(booking => {
+  //   const bookingDate = new Date(booking.date);
 
-    // Get current date and subtract one day
-    const currentDate = new Date();
-    currentDate.setDate(currentDate.getDate() - 1);
+  //   // Get current date and subtract one day
+  //   const currentDate = new Date();
+  //   currentDate.setDate(currentDate.getDate() - 1);
     
-    return (bookingDate < currentDate && booking.visited);
-  });
+  //   return (bookingDate < currentDate && booking.visited);
+  // });
 
 
-  const noShowBooking = bookings.filter(booking => {
-    const bookingDate = new Date(booking.date);
+  // const noShowBooking = bookings.filter(booking => {
+  //   const bookingDate = new Date(booking.date);
 
-    // Get current date and subtract one day
-    const currentDate = new Date();
-    currentDate.setDate(currentDate.getDate() - 1);
+  //   // Get current date and subtract one day
+  //   const currentDate = new Date();
+  //   currentDate.setDate(currentDate.getDate() - 1);
 
-    return bookingDate < currentDate && !booking.visited;
-  });
+  //   return bookingDate < currentDate && !booking.visited;
+  // });
 
   const getStatusStyle = (status) => {
     switch (status.toLowerCase()) {
@@ -217,15 +217,7 @@ export default function BookingsScreen({ navigation }) {
               </View>
             ) : (
               <FlatList
-                data={
-                  selectedTab === 'Upcoming'
-                    ? upcomingBookings
-                    : selectedTab === 'Completed'
-                      ? completedBookings
-                      : selectedTab === 'noShow'
-                        ? noShowBooking
-                        : []
-                }
+                data={bookings}
                 keyExtractor={(item) => item.id.toString()}
                 renderItem={renderBooking}
                 contentContainerStyle={styles.listContent}

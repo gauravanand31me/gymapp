@@ -255,10 +255,10 @@ export const verifyOtp = async (mobileNumber, otp) => {
 
 
 
-  export const fetchAllBookings = async () => {
+  export const fetchAllBookings = async (selectedTab) => {
     try {
       const userToken = await AsyncStorage.getItem('authToken'); // Fetch token if needed
-      const response = await fetch(`${BASE_URL}/booking/get`, {
+      const response = await fetch(`${BASE_URL}/booking/get?selectedTab=${selectedTab}`, {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${userToken}`, // Include the bearer token
