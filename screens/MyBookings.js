@@ -41,37 +41,6 @@ export default function BookingsScreen({ navigation }) {
   };
 
 
-  // const upcomingBookings = bookings.filter(booking => {
-  //   const bookingDate = new Date(booking.date);
-    
-  //   const currentDate = new Date();
-  //   currentDate.setDate(currentDate.getDate() - 1);
-
-  //   return bookingDate >= currentDate && !booking.visited;
-  // });
-
-
-
-  // const completedBookings = bookings.filter(booking => {
-  //   const bookingDate = new Date(booking.date);
-
-  //   // Get current date and subtract one day
-  //   const currentDate = new Date();
-  //   currentDate.setDate(currentDate.getDate() - 1);
-    
-  //   return (bookingDate < currentDate && booking.visited);
-  // });
-
-
-  // const noShowBooking = bookings.filter(booking => {
-  //   const bookingDate = new Date(booking.date);
-
-  //   // Get current date and subtract one day
-  //   const currentDate = new Date();
-  //   currentDate.setDate(currentDate.getDate() - 1);
-
-  //   return bookingDate < currentDate && !booking.visited;
-  // });
 
   const getStatusStyle = (status) => {
     switch (status.toLowerCase()) {
@@ -220,7 +189,8 @@ export default function BookingsScreen({ navigation }) {
                 data={bookings}
                 keyExtractor={(item) => item.id.toString()}
                 renderItem={renderBooking}
-                contentContainerStyle={styles.listContent}
+                contentContainerStyle={bookings.length === 0 ? styles.emptyList : styles.listContent} // Add condition here
+                
               />
             )}
           </View>
@@ -282,6 +252,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f5f5f5',
     justifyContent: 'flex-end',
+  },
+  emptyList: {
+    flexGrow: 1, // Allow this to take space if there's no content
+    justifyContent: 'center', // Center items if there's no content
   },
   headerText: {
     fontSize: 20,
