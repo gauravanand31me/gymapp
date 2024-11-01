@@ -69,6 +69,7 @@ export default function SearchGymList({ navigation, route }) {
   };
 
   const loadMoreGyms = () => {
+
     if (!loading && hasMoreGyms) {
       setPage(prevPage => prevPage + 1); // Increment page number
     }
@@ -96,7 +97,7 @@ export default function SearchGymList({ navigation, route }) {
   );
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+    <View style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <MaterialIcon name="arrow-back" size={24} color="#fff" />
@@ -123,7 +124,7 @@ export default function SearchGymList({ navigation, route }) {
       />
 
       {!isKeyboardVisible && <Footer navigation={navigation} />}
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 
