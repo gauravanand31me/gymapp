@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image, Modal, SafeAreaView, ActivityIndicator } from 'react-native';
-import { fetchAllBookings, fetchBuddyInvites } from '../api/apiService'; // Add the new API import
+import { fetchAllBookings, fetchBuddyInvites, rateBooking } from '../api/apiService'; // Add the new API import
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import BookingQRCode from '../components/BookingQRCode';
@@ -54,6 +54,11 @@ export default function BookingsScreen({ navigation }) {
         return { backgroundColor: '#777' }; // Grey for unknown statuses
     }
   };
+
+  const handleRating = async (bookingId, gymId, star) => {
+      const rate_book = await rateBooking(bookingId, gymId, star);
+      console.log("rate_book", rate_book);
+  }
 
   const renderBooking = ({ item }) => (
     <View style={styles.bookingCard}>
@@ -119,7 +124,7 @@ export default function BookingsScreen({ navigation }) {
               <Text style={styles.ratingPrompt}>Rate Your Experience:</Text>
               <View style={styles.starContainer}>
                 {[1, 2, 3, 4, 5].map((star) => (
-                  <TouchableOpacity key={star}>
+                  <TouchableOpacity key={star} onPress={() => handleRating(item.id, item.gymId, star)}>
                     <Icon
                       name="star"
                       size={20}

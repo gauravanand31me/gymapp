@@ -584,3 +584,23 @@ export const updateName = async (name) => {
 }
 
 
+export const rateBooking = async (bookingId, gymId, rating) => {
+  try {
+    const userToken = await AsyncStorage.getItem('authToken'); // Fetch token if needed
+    const response = await axios.post(`${BASE_URL}/rating/post`, {
+      bookingId, // Send the amount to your backend (e.g., 500 for INR 500)
+      gymId,
+      rating  
+      }, {
+      headers: {
+        Authorization: `Bearer ${userToken}`,  // Add the Bearer token here
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching visited gyms:', error);
+    throw error;
+  }
+};
+
+
