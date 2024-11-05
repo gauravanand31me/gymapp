@@ -92,18 +92,20 @@ export default function BookingsScreen({ navigation }) {
   
           {/* Invites and Add More Options */}
           <View style={styles.inviteAddMoreContainer}>
-            <TouchableOpacity onPress={() => fetchInvitesForBooking(item)}>
-              <Text style={styles.inviteText}>
-                <Icon name="users" size={14} color="#777" /> {item.invites} Invites
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => navigation.navigate('InviteFriendBuddy', { bookingId: item.id })}>
-              {selectedTab == "Upcoming" && <View style={styles.addMoreButton}>
-                <Text style={styles.addMoreButtonText}>+1</Text>
-              </View>}
-            </TouchableOpacity>
-          </View>
+  <TouchableOpacity onPress={() => fetchInvitesForBooking(item)}>
+    <Text style={styles.inviteText}>
+      <Icon name="users" size={14} color="#777" /> {item.invites} Invites
+    </Text>
+  </TouchableOpacity>
+  <TouchableOpacity
+    onPress={() => navigation.navigate('InviteFriendBuddy', { bookingId: item.id })}>
+    {selectedTab === "Upcoming" && (
+      <View style={styles.addMoreButton}>
+        <Text style={styles.addMoreButtonText}>Add More</Text> 
+      </View>
+    )}
+  </TouchableOpacity>
+</View>
   
           {/* QR Code Message */}
           {selectedTab == "Upcoming" && <Text style={styles.qrCodeText}>
@@ -184,7 +186,7 @@ export default function BookingsScreen({ navigation }) {
           <View style={{ flex: 1 }}>
             {isEmpty ? (
               <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>Start your first booking with us!</Text>
+                <Text style={styles.emptyText}>Nothing to show!</Text>
                 <TouchableOpacity onPress={() => navigation.navigate("GymList")}>
                   <Text style={styles.linkText}>Go to Gym List</Text>
                 </TouchableOpacity>
@@ -239,7 +241,7 @@ export default function BookingsScreen({ navigation }) {
         </Modal>
 
         {/* Footer */}
-        <View style={styles.footer}>
+        <View style={styles.footerContainer}>
           <Footer navigation={navigation} />
         </View>
       </View>
@@ -256,7 +258,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
-    justifyContent: 'flex-end',
+    padding: 20,
+  },
+  headerText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 20,
   },
   emptyList: {
     flexGrow: 1, // Allow this to take space if there's no content
@@ -484,9 +492,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
   },
-  footer: {
-    height: 50,
-    justifyContent: 'center',
+  footerContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 60,  // Adjust based on footer height
+    backgroundColor: '#f5f5f5',
   },
   emptyContainer: {
     flex: 1,
@@ -533,5 +545,15 @@ const styles = StyleSheet.create({
   },
   notPaid: {
     color: '#F44336', // Red for not paid
+  },
+  addMoreButton: {
+    backgroundColor: '#4CAF50', // Green background
+    borderRadius: 5,
+    padding: 5,
+    alignItems: 'center', // Center the text
+  },
+  addMoreButtonText: {
+    fontWeight: 'bold',
+    color: '#fff', // White text color
   },
 });
