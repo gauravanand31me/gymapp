@@ -23,7 +23,7 @@ import { fetchAllGyms } from '../api/apiService';
 import Footer from '../components/Footer';
 import * as Linking from 'expo-linking';
 
-const GOOGLE_MAPS_API_KEY = 'AIzaSyCe_VHcmc7i6jbNl0oFDVHwQyavPgYFU10';
+const GOOGLE_MAPS_API_KEY = 'AIzaSyAAMaXbIBC1IgC_B1kyALkcH87grvcSBhY';
 
 export default function GymListScreen({ navigation }) {
   const [gyms, setGyms] = useState([]);
