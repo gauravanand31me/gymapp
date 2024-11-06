@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ImageBackground, Alert, Activ
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import * as WebBrowser from 'expo-web-browser';
 import { acceptBuddyRequest, createBooking, createOrder } from '../api/apiService';
-
+import { Platform } from 'react-native';
 
 const PaymentScreen = ({ route, navigation }) => {
   const { slotDetails, requestId } = route.params; // Extract slot details from navigation parameters
@@ -13,25 +13,42 @@ const PaymentScreen = ({ route, navigation }) => {
   const [paymentLink, setPaymentLink] = useState("");
   // Effect to check if the booking is expired
   useEffect(() => {
-    let formattedDate;
-
-    if (slotDetails.date) {
-      const [day, month, year] = slotDetails.date.split("/");
-      formattedDate = `${year}-${month}-${day}`;
-    }
-    
-    console.log("`${slotDetails.date} ${slotDetails.time}`", `${slotDetails.date} ${slotDetails.time}`);
     const checkExpiration = () => {
-      const currentDate = new Date(); // Get current date and time
-      console.log("bookingDate", slotDetails);
-      const slotDateTime = new Date(`${formattedDate || slotDetails.bookingDate} ${slotDetails.time  || slotDetails.slotStartTime}`); // Combine date and time
+      if (!slotDetails.date || !slotDetails.time) return; // Ensure date and time are available
+  
+      let formattedDate;
+  
+      // Conditionally format the date based on the platform
+      if (slotDetails.date) {
+        const [day, month, year] = slotDetails.date.split("/");
+        formattedDate = `${year}-${month}-${day}`;
+      }
+  
+      // iOS expects a 'T' between date and time for reliable parsing
+      const slotDateTimeString = Platform.OS === 'ios'
+        ? `${formattedDate || slotDetails.bookingDate}T${slotDetails.time || slotDetails.slotStartTime}`
+        : `${formattedDate || slotDetails.bookingDate} ${slotDetails.time || slotDetails.slotStartTime}`;
+  
+      console.log("Formatted Slot Date and Time:", slotDateTimeString);
+  
+      const slotDateTime = new Date(slotDateTimeString);
+      const currentDate = new Date();
+  
+      if (isNaN(slotDateTime.getTime())) {
+        console.error("Invalid date format:", slotDateTimeString);
+        return;
+      }
+      
+      console.log("slotDateTimeString", currentDate);
+      console.log("slotDateTime", slotDateTime);
+
       
       // Check if the current date and time is greater than the slot date and time
       if (currentDate > slotDateTime) {
         setIsExpired(true); // Set expired state
       }
     };
-
+  
     checkExpiration(); // Run the expiration check
   }, [slotDetails.date, slotDetails.time]); // Dependency array includes date and time
 
@@ -43,37 +60,14 @@ const PaymentScreen = ({ route, navigation }) => {
       }
       const bookingResponse = await createBooking(slotDetails); // Create booking on success
 
+      console.log("Booking response", bookingResponse);
+
+      if (bookingResponse) {
       // Step 1: Create the payment order first
-      const orderResponse = await createOrder(slotDetails.price * (slotDetails.duration / 60) || slotDetails.subscriptionPrice, bookingResponse.bookingId);
-      console.log("orderResponse", orderResponse);
+      const orderResponse = await createOrder(slotDetails.price * (slotDetails.duration / 60) || slotDetails.subscriptionPrice, bookingResponse.bookingId, requestId);
+    
       if (orderResponse && orderResponse.orderId) {
         // Step 2: Open Razorpay payment link in the browser
-        const paymentOptions = {
-          description: 'Slot Booking Payment',
-          image: 'https://yupluck.com/static/media/White%20on%20transparent.666e533d08807303a6fa.png',
-          currency: orderResponse.currency,
-          key: 'rzp_test_EldByscIlZGrQb', // Your Razorpay key
-          amount: orderResponse.amount, // Amount in paise
-          order_id: orderResponse.id, // Razorpay order ID
-          prefill: {
-            email: 'user@example.com',
-            contact: '9191919191',
-            name: 'User Name',
-          },
-          handler: function (response) {
-            // Payment success handler
-            console.log(response);
-            // Handle successful payment here
-          },
-          modal: {
-            ondismiss: function() {
-              console.log("Razorpay window closed by the user");
-              // Handle the modal close event here
-            },
-          },
-          theme: { color: '#F37254' },
-        };
-
         setOpenModel(true);
         setPaymentLink(orderResponse.paymentLink)
         const result = await WebBrowser.openBrowserAsync(orderResponse.paymentLink);
@@ -97,7 +91,11 @@ const PaymentScreen = ({ route, navigation }) => {
       } else {
         Alert.alert('Some error occurred while creating the payment order.');
       }
+      } else {
+        Alert.alert("Slot or gym may not be available for booking");
+      }
     } catch (error) {
+      console.log("error", error.response)
       Alert.alert('Error: ' + error.message);
     } finally {
       setLoading(false);
@@ -107,8 +105,9 @@ const PaymentScreen = ({ route, navigation }) => {
 
   async function pollPaymentStatus(orderId, bookingResponse) {
     const pollInterval = setInterval(async () => {
+      try {
         const indvBooking = await acceptBuddyRequest(orderId);
-
+      
         if (indvBooking.booking.isPaid) {
             clearInterval(pollInterval); // Stop polling when payment is successful
             navigation.replace('ConfirmationScreen', { slotDetails, data: bookingResponse });
@@ -116,6 +115,9 @@ const PaymentScreen = ({ route, navigation }) => {
             clearInterval(pollInterval); // Stop polling when payment fails
             navigation.replace('PaymentFailed');
         }
+      } catch (e) {
+        clearInterval(pollInterval); // Stop polling when payment fails
+      }
     }, 3000); // Poll every 3 seconds
 }
 

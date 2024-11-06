@@ -11,7 +11,6 @@ import {
   Platform,
   Alert,
   ActivityIndicator,
-  Keyboard
 } from 'react-native';
 import * as Location from 'expo-location';
 import { useFocusEffect } from '@react-navigation/native';
@@ -29,37 +28,36 @@ export default function GymListScreen({ navigation }) {
   const [gyms, setGyms] = useState([]);
   const [address, setAddress] = useState('');
   const [pincode, setPincode] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true); // For initial load
+  const [loadingMore, setLoadingMore] = useState(false); // For loading more gyms
   const [lat, setLat] = useState('');
   const [long, setLong] = useState('');
   const [isFooterVisible, setIsFooterVisible] = useState(true);
-
-  useEffect(() => {
-    getLocation();
-
-    const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
-      setIsFooterVisible(false);
-    });
-
-    const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
-      setIsFooterVisible(true);
-    });
-
-    return () => {
-      keyboardDidShowListener.remove();
-      keyboardDidHideListener.remove();
-    };
-  }, []);
+  const [page, setPage] = useState(1);
+  const [hasMoreGyms, setHasMoreGyms] = useState(true);
+  const limit = 3;
 
   useFocusEffect(
     useCallback(() => {
       setPincode("");
-      getLocation();
+      setGyms([]);
+      setPage(1);
+      setHasMoreGyms(true); // Reset hasMoreGyms on focus
+      
       return () => {
         console.log("Screen is unfocused!");
       };
     }, [])
   );
+
+  useEffect(() => {
+    if (!pincode) {
+      getLocation();
+    } else {
+      fetchGyms(lat, long);
+    }
+    
+  }, [page]);
 
   const getLocation = async () => {
     try {
@@ -88,18 +86,34 @@ export default function GymListScreen({ navigation }) {
       console.error('Error getting location:', error);
       Alert.alert('Error', 'Could not retrieve location. Please try again later.');
     }
-};
+  };
 
   const fetchGyms = async (lat, long) => {
-    setLoading(true);
+    if (page === 1) {
+      setLoading(true);
+    } else {
+      setLoadingMore(true);
+    }
+    
     try {
-      const response = await fetchAllGyms(lat, long);
-      setGyms(response);
+      const response = await fetchAllGyms(lat, long, '', limit, page);
+      console.log("page number received", response.length);
+      
+      if (response?.length > 0) {
+        setHasMoreGyms(true);
+        setGyms(prevGyms => [...prevGyms, ...response]);
+      } else {
+        setHasMoreGyms(false); // No more gyms to load
+      }
     } catch (error) {
       console.error('Error fetching gyms:', error);
       Alert.alert('Error', 'Failed to load gyms. Please try again later.');
     } finally {
-      setLoading(false);
+      if (page === 1) {
+        setLoading(false);
+      } else {
+        setLoadingMore(false);
+      }
     }
   };
 
@@ -117,6 +131,7 @@ export default function GymListScreen({ navigation }) {
 
   const fetchGymsByPincode = async () => {
     setLoading(true);
+    setGyms([]);
     try {
       const response = await axios.get(`https://maps.googleapis.com/maps/api/geocode/json?address=${pincode}&key=${GOOGLE_MAPS_API_KEY}`);
       const location = response.data.results[0].geometry.location;
@@ -136,6 +151,12 @@ export default function GymListScreen({ navigation }) {
       Alert.alert('Error', 'Could not retrieve location for the entered pincode.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadMoreGyms = () => {
+    if (hasMoreGyms && !loadingMore) {
+      setPage(prevPage => prevPage + 1);
     }
   };
 
@@ -185,10 +206,7 @@ export default function GymListScreen({ navigation }) {
 
       {loading ? (
         <View style={styles.loaderContainer}>
-          <ActivityIndicator size="large" color="#4CAF50" style={styles.loader} />
-          <View style={styles.footerContainer}>
-            {isFooterVisible && <Footer navigation={navigation} />}
-          </View>
+          <ActivityIndicator size="large" color="#4CAF50" />
         </View>
       ) : (
         <FlatList
@@ -196,12 +214,32 @@ export default function GymListScreen({ navigation }) {
           renderItem={renderGym}
           keyExtractor={(item) => item.gymId.toString()}
           contentContainerStyle={styles.gymList}
+          onEndReached={loadMoreGyms}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={
+            loadingMore ? (
+              <ActivityIndicator size="small" color="#f4511e" />
+            ) : hasMoreGyms ? null : (
+              <Text style={styles.noMoreText}>No more gyms to load</Text>
+            )
+          }
+          ListEmptyComponent={
+            !loading && (
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>No results found</Text>
+              </View>
+            )
+          }
         />
       )}
-      {!loading && isFooterVisible && <Footer navigation={navigation} />} 
+      {!loading && isFooterVisible && <Footer navigation={navigation}/>}
     </KeyboardAvoidingView>
   );
 }
+
+// Add styles here based on your preferences
+
+
 
 const styles = StyleSheet.create({
   container: {
@@ -316,5 +354,15 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  noMoreText: {
+    fontSize: 16,
+    color: '#888',         // Soft gray color for subtlety
+    textAlign: 'center',    // Center-align the text
+    paddingVertical: 20,    // Add padding for spacing
+    fontWeight: 'bold',     // Make it bold to stand out
+    backgroundColor: '#f0f0f0', // Light background to make it pop
+    borderRadius: 10,       // Rounded corners
+    marginHorizontal: 40,   // Horizontal margin for centering
   },
 });
