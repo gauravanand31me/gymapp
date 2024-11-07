@@ -27,6 +27,12 @@ const SlotSelectionScreen = ({ navigation, route }) => {
     setShowDatePicker(false);
     setDate(currentDate);
   };
+  const formatDate = (date) => {
+    const day = date.getDate();
+    const month = date.getMonth() + 1; // Months are 0-based
+    const year = date.getFullYear();
+    return `${day < 10 ? '0' + day : day}/${month < 10 ? '0' + month : month}/${year}`;
+  };
 
   // Check if slot is in the past
   const isPastSlot = (slotTime) => {
@@ -44,7 +50,7 @@ const SlotSelectionScreen = ({ navigation, route }) => {
       return;
     }
     const slotDetails = {
-      date: date.toLocaleDateString(),
+      date: formatDate(date),
       time: selectedSlot.startTime,
       duration: selectedDuration,
       gymName: gym.name,
@@ -81,7 +87,7 @@ const SlotSelectionScreen = ({ navigation, route }) => {
         style={[styles.button, { backgroundColor: buttonColor }]}
       >
         <Icon name="calendar-outline" size={20} color="#fff" style={styles.icon} />
-        <Text style={styles.buttonText}>{`Date: ${date.toLocaleDateString()}`}</Text>
+        <Text style={styles.buttonText}>{`Date: ${formatDate(date)}`}</Text>
       </TouchableOpacity>
 
       {showDatePicker && (
