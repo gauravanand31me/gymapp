@@ -161,7 +161,7 @@ const NotificationListScreen = ({ navigation }) => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <Text style={styles.header}>Notifications</Text>
       <FlatList
         data={notifications}
@@ -170,7 +170,7 @@ const NotificationListScreen = ({ navigation }) => {
         contentContainerStyle={styles.listContent}
       />
       <Footer navigation={navigation} />
-    </SafeAreaView>
+    </View>
   );
 };
 
