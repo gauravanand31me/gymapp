@@ -82,8 +82,8 @@ const PaymentScreen = ({ route, navigation }) => {
           console.log('Payment page opened');
       }
       
-      
-        if (result.type === 'opened') {
+  
+        if (result.type === 'opened' || result.type === 'cancel') {
           pollPaymentStatus(bookingResponse.bookingId, bookingResponse);
         } else {
           Alert.alert('Payment was not completed.');
