@@ -37,29 +37,52 @@ export default function App() {
     registerForPushNotificationsAsync();
   }, []);
 
+
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+    }),
+  });
+  
+  React.useEffect(() => {
+    const subscription = Notifications.addNotificationReceivedListener(notification => {
+      console.log("Notification received:", notification);
+    });
+  
+    const responseSubscription = Notifications.addNotificationResponseReceivedListener(response => {
+      console.log("Notification tapped:", response);
+    });
+  
+    return () => {
+      subscription.remove();
+      responseSubscription.remove();
+    };
+  }, []);
+
+
   const registerForPushNotificationsAsync = async () => {
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
-    let finalStatus = existingStatus;
-
-    if (existingStatus !== 'granted') {
-      const { status } = await Notifications.requestPermissionsAsync();
-      finalStatus = status;
-    }
-
-    if (finalStatus !== 'granted') {
-      alert('Failed to get push token for push notification!');
-      return;
-    }
-
-    const token = (await Notifications.getExpoPushTokenAsync()).data;
-    console.log("Token is", token);
-    
-    // Store the token in AsyncStorage
     try {
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+  
+      if (existingStatus !== 'granted') {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+  
+      if (finalStatus !== 'granted') {
+        alert('Failed to get push token for push notification!');
+        return;
+      }
+  
+      const token = (await Notifications.getExpoPushTokenAsync()).data;
+      console.log("Push token:", token);
+  
       await AsyncStorage.setItem('expoPushToken', token);
-      console.log('Push token stored:', token);
     } catch (error) {
-      console.error('Error storing the push token:', error);
+      console.error('Error during push notification setup:', error);
     }
   };
 
