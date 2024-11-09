@@ -265,7 +265,7 @@ export const verifyOtp = async (mobileNumber, otp) => {
         },
       }); // Your API endpoint
       const data = await response.json();
-      console.log("Booking data received", data);
+      
       // Assuming data.Booking contains the bookings
       return data.Booking.map(booking => ({
         id: booking.id, // Assuming bookingId is unique
@@ -283,7 +283,8 @@ export const verifyOtp = async (mobileNumber, otp) => {
         create: booking.create,
         gymId: booking.gymId,
         paymentStatus: booking.isPaid == true ? "Paid" : "Not Paid",
-        duration: booking.duration
+        duration: booking.duration,
+        bookingRating: booking.rating
       }));
     } catch (error) {
       console.error("Error fetching bookings:", error);
