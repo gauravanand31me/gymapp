@@ -15,9 +15,11 @@ export default function BookingsScreen({ navigation }) {
   const [isEmpty, setIsEmpty] = useState(false);
   const [isLoading, setIsLoading] = useState(true); // State for loading
   const [rating, setRating] = useState(0); // initial rating from the item
+  const [isChanged, setIsChanged] = useState(false);
   useEffect(() => {
     const getBookings = async () => {
       setIsLoading(true); // Start loader
+      setIsChanged(false);
       const allBookings = await fetchAllBookings(selectedTab);
  
       if (allBookings) {
@@ -29,7 +31,7 @@ export default function BookingsScreen({ navigation }) {
       setIsLoading(false); // Stop loader
     };
     getBookings();
-  }, [selectedTab]);
+  }, [isChanged, selectedTab]);
 
   // Function to fetch invites for a booking
   const fetchInvitesForBooking = async (booking) => {
@@ -56,8 +58,10 @@ export default function BookingsScreen({ navigation }) {
   };
 
   const handleRating = async (bookingId, gymId, star) => {
-      const rate_book = await rateBooking(bookingId, gymId, star);
-      console.log("rate_book", rate_book);
+    await rateBooking(bookingId, gymId, star);
+    setIsChanged(true);
+    setSelectedTab("Completed");
+      
   }
 
   const renderBooking = ({ item }) => (
@@ -129,10 +133,11 @@ export default function BookingsScreen({ navigation }) {
               <View style={styles.starContainer}>
                 {[1, 2, 3, 4, 5].map((star) => (
                   <TouchableOpacity key={star} onPress={() => handleRating(item.id, item.gymId, star)}>
+                   
                     <Icon
                       name="star"
                       size={20}
-                      color={star <= rating ? '#FFD700' : '#CCC'}
+                      color={star <= item.bookingRating ? '#FFD700' : '#CCC'}
                       style={styles.starIcon}
                     />
                   </TouchableOpacity>
