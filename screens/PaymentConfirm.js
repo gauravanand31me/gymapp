@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ImageBackground, Alert, ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import * as WebBrowser from 'expo-web-browser';
 import { acceptBuddyRequest, createBooking, createOrder } from '../api/apiService';
 import { Platform } from 'react-native';
+import * as Notifications from 'expo-notifications';
+import { NotificationContext } from '../context/NotificationContext';
 
 const PaymentScreen = ({ route, navigation }) => {
   const { slotDetails, requestId } = route.params; // Extract slot details from navigation parameters
@@ -11,7 +13,17 @@ const PaymentScreen = ({ route, navigation }) => {
   const [isExpired, setIsExpired] = useState(false); // State to check if the booking is expired
   const [openModel, setOpenModel] = useState(true);
   const [paymentLink, setPaymentLink] = useState("");
+  const {notification} = useContext(NotificationContext);
   // Effect to check if the booking is expired
+
+
+  useEffect(() => {
+    if (notification) {
+      console.log('New notification received:', notification.request.content);
+      // Handle the notification (e.g., show a message or update the UI)
+    }
+  }, [notification]);
+
   useEffect(() => {
     const checkExpiration = () => {
       if (!slotDetails.date || !slotDetails.time) return; // Ensure date and time are available
@@ -60,8 +72,6 @@ const PaymentScreen = ({ route, navigation }) => {
       }
       const bookingResponse = await createBooking(slotDetails); // Create booking on success
 
-      console.log("Booking response", bookingResponse);
-
       if (bookingResponse) {
       // Step 1: Create the payment order first
       const orderResponse = await createOrder(slotDetails.price * (slotDetails.duration / 60) || slotDetails.subscriptionPrice, bookingResponse.bookingId, requestId);
@@ -84,7 +94,7 @@ const PaymentScreen = ({ route, navigation }) => {
       
   
         if (result.type === 'opened' || result.type === 'cancel') {
-          pollPaymentStatus(bookingResponse.bookingId, bookingResponse);
+          //pollPaymentStatus(bookingResponse.bookingId, bookingResponse);
         } else {
           Alert.alert('Payment was not completed.');
         }
