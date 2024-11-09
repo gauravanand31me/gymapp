@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Linking } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { updateName } from '../api/apiService';
 
@@ -21,6 +21,10 @@ const SettingsScreen = ({ navigation, route }) => {
       console.error('Failed to log out:', error);
       Alert.alert('Logout Failed', 'An error occurred while logging out.');
     }
+  };
+
+  const handleContactPress = () => {
+    Linking.openURL('https://contact.yupluck.com');
   };
 
   return (
@@ -47,6 +51,13 @@ const SettingsScreen = ({ navigation, route }) => {
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
         <Text style={styles.logoutButtonText}>Logout</Text>
       </TouchableOpacity>
+
+      {/* Contact Information */}
+      <TouchableOpacity style={styles.contactContainer} onPress={handleContactPress}>
+        <Text style={styles.contactText}>
+          For any disputes, contact us at <Text style={styles.linkText}>contact.yupluck.com</Text>
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -54,7 +65,7 @@ const SettingsScreen = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 40, // Added padding to ensure back button is visible at the top
+    paddingTop: 40,
     paddingHorizontal: 20,
     backgroundColor: '#fff',
     alignItems: 'center',
@@ -102,6 +113,19 @@ const styles = StyleSheet.create({
   },
   logoutButtonText: {
     color: '#fff',
+    fontWeight: 'bold',
+  },
+  contactContainer: {
+    marginTop: 30,
+    padding: 10,
+  },
+  contactText: {
+    color: '#555',
+    textAlign: 'center',
+    fontSize: 14,
+  },
+  linkText: {
+    color: '#007bff',
     fontWeight: 'bold',
   },
 });
