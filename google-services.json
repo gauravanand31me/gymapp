@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "284884578210",
+    "project_id": "yupluck-b30f0",
+    "storage_bucket": "yupluck-b30f0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:284884578210:android:871427ecf49fa13d6b8cfb",
+        "android_client_info": {
+          "package_name": "com.yupluck.mepluck"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBNB-AqGA4kAErWwpmtjfsxjCjZ2BWpNf4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

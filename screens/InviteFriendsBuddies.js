@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    paddingTop: Platform.OS === 'android' ? 40 : 0,  // Ensure space for Android devices
+    paddingTop: 30 // Ensure space for Android devices
   },
   header: {
     flexDirection: 'row',
