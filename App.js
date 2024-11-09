@@ -3,6 +3,7 @@ import * as Notifications from 'expo-notifications';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { initializeApp } from 'firebase/app'; // Firebase for non-messaging purposes
 
 import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
@@ -27,12 +28,13 @@ import UserProfileScreen from './screens/UserProfileScreen';
 import SearchListScreen from './screens/SearchGymScreen';
 import AutocompleteSearchComponent from './components/AutoCompleteInput';
 import PaymentFailedScreen from './screens/PaymentFailedScreen';
+import { NotificationProvider } from './context/NotificationContext';
 
 const Stack = createStackNavigator();
 
 export default function App() {
   const [isSplashVisible, setSplashVisible] = React.useState(true); // Track splash screen visibility
-
+  const [notificationError, setNotificationError] = React.useState("");
   React.useEffect(() => {
     registerForPushNotificationsAsync();
   }, []);
@@ -45,44 +47,99 @@ export default function App() {
       shouldSetBadge: true,
     }),
   });
-  
+
+  // React.useEffect(() => {
+  //   const subscription = Notifications.addNotificationReceivedListener(notification => {
+  //     console.log("Notification received:", notification);
+  //   });
+
+  //   const responseSubscription = Notifications.addNotificationResponseReceivedListener(response => {
+  //     console.log("Notification tapped:", response);
+  //   });
+
+  //   return () => {
+  //     subscription.remove();
+  //     responseSubscription.remove();
+  //   };
+  // }, []);
+
+
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBNB-AqGA4kAErWwpmtjfsxjCjZ2BWpNf4",
+    authDomain: "yupluck-b30f0.firebasestorage.app",
+    projectId: "yupluck-b30f0",
+    storageBucket: "yupluck-b30f0.firebasestorage.app",
+    messagingSenderId: "284884578210",
+    appId: "1:284884578210:android:871427ecf49fa13d6b8cfb"
+  };
+
   React.useEffect(() => {
-    const subscription = Notifications.addNotificationReceivedListener(notification => {
-      console.log("Notification received:", notification);
-    });
-  
-    const responseSubscription = Notifications.addNotificationResponseReceivedListener(response => {
-      console.log("Notification tapped:", response);
-    });
-  
-    return () => {
-      subscription.remove();
-      responseSubscription.remove();
+
+    const initializeAndRegister = async () => {
+      try {
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        console.log("App received", app);
+
+        // Check if Firebase app initialized correctly
+        if (app) {
+          console.log('Firebase initialized successfully!');
+          // Register for push notifications after Firebase initialization
+          await registerForPushNotificationsAsync();
+        } else {
+          throw new Error('Firebase initialization failed!');
+        }
+      } catch (error) {
+        console.error(error);
+      }
     };
-  }, []);
+
+    // Call the async function
+    initializeAndRegister();
+  }, []); // This will run once after the first render
 
 
   const registerForPushNotificationsAsync = async () => {
     try {
+      // Check for existing permission status
       const { status: existingStatus } = await Notifications.getPermissionsAsync();
       let finalStatus = existingStatus;
-  
+
+      // If not granted, request permission
       if (existingStatus !== 'granted') {
         const { status } = await Notifications.requestPermissionsAsync();
         finalStatus = status;
       }
-  
+
+      // If permission is not granted, show error and return
       if (finalStatus !== 'granted') {
-        alert('Failed to get push token for push notification!');
+        setNotificationError('Push notification permission not granted.');
+        Alert.alert('Permission Error', 'Failed to get push token for push notification!');
         return;
       }
-  
-      const token = (await Notifications.getExpoPushTokenAsync()).data;
-      console.log("Push token:", token);
-  
+
+      // Get the Expo push token (not Firebase Messaging token)
+      const { data: token } = await Notifications.getExpoPushTokenAsync({
+        projectId: "5c0cf145-3b66-4a09-a5aa-0b76f76d6260" // Your Expo project ID
+      });
+
+      // If no token is generated, handle the error
+      if (!token) {
+        setNotificationError('Failed to generate push notification token.');
+        return;
+      }
+
+      // Store the push token locally using AsyncStorage
       await AsyncStorage.setItem('expoPushToken', token);
+
+      // Set the token in state and display success
+      setNotificationError(`Push token generated: ${token}`);
+      console.log('Expo Push Token:', token);
+
     } catch (error) {
-      console.error('Error during push notification setup:', error);
+      setNotificationError(`Error during push notification setup: ${error.message}`);
+      console.error(error);
     }
   };
 
@@ -95,8 +152,10 @@ export default function App() {
   }, []);
 
   return (
+    <NotificationProvider>
     <NavigationContainer>
-      <Stack.Navigator 
+      
+      <Stack.Navigator
         initialRouteName="Splash"
         screenOptions={{ headerShown: false }}
       >
@@ -130,6 +189,8 @@ export default function App() {
           </>
         )}
       </Stack.Navigator>
+      
     </NavigationContainer>
+    </NotificationProvider>
   );
 }

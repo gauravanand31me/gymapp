@@ -94,7 +94,7 @@ const PaymentScreen = ({ route, navigation }) => {
       
   
         if (result.type === 'opened' || result.type === 'cancel') {
-          //pollPaymentStatus(bookingResponse.bookingId, bookingResponse);
+          pollPaymentStatus(bookingResponse.bookingId, bookingResponse);
         } else {
           Alert.alert('Payment was not completed.');
         }
