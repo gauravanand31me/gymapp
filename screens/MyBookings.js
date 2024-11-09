@@ -88,6 +88,8 @@ export default function BookingsScreen({ navigation }) {
   
           {/* Booking ID and Price */}
           <Text style={styles.bookingIdText}>Booking ID: {item.bookingId}</Text>
+          <Text style={styles.bookingIdText}>Slot time: {item.time}</Text>
+          <Text style={styles.bookingIdText}>Duration: {item.duration} minutes</Text>
           <Text style={styles.priceText}>Price: ₹ {item.price}</Text>
   
           {/* Invites and Add More Options */}

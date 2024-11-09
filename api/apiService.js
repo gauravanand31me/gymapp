@@ -282,7 +282,8 @@ export const verifyOtp = async (mobileNumber, otp) => {
         visited: booking.visited,
         create: booking.create,
         gymId: booking.gymId,
-        paymentStatus: booking.isPaid == true ? "Paid" : "Not Paid"
+        paymentStatus: booking.isPaid == true ? "Paid" : "Not Paid",
+        duration: booking.duration
       }));
     } catch (error) {
       console.error("Error fetching bookings:", error);
