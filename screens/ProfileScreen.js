@@ -32,8 +32,8 @@ const ProfileScreen = ({ navigation, route }) => {
   const milestones = {
     bronze: 50,
     silver: 100,
-    gold: 200,
-    diamond: 1000,
+    gold: 150,
+    diamond: 200,
   };
 
   const getCurrentMilestone = (hours) => {
@@ -196,7 +196,7 @@ const ProfileScreen = ({ navigation, route }) => {
           <Image source={require('../assets/diamondmedal.jpg')} style={styles.milestoneIcon} />
         </View>
         <ProgressBar
-          progress={progress}
+          progress={progress/50}
           width={null}
           height={10}
           color="#6FCF97"
