@@ -35,6 +35,7 @@ export default function GymListScreen({ navigation }) {
   const [isFooterVisible, setIsFooterVisible] = useState(true);
   const [page, setPage] = useState(1);
   const [hasMoreGyms, setHasMoreGyms] = useState(true);
+  const [pageStart, setPageStart] = useState(false);
   const limit = 3;
 
   useFocusEffect(
@@ -42,8 +43,9 @@ export default function GymListScreen({ navigation }) {
       setPincode("");
       setGyms([]);
       setPage(1);
+      setPageStart(true)
       setHasMoreGyms(true); // Reset hasMoreGyms on focus
-      
+    
       return () => {
         console.log("Screen is unfocused!");
       };
@@ -51,7 +53,7 @@ export default function GymListScreen({ navigation }) {
   );
 
   useEffect(() => {
-    if (!pincode) {
+    if (!pincode  && !pageStart) {
       getLocation();
     } else {
       fetchGyms(lat, long);
@@ -105,6 +107,7 @@ export default function GymListScreen({ navigation }) {
       } else {
         setHasMoreGyms(false); // No more gyms to load
       }
+      setPageStart(false)
     } catch (error) {
       console.error('Error fetching gyms:', error);
       Alert.alert('Error', 'Failed to load gyms. Please try again later.');
@@ -223,13 +226,7 @@ export default function GymListScreen({ navigation }) {
               <Text style={styles.noMoreText}>No more gyms to load</Text>
             )
           }
-          ListEmptyComponent={
-            !loading && (
-              <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>No results found</Text>
-              </View>
-            )
-          }
+          
         />
       )}
       {!loading && isFooterVisible && <Footer navigation={navigation}/>}
