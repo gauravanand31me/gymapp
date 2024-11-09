@@ -143,7 +143,6 @@ export default function BookingsScreen({ navigation }) {
   );
 
   return (
-    <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         {/* Header */}
         <Text style={styles.headerText}>My Bookings</Text>
@@ -245,7 +244,7 @@ export default function BookingsScreen({ navigation }) {
           <Footer navigation={navigation} />
         </View>
       </View>
-    </SafeAreaView>
+  
   );
 }
 
