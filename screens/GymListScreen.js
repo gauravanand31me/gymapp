@@ -11,25 +11,26 @@ import {
   Platform,
   Alert,
   ActivityIndicator,
+  Dimensions,
 } from 'react-native';
 import * as Location from 'expo-location';
 import { useFocusEffect } from '@react-navigation/native';
 import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { fetchAllGyms } from '../api/apiService';
 import Footer from '../components/Footer';
 import * as Linking from 'expo-linking';
 
+const { width } = Dimensions.get('window');
 const GOOGLE_MAPS_API_KEY = 'AIzaSyAAMaXbIBC1IgC_B1kyALkcH87grvcSBhY';
 
 export default function GymListScreen({ navigation }) {
   const [gyms, setGyms] = useState([]);
   const [address, setAddress] = useState('');
   const [pincode, setPincode] = useState('');
-  const [loading, setLoading] = useState(true); // For initial load
-  const [loadingMore, setLoadingMore] = useState(false); // For loading more gyms
+  const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [lat, setLat] = useState('');
   const [long, setLong] = useState('');
   const [isFooterVisible, setIsFooterVisible] = useState(true);
@@ -43,9 +44,8 @@ export default function GymListScreen({ navigation }) {
       setPincode("");
       setGyms([]);
       setPage(1);
-      setPageStart(true)
-      setHasMoreGyms(true); // Reset hasMoreGyms on focus
-    
+      setPageStart(true);
+      setHasMoreGyms(true);
       return () => {
         console.log("Screen is unfocused!");
       };
@@ -53,12 +53,11 @@ export default function GymListScreen({ navigation }) {
   );
 
   useEffect(() => {
-    if (!pincode  && !pageStart) {
+    if (!pincode && !pageStart) {
       getLocation();
     } else {
       fetchGyms(lat, long);
     }
-    
   }, [page]);
 
   const getLocation = async () => {
@@ -70,15 +69,11 @@ export default function GymListScreen({ navigation }) {
           'This app requires location permission to show gyms nearby. Please enable location permissions in settings.',
           [
             { text: 'Cancel', style: 'cancel' },
-            {
-              text: 'Go to Settings',
-              onPress: () => Linking.openSettings(),
-            },
+            { text: 'Go to Settings', onPress: () => Linking.openSettings() },
           ]
         );
         return;
       }
-  
       const location = await Location.getCurrentPositionAsync({});
       setLat(location.coords.latitude);
       setLong(location.coords.longitude);
@@ -96,27 +91,21 @@ export default function GymListScreen({ navigation }) {
     } else {
       setLoadingMore(true);
     }
-    
     try {
       const response = await fetchAllGyms(lat, long, '', limit, page);
-      console.log("page number received", response.length);
-      
       if (response?.length > 0) {
         setHasMoreGyms(true);
         setGyms(prevGyms => [...prevGyms, ...response]);
       } else {
-        setHasMoreGyms(false); // No more gyms to load
+        setHasMoreGyms(false);
       }
-      setPageStart(false)
+      setPageStart(false);
     } catch (error) {
       console.error('Error fetching gyms:', error);
       Alert.alert('Error', 'Failed to load gyms. Please try again later.');
     } finally {
-      if (page === 1) {
-        setLoading(false);
-      } else {
-        setLoadingMore(false);
-      }
+      setLoading(false);
+      setLoadingMore(false);
     }
   };
 
@@ -133,17 +122,20 @@ export default function GymListScreen({ navigation }) {
   };
 
   const fetchGymsByPincode = async () => {
+    if (!pincode.trim()) {
+      Alert.alert('Error', 'Please enter a valid pincode.');
+      return;
+    }
     setLoading(true);
     setGyms([]);
     try {
       const response = await axios.get(`https://maps.googleapis.com/maps/api/geocode/json?address=${pincode}&key=${GOOGLE_MAPS_API_KEY}`);
       const location = response.data.results[0].geometry.location;
       const addressComponents = response.data.results[0].address_components;
-
       const cityComponent = addressComponents.find(component =>
         component.types.includes("locality") || component.types.includes("administrative_area_level_2")
       );
-
+      console.log("location is", location);
       const city = cityComponent ? cityComponent.long_name : null;
       setAddress(city || 'Unknown location');
       setLat(location.lat);
@@ -164,23 +156,39 @@ export default function GymListScreen({ navigation }) {
   };
 
   const renderGym = ({ item }) => (
-    <View style={styles.gymCard}>
-      <TouchableOpacity  onPress={() => navigation.navigate('GymDetails', { gym_id: item.gymId })}>
-      <Image source={{ uri: item.images?.[0]?.imageUrl || 'https://example.com/default-gym.png' }} style={styles.gymImage} />
+    <TouchableOpacity 
+      style={styles.gymCard}
+      onPress={() => navigation.navigate('GymDetails', { gym_id: item.gymId })}
+    >
+      <Image 
+        source={{ uri: item.images?.[0]?.imageUrl || 'https://example.com/default-gym.png' }} 
+        style={styles.gymImage} 
+      />
       <View style={styles.gymInfo}>
         <Text style={styles.gymName}>{item.gymName}</Text>
-        <Text style={styles.gymDistance}>📍 {item.distance ? item.distance.toFixed(1) : 'N/A'} km away</Text>
-        <Text style={styles.gymPrice}>₹ {item.subscriptionPrices?.[0] || 'N/A'}/session</Text>
-        <TouchableOpacity style={styles.bookNowButton} onPress={() => navigation.navigate('GymDetails', { gym_id: item.gymId })}>
+        <Text style={styles.gymDistance}>
+          <MaterialIcon name="location-on" size={14} color="#757575" /> 
+          {item.distance ? `${item.distance.toFixed(1)} km away` : 'N/A'}
+        </Text>
+        <Text style={styles.gymPrice}>
+          <MaterialIcon name="attach-money" size={16} color="#4CAF50" />
+          {item.subscriptionPrices?.[0] || 'N/A'}/session
+        </Text>
+        <TouchableOpacity 
+          style={styles.bookNowButton}
+          onPress={() => navigation.navigate('GymDetails', { gym_id: item.gymId })}
+        >
           <Text style={styles.bookNowText}>Book Now</Text>
         </TouchableOpacity>
       </View>
-      </TouchableOpacity>
-    </View>
+    </TouchableOpacity>
   );
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+    <KeyboardAvoidingView 
+      style={styles.container} 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
       <View style={styles.header}>
         <Text style={styles.locationText}>
           <MaterialIcon name="location-on" size={18} color="#fff" /> {address || 'Fetching location...'}
@@ -189,13 +197,13 @@ export default function GymListScreen({ navigation }) {
           <TextInput
             style={styles.pincodeInput}
             placeholder="Enter pincode"
-            placeholderTextColor="#ccc"
+            placeholderTextColor="#aaa"
             value={pincode}
             onChangeText={setPincode}
             keyboardType="numeric"
           />
           <TouchableOpacity onPress={fetchGymsByPincode} style={styles.searchButton}>
-            <Icon name="search" size={18} color="#666" />
+            <Icon name="search" size={18} color="#4CAF50" />
           </TouchableOpacity>
         </View>
         <TouchableOpacity
@@ -221,12 +229,11 @@ export default function GymListScreen({ navigation }) {
           onEndReachedThreshold={0.5}
           ListFooterComponent={
             loadingMore ? (
-              <ActivityIndicator size="small" color="#f4511e" />
-            ) : hasMoreGyms ? null : (
+              <ActivityIndicator size="small" color="#4CAF50" style={styles.loadingMore} />
+            ) : !hasMoreGyms ? (
               <Text style={styles.noMoreText}>No more gyms to load</Text>
-            )
+            ) : null
           }
-          
         />
       )}
       {!loading && isFooterVisible && <Footer navigation={navigation}/>}
@@ -234,132 +241,118 @@ export default function GymListScreen({ navigation }) {
   );
 }
 
-// Add styles here based on your preferences
-
-
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#E8F5E9',
+    backgroundColor: '#F5F5F5',
   },
   header: {
     backgroundColor: '#4CAF50',
-    paddingVertical: 20,
-    paddingHorizontal: 15,
-    alignItems: 'center',
-    borderBottomLeftRadius: 15,
-    borderBottomRightRadius: 15,
+    paddingTop: 50,
+    paddingBottom: 20,
+    paddingHorizontal: 20,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    elevation: 5,
   },
   locationText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
-    marginBottom: 10,
-    paddingTop: 30,
+    marginBottom: 15,
   },
   pincodeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 5,
-    height: 35,
+    borderRadius: 25,
+    paddingHorizontal: 15,
+    marginBottom: 15,
+    elevation: 3,
   },
   pincodeInput: {
     flex: 1,
-    color: '#000',
-    padding: 5,
-    height: '100%',
+    color: '#333',
+    padding: 10,
+    fontSize: 16,
   },
   searchButton: {
-    padding: 5,
-    marginLeft: 5,
-    borderRadius: 5,
+    padding: 10,
   },
   searchGymButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 8,
-    borderRadius: 5,
-    marginTop: 10,
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    padding: 12,
+    borderRadius: 25,
   },
   searchGymText: {
     color: '#fff',
     fontSize: 16,
-    marginLeft: 5,
+    marginLeft: 8,
+    fontWeight: '600',
   },
   gymList: {
-    paddingHorizontal: 15,
-    paddingTop: 15,
+    padding: 15,
   },
   gymCard: {
     backgroundColor: '#fff',
-    borderRadius: 10,
-    marginBottom: 15,
+    borderRadius: 15,
+    marginBottom: 20,
     overflow: 'hidden',
-    elevation: 5,
+    elevation: 3,
   },
   gymImage: {
     width: '100%',
-    height: 150,
+    height: 180,
     resizeMode: 'cover',
   },
   gymInfo: {
     padding: 15,
-    alignItems: 'center',
   },
   gymName: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 20,
+    fontWeight: '700',
     color: '#333',
+    marginBottom: 8,
   },
   gymDistance: {
     fontSize: 14,
     color: '#757575',
-    marginVertical: 5,
+    marginBottom: 5,
   },
   gymPrice: {
     fontSize: 16,
     color: '#4CAF50',
-    fontWeight: '500',
-  },
-  loader: {
-    marginTop: 20,
-  },
-  loaderContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
-  },
-  footerContainer: {
-    position: 'absolute',
-    bottom: 0,
-    width: '100%',
+    fontWeight: '600',
+    marginBottom: 12,
   },
   bookNowButton: {
     backgroundColor: '#4CAF50',
     paddingVertical: 10,
     paddingHorizontal: 20,
-    borderRadius: 30,
-    elevation: 3,
-    marginTop: 10,
+    borderRadius: 25,
+    alignSelf: 'flex-start',
   },
   bookNowText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
   },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingMore: {
+    marginVertical: 20,
+  },
   noMoreText: {
     fontSize: 16,
-    color: '#888',         // Soft gray color for subtlety
-    textAlign: 'center',    // Center-align the text
-    paddingVertical: 20,    // Add padding for spacing
-    fontWeight: 'bold',     // Make it bold to stand out
-    backgroundColor: '#f0f0f0', // Light background to make it pop
-    borderRadius: 10,       // Rounded corners
-    marginHorizontal: 40,   // Horizontal margin for centering
+    color: '#888',
+    textAlign: 'center',
+    padding: 20,
+    fontWeight: '500',
   },
 });

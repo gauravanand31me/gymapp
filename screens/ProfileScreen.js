@@ -8,49 +8,68 @@ import {
   Alert,
   ActivityIndicator,
   FlatList,
+  ScrollView,
+  SafeAreaView,
+  StatusBar,
+  Platform,
 } from 'react-native';
 import { ProgressBar } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
-import Footer from '../components/Footer'; // Assuming you have a Footer component
+import Footer from '../components/Footer';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {
   userDetails,
   uploadProfileImage,
   getVisitedGyms,
   getVisitedBuddies,
-} from '../api/apiService'; // Custom API services to get user details, gyms, and buddies
+} from '../api/apiService';
 
-const ProfileScreen = ({ navigation, route }) => {
+// Import milestone images
+import bronzeMedal from '../assets/bronzemedal.jpg';
+import silverMedal from '../assets/silvermedal.jpg';
+import goldMedal from '../assets/goldmedal.jpg';
+import diamondMedal from '../assets/diamondmedal.jpg';
+
+const milestoneImages = {
+  bronze: bronzeMedal,
+  silver: silverMedal,
+  gold: goldMedal,
+  diamond: diamondMedal,
+};
+
+const milestones = {
+  bronze: 50,
+  silver: 100,
+  gold: 150,
+  diamond: 200,
+};
+
+export default function ProfileScreen({ navigation, route }) {
   const [profileImage, setProfileImage] = useState('https://via.placeholder.com/150');
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [visitedGyms, setVisitedGyms] = useState([]);
   const [selectedTab, setSelectedTab] = useState('Visited Gym');
   const [visitedBuddies, setVisitedBuddies] = useState([]);
-
-  // Milestone thresholds (in hours)
-  const milestones = {
-    bronze: 50,
-    silver: 100,
-    gold: 150,
-    diamond: 200,
-  };
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
 
   const getCurrentMilestone = (hours) => {
-    
-    if (parseInt(hours) >= milestones.diamond) return 'diamond';
-    if (parseInt(hours) >= milestones.gold) return 'gold';
-    if (parseInt(hours) >= milestones.silver) return 'silver';
-    if (parseInt(hours) >= milestones.bronze) return 'bronze';
+    const numericHours = parseFloat(hours) || 0;
+    if (numericHours >= milestones.diamond) return 'diamond';
+    if (numericHours >= milestones.gold) return 'gold';
+    if (numericHours >= milestones.silver) return 'silver';
+    if (numericHours >= milestones.bronze) return 'bronze';
     return null;
   };
 
   const getProgress = (hours) => {
-    if (hours >= milestones.diamond) return 1;
-    if (hours >= milestones.gold) return hours / milestones.diamond;
-    if (hours >= milestones.silver) return hours / milestones.gold;
-    if (hours >= milestones.bronze) return hours / milestones.silver;
-    return hours / milestones.bronze;
+    const numericHours = parseFloat(hours) || 0;
+    if (numericHours >= milestones.diamond) return 1;
+    if (numericHours >= milestones.gold) return numericHours / milestones.diamond;
+    if (numericHours >= milestones.silver) return numericHours / milestones.gold;
+    if (numericHours >= milestones.bronze) return numericHours / milestones.silver;
+    return numericHours / milestones.bronze;
   };
 
   const fetchUserData = async () => {
@@ -59,28 +78,24 @@ const ProfileScreen = ({ navigation, route }) => {
       setUserData(data);
       setProfileImage(data.profile_pic || profileImage);
     } catch (error) {
+      console.error('Error fetching user data:', error);
       Alert.alert('Error', 'Could not fetch user data. Please try again later.');
     } finally {
       setLoading(false);
     }
   };
-  
 
   useEffect(() => {
     fetchUserData();
-
   }, [route.params]);
 
-  // Fetch user data and visited gyms/buddies on component mount
   useEffect(() => {
-  
-
     const fetchVisitedGyms = async () => {
       try {
         const response = await getVisitedGyms();
-      
-        setVisitedGyms(response.visitedGyms);
+        setVisitedGyms(response.visitedGyms || []);
       } catch (error) {
+        console.error('Error fetching visited gyms:', error);
         Alert.alert('Error', 'Could not fetch visited gyms. Please try again later.');
       }
     };
@@ -88,8 +103,9 @@ const ProfileScreen = ({ navigation, route }) => {
     const fetchVisitedBuddies = async () => {
       try {
         const response = await getVisitedBuddies();
-        setVisitedBuddies(response.buddiesWithWorkoutHours);
+        setVisitedBuddies(response.buddiesWithWorkoutHours || []);
       } catch (error) {
+        console.error('Error fetching gym buddies:', error);
         Alert.alert('Error', 'Could not fetch gym buddies.');
       }
     };
@@ -109,14 +125,19 @@ const ProfileScreen = ({ navigation, route }) => {
 
     if (!result.canceled) {
       const selectedImage = result.assets[0].uri;
-      setProfileImage(selectedImage);
+      setUploadingImage(true);
+      setUploadSuccess(false);
 
       try {
         await uploadProfileImage(selectedImage);
-        Alert.alert('Success', 'Profile image uploaded successfully.');
+        setProfileImage(selectedImage);
+        setUploadSuccess(true);
+        setTimeout(() => setUploadSuccess(false), 3000); // Hide success message after 3 seconds
       } catch (error) {
         console.error('Error uploading profile image:', error);
         Alert.alert('Upload Error', 'Failed to upload profile image.');
+      } finally {
+        setUploadingImage(false);
       }
     }
   };
@@ -129,198 +150,238 @@ const ProfileScreen = ({ navigation, route }) => {
     );
   }
 
-  // Calculate user's total workout hours
-  const totalWorkoutHours = userData?.total_work_out_time / 60 || 0;
+  const totalWorkoutHours = (userData?.total_work_out_time || 0) / 60;
   const currentMilestone = getCurrentMilestone(totalWorkoutHours);
-  {console.log("Current milestone", currentMilestone)}
   const progress = getProgress(totalWorkoutHours);
 
-  return (
-    <View style={styles.container}>
-      {/* Profile Section */}
-      <View style={styles.profileSection}>
-        <View style={styles.profileHeader}>
-          <View style={styles.profileImageContainer}>
-            <Image source={{ uri: profileImage }} style={styles.profileImage} />
-            <TouchableOpacity style={styles.addPhotoButton} onPress={selectProfileImage}>
-              <Icon name="plus-circle-outline" size={25} color="#fff" />
-            </TouchableOpacity>
-          </View>
-          <View style={styles.profileDetails}>
-            <Text style={styles.fullName}>
-              {userData?.full_name || 'N/A'}
-              {currentMilestone && (
-                <Image
-                  source={
-                    currentMilestone === 'bronze'
-                      ? require('../assets/bronzemedal.jpg')
-                      : currentMilestone === 'silver'
-                      ? require('../assets/silvermedal.jpg')
-                      : currentMilestone === 'gold'
-                      ? require('../assets/goldmedal.jpg')
-                      : require('../assets/diamondmedal.jpg')
-                  }
-                  style={styles.milestoneIconNearName}
-                />
-              )}
-            </Text>
-            <Text style={styles.username}>@{userData?.username || 'N/A'}</Text>
-            <Text style={styles.mobileNumber}>{userData?.mobile_number || 'N/A'}</Text>
-          </View>
-          {/* Settings Icon */}
-          <TouchableOpacity style={styles.settingsButton} onPress={() => navigation.navigate('Settings', {fullName: userData?.full_name})}>
-            <Icon name="cog" size={30} color="#555" />
-          </TouchableOpacity>
-        </View>
-        <View style={styles.statsContainer}>
-  <View>
-    <Text style={styles.statText}>Friends</Text>
-    <TouchableOpacity onPress={() => navigation.navigate("InviteFriendBuddy")}>
-      <Text style={styles.statValue}>{userData?.followers_count || 0}</Text>
-    </TouchableOpacity>
-  </View>
-  <View>
-    <Text style={styles.statText}>Workout Time</Text>
-    <Text style={styles.statValue}>{totalWorkoutHours} hrs.</Text>
-  </View>
-</View>
-      </View>
-
-      {/* Milestone Progress */}
-      <View style={styles.milestoneContainer}>
-        <Text style={styles.sectionTitle}>Milestone Progress</Text>
-        <View style={styles.milestoneIcons}>
-          <Image source={require('../assets/bronzemedal.jpg')} style={styles.milestoneIcon} />
-          <Image source={require('../assets/silvermedal.jpg')} style={styles.milestoneIcon} />
-          <Image source={require('../assets/goldmedal.jpg')} style={styles.milestoneIcon} />
-          <Image source={require('../assets/diamondmedal.jpg')} style={styles.milestoneIcon} />
-        </View>
-        <ProgressBar
-          progress={progress/50}
-          width={null}
-          height={10}
-          color="#6FCF97"
-          unfilledColor="#E0E0E0"
-          borderColor="transparent"
-          style={styles.progressBar}
+  const renderListItem = ({ item }) => (
+    <TouchableOpacity
+      style={styles.listItem}
+      onPress={() => {
+        if (selectedTab === 'Visited Gym') {
+          navigation.navigate('GymDetails', { gym_id: item.gymId });
+        }
+      }}
+    >
+      <View style={styles.listItemContent}>
+        <Image
+          source={{ uri: item.image || 'https://via.placeholder.com/50' }}
+          style={styles.listItemImage}
         />
-        <Text style={styles.milestoneText}>
-          {milestones[currentMilestone || 'bronze'] - totalWorkoutHours} hours away from earning{' '}
-          {currentMilestone === 'bronze'
-            ? 'Silver'
-            : currentMilestone === 'silver'
-            ? 'Gold'
-            : currentMilestone === 'gold'
-            ? 'Diamond'
-            : 'Bronze'}
-          .
-        </Text>
-      </View>
-
-      {/* Tabs for Visited Gyms and Gym Buddies */}
-      <View style={styles.tabContainer}>
-        <TouchableOpacity
-          style={[styles.tabButton, selectedTab === 'Visited Gym' && styles.activeTab]}
-          onPress={() => setSelectedTab('Visited Gym')}
-        >
-          <Text style={[styles.tabText, selectedTab === 'Visited Gym' && styles.activeTabText]}>Visited Gym</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tabButton, selectedTab === 'Gym Buddies' && styles.activeTab]}
-          onPress={() => setSelectedTab('Gym Buddies')}
-        >
-          <Text style={[styles.tabText, selectedTab === 'Gym Buddies' && styles.activeTabText]}>Gym Buddies</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* List Data */}
-      <View style={styles.listContainer}>
-        {selectedTab === 'Visited Gym' ? (
-          <FlatList
-      data={visitedGyms}
-      keyExtractor={(item) => item.gymId.toString()}
-      renderItem={({ item }) => (
-        <View style={styles.listItem}>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('GymDetails', { gym_id: item.gymId })}
-          >
-            <Text style={styles.listItemText}>{item.gymName}</Text>
-          </TouchableOpacity>
-          <Text style={styles.listItemSubText}>{parseInt(item.totalWorkoutHours) / 60} hrs visits</Text>
+        <View style={styles.listItemTextContainer}>
+          <Text style={styles.listItemText}>{item.gymName || item.buddyName || 'N/A'}</Text>
+          <Text style={styles.listItemSubText}>
+            {selectedTab === 'Visited Gym'
+              ? `${Math.round((item.totalWorkoutHours || 0) / 60)} hrs visits`
+              : `${item.workoutHours || 0} hours together`}
+          </Text>
         </View>
-      )}
-    />
-        ) : (
-          <FlatList
-            data={visitedBuddies}
-            keyExtractor={(item) => item.userId}
-            renderItem={({ item }) => (
-              <View style={styles.listItem}>
-                <Text style={styles.listItemText}>{item.buddyName}</Text>
-                <Text style={styles.listItemSubText}>{item.workoutHours} hours together</Text>
-              </View>
-            )}
-          />
-        )}
       </View>
-
-      <Footer navigation={navigation} />
-    </View>
+      {selectedTab === 'Visited Gym' && (
+        <Icon name="chevron-right" size={24} color="#4CAF50" />
+      )}
+    </TouchableOpacity>
   );
-};
+
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView style={styles.container}>
+        <View style={styles.profileSection}>
+          <View style={styles.profileHeader}>
+            <View style={styles.profileImageContainer}>
+              {uploadingImage ? (
+                <View style={[styles.profileImage, styles.uploadingOverlay]}>
+                  <ActivityIndicator size="large" color="#4CAF50" />
+                </View>
+              ) : (
+                <Image source={{ uri: profileImage }} style={styles.profileImage} />
+              )}
+              <TouchableOpacity style={styles.addPhotoButton} onPress={selectProfileImage}>
+                <Icon name="camera" size={20} color="#fff" />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.profileDetails}>
+              <Text style={styles.fullName}>
+                {userData?.full_name || 'N/A'}
+                {currentMilestone && (
+                  <Image
+                    source={milestoneImages[currentMilestone]}
+                    style={styles.milestoneIconNearName}
+                  />
+                )}
+              </Text>
+              <Text style={styles.username}>@{userData?.username || 'N/A'}</Text>
+              <Text style={styles.mobileNumber}>{userData?.mobile_number || 'N/A'}</Text>
+            </View>
+          </View>
+          <TouchableOpacity
+            style={styles.settingsButton}
+            onPress={() => navigation.navigate('Settings', { fullName: userData?.full_name })}
+          >
+            <Icon name="cog" size={24} color="#555" />
+          </TouchableOpacity>
+        </View>
+
+        {uploadSuccess && (
+          <View style={styles.successMessage}>
+            <Icon name="check-circle" size={20} color="#4CAF50" />
+            <Text style={styles.successText}>Profile image updated successfully!</Text>
+          </View>
+        )}
+
+        <View style={styles.statsContainer}>
+          <TouchableOpacity
+            style={styles.statItem}
+            onPress={() => navigation.navigate("InviteFriendBuddy")}
+          >
+            <Text style={styles.statValue}>{userData?.followers_count || 0}</Text>
+            <Text style={styles.statText}>Friends</Text>
+          </TouchableOpacity>
+          <View style={styles.statItem}>
+            <Text style={styles.statValue}>{Math.round(totalWorkoutHours)} hrs</Text>
+            <Text style={styles.statText}>Workout Time</Text>
+          </View>
+        </View>
+
+        <View style={styles.milestoneContainer}>
+          <Text style={styles.sectionTitle}>Milestone Progress</Text>
+          <View style={styles.milestoneIcons}>
+            {['bronze', 'silver', 'gold', 'diamond'].map((milestone) => (
+              <Image
+                key={milestone}
+                source={milestoneImages[milestone]}
+                style={[
+                  styles.milestoneIcon,
+                  currentMilestone === milestone && styles.activeMilestone,
+                ]}
+              />
+            ))}
+          </View>
+          <ProgressBar
+            progress={progress}
+            color="#4CAF50"
+            style={styles.progressBar}
+          />
+          <Text style={styles.milestoneText}>
+            {currentMilestone !== 'diamond'
+              ? `${(milestones[currentMilestone || 'bronze'] - totalWorkoutHours).toFixed(1)} hours away from earning ${
+                  currentMilestone === 'bronze'
+                    ? 'Silver'
+                    : currentMilestone === 'silver'
+                    ? 'Gold'
+                    : currentMilestone === 'gold'
+                    ? 'Diamond'
+                    : 'Bronze'
+                }.`
+              : `Congratulations! You've reached the highest milestone!`}
+          </Text>
+        </View>
+
+        <View style={styles.tabContainer}>
+          <TouchableOpacity
+            style={[styles.tabButton, selectedTab === 'Visited Gym' && styles.activeTab]}
+            onPress={() => setSelectedTab('Visited Gym')}
+          >
+            <Text style={[styles.tabText, selectedTab === 'Visited Gym' && styles.activeTabText]}>
+              Visited Gym
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tabButton, selectedTab === 'Gym Buddies' && styles.activeTab]}
+            onPress={() => setSelectedTab('Gym Buddies')}
+          >
+            <Text style={[styles.tabText, selectedTab === 'Gym Buddies' && styles.activeTabText]}>
+              Gym Buddies
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.listContainer}>
+          {selectedTab === 'Visited Gym' && visitedGyms.length === 0 ? (
+            <Text style={styles.noDataText}>No visited gyms yet</Text>
+          ) : selectedTab === 'Gym Buddies' && visitedBuddies.length === 0 ? (
+            <Text style={styles.noDataText}>No gym buddies yet</Text>
+          ) : (
+            <FlatList
+              data={selectedTab === 'Visited Gym' ? visitedGyms : visitedBuddies}
+              renderItem={renderListItem}
+              keyExtractor={(item) => (selectedTab === 'Visited Gym' ? item.gymId : item.userId)}
+              scrollEnabled={false}
+            />
+          )}
+        </View>
+      </ScrollView>
+      <Footer navigation={navigation} />
+    </SafeAreaView>
+  );
+}
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+  },
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    paddingTop: 30
+    paddingTop: 20,
   },
   profileSection: {
-    padding: 10,
+    padding: 20,
     backgroundColor: '#fff',
-    marginBottom: 3, 
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   profileHeader: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center', // Center the content horizontally and vertically
-    marginBottom: 0,
   },
   profileImageContainer: {
     position: 'relative',
-    alignItems: 'center', // Center the profile image container
   },
   profileImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    borderWidth: 2,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    borderWidth: 3,
     borderColor: '#4CAF50',
+  },
+  uploadingOverlay: {
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   addPhotoButton: {
     position: 'absolute',
     bottom: 0,
     right: 0,
     backgroundColor: '#4CAF50',
-    borderRadius: 20,
-    padding: 0,
+    borderRadius: 15,
+    padding: 5,
   },
   profileDetails: {
-    marginTop: 10,
-    alignItems: 'center', // Center the text elements
+    marginLeft: 20,
+    flex: 1,
   },
   fullName: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: 'bold',
-  
+    marginBottom: 5,
   },
   milestoneIconNearName: {
-    width: 30,
-    height: 30,
+    width: 24,
+    height: 24,
     marginLeft: 5,
   },
   username: {
     fontSize: 16,
-    color: '#555',
+    color: '#666',
+    marginBottom: 3,
   },
   mobileNumber: {
     fontSize: 14,
@@ -328,112 +389,161 @@ const styles = StyleSheet.create({
   },
   settingsButton: {
     position: 'absolute',
-    top: 10,
-    right: 10,
-  
+    top: 20,
+    right: 20,
+  },
+  successMessage: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E8F5E9',
+    padding: 10,
+    marginTop: 10,
+    borderRadius: 5,
+  },
+  successText: {
+    marginLeft: 10,
+    color: '#4CAF50',
+    fontSize: 16,
   },
   statsContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    backgroundColor: '#fff', // Light green background for the stats section
-    padding: 15, // Padding inside the container for a clean look
-    borderRadius: 10, // Rounded corners for a softer look
-    marginTop: 5, // Reduced margin to bring stats closer to profile section
-    marginHorizontal: 20, // Margin on sides to align with other content
+    justifyContent: 'space-around',
+    backgroundColor: '#fff',
+    padding: 15,
+    marginTop: 20,
+    borderRadius: 15,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
-  statText: {
-    fontSize: 18, // Font size for better readability
-    fontWeight: '600', // Semi-bold for labels
-    color: '#333', // Darker text for a professional look
-    //marginBottom: 5, // Slight space between label and value
+  statItem: {
+    alignItems: 'center',
   },
   statValue: {
-    fontSize: 20, // Font size increased for emphasis
-    fontWeight: 'bold', // Bold to make the values stand out
-    color: '#4CAF50', // Use the green theme color for consistency
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#4CAF50',
+  },
+  statText: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 5,
   },
   milestoneContainer: {
-    marginTop: 0, // Reduced space above the milestone container
-    paddingHorizontal: 5,
-    paddingVertical: 5, // Reduced vertical padding to shrink the container
+    marginTop: 20,
+    padding: 15,
     backgroundColor: '#fff',
-    borderRadius: 10, // Optional: Adjusted for rounded corners
-    marginHorizontal: 20, // Aligning with the profile section and stats
+    borderRadius: 15,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
   sectionTitle: {
-    fontSize: 16, // Slightly smaller font for title
+    fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 5, // Reduced space below the title
+    marginBottom: 10,
   },
   milestoneIcons: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 5, // Reduced space below the icons
-    marginLeft: 20,  // This moves the icons slightly to the right
-    backgroundColor:'#fff'
+    justifyContent: 'space-between',
+    marginBottom: 10,
   },
   milestoneIcon: {
-    width: 40, // Reduced icon size
-    height: 40, // Reduced icon size
+    width: 40,
+    height: 40,
+    opacity: 0.3,
+  },
+  activeMilestone: {
+    opacity: 1,
   },
   progressBar: {
-    marginTop: 10, // Reduced space above the progress bar
-    height: 8, // Slightly thinner progress bar
+    height: 10,
+    borderRadius: 5,
   },
   milestoneText: {
-    marginTop: 5, // Reduced space above the text
-    fontSize: 12, // Smaller font for milestone text
-    color: '#555',
-
+    marginTop: 10,
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
   },
   tabContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 10,
+    marginTop: 20,
     backgroundColor: '#fff',
-    
+    borderRadius: 25,
+    overflow: 'hidden',
   },
   tabButton: {
-    padding: 15,
     flex: 1,
+    paddingVertical: 15,
     alignItems: 'center',
+  },
+  activeTab: {
+    backgroundColor: '#4CAF50',
   },
   tabText: {
     fontSize: 16,
-    color: '#555',
-    fontWeight:'bold',
-  },
-  activeTab: {
-    borderBottomWidth: 2,
-    borderBottomColor: '#4CAF50',
+    fontWeight: '600',
+    color: '#666',
   },
   activeTabText: {
-    color: '#4CAF50',
+    color: '#fff',
   },
   listContainer: {
-    flex: 1,
     backgroundColor: '#fff',
-    padding: 10,
+    marginTop: 20,
+    borderRadius: 15,
+    padding: 15,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
   listItem: {
-    padding: 15,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: '#f0f0f0',
+  },
+  listItemContent: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  listItemImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    marginRight: 15,
+  },
+  listItemTextContainer: {
+    flex: 1,
   },
   listItemText: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '600',
+    color: '#333',
   },
   listItemSubText: {
     fontSize: 14,
-    color: '#888',
+    color: '#666',
+    marginTop: 3,
+  },
+  noDataText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    paddingVertical: 20,
   },
   loader: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  
 });
-
-export default ProfileScreen;

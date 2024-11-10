@@ -1,53 +1,56 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import Icon from 'react-native-vector-icons/Ionicons';
-import Icon2 from 'react-native-vector-icons/FontAwesome';
+import React, { useState } from 'react'
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  ScrollView,
+  SafeAreaView,
+} from 'react-native'
+import DateTimePicker from '@react-native-community/datetimepicker'
+import { Calendar, Clock, ChevronLeft, Check } from 'lucide-react-native'
+import { LinearGradient } from 'expo-linear-gradient'
 
 const SlotSelectionScreen = ({ navigation, route }) => {
-  const { gym } = route.params;
-  const [date, setDate] = useState(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [selectedDuration, setSelectedDuration] = useState(60);
-  const [selectedSlot, setSelectedSlot] = useState(null);
-  const [isTimeDropdownVisible, setIsTimeDropdownVisible] = useState(false);
+  const { gym } = route.params
+  const [date, setDate] = useState(new Date())
+  const [showDatePicker, setShowDatePicker] = useState(false)
+  const [selectedDuration, setSelectedDuration] = useState(60)
+  const [selectedSlot, setSelectedSlot] = useState(null)
 
-  const durations = [60, 90, 120, 180];
-  const availableSlots = gym.slots;
-
-  // Sort slots by time
-  availableSlots.sort((a, b) => {
-    const timeA = new Date(`1970-01-01T${a.startTime}`);
-    const timeB = new Date(`1970-01-01T${b.startTime}`);
-    return timeA - timeB;
-  });
+  const durations = [60, 90, 120, 180]
+  const availableSlots = gym.slots.sort((a, b) => {
+    const timeA = new Date(`1970-01-01T${a.startTime}`)
+    const timeB = new Date(`1970-01-01T${b.startTime}`)
+    return timeA - timeB
+  })
 
   const onDateChange = (event, selectedDate) => {
-    const currentDate = selectedDate || date;
-    setShowDatePicker(false);
-    setDate(currentDate);
-  };
+    const currentDate = selectedDate || date
+    setShowDatePicker(false)
+    setDate(currentDate)
+  }
+
   const formatDate = (date) => {
-    const day = date.getDate();
-    const month = date.getMonth() + 1; // Months are 0-based
-    const year = date.getFullYear();
-    return `${day < 10 ? '0' + day : day}/${month < 10 ? '0' + month : month}/${year}`;
-  };
+    const day = date.getDate()
+    const month = date.getMonth() + 1
+    const year = date.getFullYear()
+    return `${day < 10 ? '0' + day : day}/${month < 10 ? '0' + month : month}/${year}`
+  }
 
-  // Check if slot is in the past
   const isPastSlot = (slotTime) => {
-    const selectedDate = new Date(date);
-    const currentDate = new Date();
-    if (selectedDate.toDateString() !== currentDate.toDateString()) return false;
-
-    const slotDateTime = new Date(`${selectedDate.toDateString()} ${slotTime}`);
-    return slotDateTime < currentDate;
-  };
+    const selectedDate = new Date(date)
+    const currentDate = new Date()
+    if (selectedDate.toDateString() !== currentDate.toDateString()) return false
+    const slotDateTime = new Date(`${selectedDate.toDateString()} ${slotTime}`)
+    return slotDateTime < currentDate
+  }
 
   const handleConfirm = () => {
     if (!selectedSlot) {
-      Alert.alert("Please select a time.");
-      return;
+      Alert.alert("Please select a time slot.")
+      return
     }
     const slotDetails = {
       date: formatDate(date),
@@ -58,232 +61,234 @@ const SlotSelectionScreen = ({ navigation, route }) => {
       price: selectedSlot.price,
       slotId: selectedSlot.id,
       pricePerSlot: selectedSlot.price,
-      subscriptionId: gym?.subscriptions[0].id,
-    };
-    navigation.navigate('PaymentScreen', { slotDetails });
-  };
+      subscriptionId: gym?.subscriptions[0]?.id,
+    }
+    navigation.navigate('PaymentScreen', { slotDetails })
+  }
 
   const formatTime = (timeString) => {
-    return timeString.replace(':00', '');
-  };
-
-  const buttonColor = '#28a745';
+    return timeString.replace(':00', '')
+  }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {/* Back Button */}
-      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-        <Icon2 name="chevron-left" size={24} color="#808080" />
-      </TouchableOpacity>
-
-      {/* Gym Name */}
-      <Text style={styles.gymName}>{gym.name}</Text>
-
-      <Text style={styles.title}>Select a Slot</Text>
-
-      {/* Date Picker */}
-      <TouchableOpacity
-        onPress={() => setShowDatePicker(true)}
-        style={[styles.button, { backgroundColor: buttonColor }]}
+    <SafeAreaView style={styles.container}>
+      <LinearGradient
+        colors={['#4CAF50', '#2E7D32']}
+        style={styles.background}
       >
-        <Icon name="calendar-outline" size={20} color="#fff" style={styles.icon} />
-        <Text style={styles.buttonText}>{`Date: ${formatDate(date)}`}</Text>
-      </TouchableOpacity>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <ChevronLeft color="#FFFFFF" size={24} />
+            <Text style={styles.backButtonText}>Back</Text>
+          </TouchableOpacity>
 
-      {showDatePicker && (
-        <DateTimePicker
-          value={date}
-          mode="date"
-          display="default"
-          onChange={onDateChange}
-          minimumDate={new Date()}
-        />
-      )}
+          <Text style={styles.gymName}>{gym.name}</Text>
+          <Text style={styles.title}>Select a Slot</Text>
 
-      {/* Time Selection */}
-      <Text style={styles.timeTitle}>Select Available Time:</Text>
-      <TouchableOpacity
-        onPress={() => setIsTimeDropdownVisible(!isTimeDropdownVisible)}
-        style={[styles.button, { backgroundColor: buttonColor }]}
-      >
-        <Icon name="time-outline" size={20} color="#fff" style={styles.icon} />
-        <Text style={styles.buttonText}>
-          {selectedSlot ? formatTime(selectedSlot.startTime) : 'Select Time'}
-        </Text>
-      </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setShowDatePicker(true)}
+            style={styles.dateButton}
+          >
+            <Calendar color="#4CAF50" size={24} />
+            <Text style={styles.dateButtonText}>{formatDate(date)}</Text>
+          </TouchableOpacity>
 
-      {isTimeDropdownVisible && (
-        <View style={styles.timeDropdown}>
-          {availableSlots.map((slot) => {
-            const pastSlot = isPastSlot(slot.startTime);
-            return (
+          {showDatePicker && (
+            <DateTimePicker
+              value={date}
+              mode="date"
+              display="default"
+              onChange={onDateChange}
+              minimumDate={new Date()}
+            />
+          )}
+
+          <Text style={styles.sectionTitle}>Available Time Slots:</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.timeSlotContainer}>
+            {availableSlots.map((slot) => {
+              const pastSlot = isPastSlot(slot.startTime)
+              return (
+                <TouchableOpacity
+                  key={slot.id}
+                  onPress={() => !pastSlot && setSelectedSlot(slot)}
+                  style={[
+                    styles.timeSlot,
+                    pastSlot && styles.disabledTimeSlot,
+                    selectedSlot?.id === slot.id && styles.selectedTimeSlot
+                  ]}
+                  disabled={pastSlot}
+                >
+                  <Text style={[
+                    styles.timeSlotText,
+                    pastSlot && styles.disabledText,
+                    selectedSlot?.id === slot.id && styles.selectedTimeSlotText
+                  ]}>
+                    {formatTime(slot.startTime)}
+                  </Text>
+                  <Text style={[
+                    styles.priceText,
+                    pastSlot && styles.disabledText,
+                    selectedSlot?.id === slot.id && styles.selectedTimeSlotText
+                  ]}>
+                    ₹{slot.price}
+                  </Text>
+                </TouchableOpacity>
+              )
+            })}
+          </ScrollView>
+
+          <Text style={styles.sectionTitle}>Select Duration:</Text>
+          <View style={styles.durationContainer}>
+            {durations.map((duration) => (
               <TouchableOpacity
-                key={slot.id}
-                onPress={() => {
-                  if (!pastSlot) {
-                    setSelectedSlot(slot);
-                    setIsTimeDropdownVisible(false);
-                  }
-                }}
-                style={[styles.timeOption, pastSlot && styles.disabledTimeOption]}
-                disabled={pastSlot}
+                key={duration}
+                onPress={() => setSelectedDuration(duration)}
+                style={[
+                  styles.durationButton,
+                  selectedDuration === duration && styles.selectedDurationButton
+                ]}
               >
-                <Text style={[styles.timeOptionText, pastSlot && styles.disabledText]}>
-                  {formatTime(slot.startTime)}
-                </Text>
-                <Text style={[styles.slotDetailsText, pastSlot && styles.disabledText]}>
-                  Price: ₹{slot.price}
+                <Text style={[
+                  styles.durationButtonText,
+                  selectedDuration === duration && styles.selectedDurationButtonText
+                ]}>
+                  {duration} min
                 </Text>
               </TouchableOpacity>
-            );
-          })}
-        </View>
-      )}
+            ))}
+          </View>
 
-      {/* Duration Selection */}
-      <Text style={styles.durationTitle}>Select Duration in minutes:</Text>
-      <View style={styles.durationsContainer}>
-        {durations.map((duration) => (
-          <TouchableOpacity
-            key={duration}
-            onPress={() => setSelectedDuration(duration)}
-            style={[
-              styles.durationButton,
-              selectedDuration === duration && styles.selectedDurationButton,
-            ]}
-          >
-            <Text style={[styles.durationText, { color: selectedDuration === duration ? '#fff' : '#333' }]}>
-              {duration}
-            </Text>
+          <TouchableOpacity onPress={handleConfirm} style={styles.confirmButton}>
+            <Text style={styles.confirmButtonText}>Confirm Slot</Text>
           </TouchableOpacity>
-        ))}
-      </View>
-
-      <Text style={styles.selectedDuration}>{`Selected Duration in minutes: ${selectedDuration} min`}</Text>
-
-      {/* Confirm Button */}
-      <TouchableOpacity onPress={handleConfirm} style={[styles.button, { backgroundColor: buttonColor }]}>
-        <Text style={styles.buttonText}>Confirm Slot</Text>
-      </TouchableOpacity>
-    </ScrollView>
-  );
-};
+        </ScrollView>
+      </LinearGradient>
+    </SafeAreaView>
+  )
+}
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  background: {
+    flex: 1,
+  },
+  scrollContent: {
     flexGrow: 1,
     padding: 20,
-    backgroundColor: '#f8f9fa',
-    marginTop: 30,
   },
   backButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 20,
+  },
+  backButtonText: {
+    fontSize: 18,
+    color: '#FFFFFF',
+    marginLeft: 8,
   },
   gymName: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
-    textAlign: 'center',
-    color: '#333',
-    marginBottom: 10,
+    color: '#FFFFFF',
+    marginBottom: 8,
   },
   title: {
-    fontSize: 28,
-    color: '#333',
-    marginBottom: 20,
-    textAlign: 'center',
-    fontWeight: 'bold',
+    fontSize: 22,
+    color: '#FFFFFF',
+    marginBottom: 24,
   },
-  button: {
+  dateButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 10,
-    elevation: 3,
+    backgroundColor: '#FFFFFF',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 24,
   },
-  buttonText: {
-    color: '#fff',
-    fontSize: 15,
-    textAlign: 'center',
-    marginLeft: 10,
-    flex: 1,
-  },
-  timeTitle: {
-    color: '#333',
-    fontSize: 20,
-    marginVertical: 10,
-    textAlign: 'center',
-    fontWeight: '600',
-  },
-  timeDropdown: {
-    backgroundColor: '#ffffff',
-    borderRadius: 5,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: '#28a745',
-    padding: 10,
-    elevation: 2,
-  },
-  timeOption: {
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-  },
-  disabledTimeOption: {
-    opacity: 0.5,
-  },
-  timeOptionText: {
-    color: '#333',
+  dateButtonText: {
+    marginLeft: 12,
     fontSize: 18,
-    fontWeight: '500',
+    color: '#4CAF50',
   },
-  disabledText: {
-    color: '#aaa',
-  },
-  slotDetailsText: {
-    color: '#666',
-    fontSize: 14,
-    marginTop: 5,
-  },
-  durationTitle: {
-    color: '#333',
+  sectionTitle: {
     fontSize: 20,
-    marginBottom: 10,
-    textAlign: 'center',
     fontWeight: '600',
+    color: '#FFFFFF',
+    marginBottom: 16,
   },
-  durationsContainer: {
-    alignItems: 'center',
-    marginBottom: 20,
+  timeSlotContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    marginBottom: 24,
   },
-  durationButton: {
-    width: 70,
-    padding: 10,
-    borderWidth: 2,
-    borderColor: '#28a745',
-    borderRadius: 10,
-    marginHorizontal: 5,
+  timeSlot: {
+    backgroundColor: '#FFFFFF',
+    padding: 16,
+    borderRadius: 12,
+    marginRight: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#fff',
+    minWidth: 100,
+  },
+  selectedTimeSlot: {
+    backgroundColor: '#81C784',
+  },
+  disabledTimeSlot: {
+    opacity: 0.5,
+  },
+  timeSlotText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#4CAF50',
+    marginBottom: 4,
+  },
+  selectedTimeSlotText: {
+    color: '#FFFFFF',
+  },
+  priceText: {
+    fontSize: 16,
+    color: '#4CAF50',
+  },
+  disabledText: {
+    color: '#A0AEC0',
+  },
+  durationContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginBottom: 24,
+  },
+  durationButton: {
+    backgroundColor: '#FFFFFF',
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 12,
+    width: '48%',
+    alignItems: 'center',
   },
   selectedDurationButton: {
-    backgroundColor: '#28a745',
+    backgroundColor: '#81C784',
   },
-  durationText: {
+  durationButtonText: {
     fontSize: 16,
+    fontWeight: '600',
+    color: '#4CAF50',
   },
-  selectedDuration: {
-    fontSize: 20,
-    color: '#333',
-    textAlign: 'center',
-    marginBottom: 20,
-    fontWeight: '500',
+  selectedDurationButtonText: {
+    color: '#FFFFFF',
   },
-});
+  confirmButton: {
+    backgroundColor: '#FFFFFF',
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  confirmButtonText: {
+    color: '#4CAF50',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+})
 
-export default SlotSelectionScreen;
+export default SlotSelectionScreen
