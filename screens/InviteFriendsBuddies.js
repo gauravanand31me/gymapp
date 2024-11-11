@@ -1,33 +1,22 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet, Image, FlatList, Alert,
-  KeyboardAvoidingView, Platform, Keyboard, Animated, Dimensions
+  KeyboardAvoidingView, Platform, Keyboard, Dimensions, SafeAreaView
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Footer from '../components/Footer';
 import { fetchFriends, inviteBuddyRequest, fetchBuddyInvites } from '../api/apiService';
 
 const { width } = Dimensions.get('window');
 
-const ITEM_HEIGHT = 82; // Adjust this value based on your buddyItem height
-
-export default function InviteFriendBuddiesScreen({ navigation, route }) {
+export default function Component({ navigation, route }) {
   const [searchText, setSearchText] = useState('');
   const [buddyList, setBuddyList] = useState([]);
   const [invitedBuddies, setInvitedBuddies] = useState([]);
   const [alreadyInvited, setAlreadyInvited] = useState([]);
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
   const insets = useSafeAreaInsets();
-
-  const scrollY = new Animated.Value(0);
-  const headerHeight = 50;
-  const headerY = scrollY.interpolate({
-    inputRange: [0, headerHeight],
-    outputRange: [0, -headerHeight],
-    extrapolate: 'clamp',
-  });
 
   const bookingId = route?.params?.bookingId;
 
@@ -78,16 +67,11 @@ export default function InviteFriendBuddiesScreen({ navigation, route }) {
     }
   };
 
-  const renderBuddy = ({ item, index }) => {
+  const renderBuddy = ({ item }) => {
     const isInvited = alreadyInvited.includes(item.fromUserId) || invitedBuddies.includes(item.fromUserId);
-    const itemTranslateY = scrollY.interpolate({
-      inputRange: [-1, 0, index * ITEM_HEIGHT, (index + 2) * ITEM_HEIGHT],
-      outputRange: [0, 0, 0, 100],
-      extrapolate: 'clamp',
-    });
 
     return (
-      <Animated.View style={[styles.buddyItem, { transform: [{ translateY: itemTranslateY }] }]}>
+      <View style={styles.buddyItem}>
         <Image
           source={item.profile_pic ? { uri: item.profile_pic } : require('../assets/cultfit.jpg')}
           style={styles.buddyImage}
@@ -105,7 +89,7 @@ export default function InviteFriendBuddiesScreen({ navigation, route }) {
             disabled={isInvited}
           >
             <Text style={styles.inviteButtonText}>
-              {isInvited ? 'Invited' : 'Invite buddy'}
+              {isInvited ? 'Invited' : 'Invite'}
             </Text>
           </TouchableOpacity>
         ) : (
@@ -113,122 +97,94 @@ export default function InviteFriendBuddiesScreen({ navigation, route }) {
             <Text style={styles.unfriendButtonText}>Unfriend</Text>
           </TouchableOpacity>
         )}
-      </Animated.View>
+      </View>
     );
   };
 
   return (
-    <KeyboardAvoidingView
-      style={[styles.container, { paddingTop: insets.top }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <Animated.View style={[styles.header, { transform: [{ translateY: headerY }] }]}>
-        <LinearGradient
-          colors={['#4CAF50', '#45a049']}
-          style={styles.headerGradient}
-        >
+    <View style={[styles.container, { paddingTop: insets.top }]}>
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoidingView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <View style={styles.content}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Icon name="arrow-left" size={24} color="#fff" />
+            <Icon name="arrow-left" size={24} color="#333" />
           </TouchableOpacity>
-          <View>
-            <Text style={styles.headerTitle}>Invite Friends</Text>
-            <Text style={styles.headerSubtitle}>Add your buddies for a workout!</Text>
-          </View>
-        </LinearGradient>
-      </Animated.View>
-
       {bookingId && (
-        <View style={styles.bookingIdContainer}>
-          <Text style={styles.bookingIdText}>Booking ID: {bookingId}</Text>
+            <View style={styles.bookingIdContainer}>
+              <Text style={styles.bookingIdText}>Booking ID: {bookingId}</Text>
+            </View>
+          )}
+
+          <View style={styles.searchContainer}>
+            <Icon name="magnify" size={24} color="#888" />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search Friends"
+              placeholderTextColor="#888"
+              value={searchText}
+              onChangeText={setSearchText}
+            />
+          </View>
+
+          <FlatList
+            data={buddyList.filter(buddy => buddy.full_name.toLowerCase().includes(searchText.toLowerCase()))}
+            keyExtractor={item => item.id.toString()}
+            renderItem={renderBuddy}
+            contentContainerStyle={styles.buddyList}
+            ListFooterComponent={<View style={{ height: 120 }} />}
+          />
         </View>
-      )}
-
-      <View style={styles.searchContainer}>
-        <Icon name="magnify" size={24} color="#888" />
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search Friends"
-          placeholderTextColor="#888"
-          value={searchText}
-          onChangeText={setSearchText}
-        />
-      </View>
-
-      <Animated.FlatList
-        data={buddyList.filter(buddy => buddy.full_name.toLowerCase().includes(searchText.toLowerCase()))}
-        keyExtractor={item => item.id.toString()}
-        renderItem={renderBuddy}
-        contentContainerStyle={styles.buddyList}
-        ListFooterComponent={<View style={{ height: 120 }} />}
-        onScroll={Animated.event(
-          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-          { useNativeDriver: true }
-        )}
-        scrollEventThrottle={16}
-      />
-
+      </KeyboardAvoidingView>
       {!isKeyboardVisible && <Footer navigation={navigation} style={styles.footer} />}
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#f8f9fa',
   },
-  header: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 1000,
+  keyboardAvoidingView: {
+    flex: 1,
   },
-  headerGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    height: 50,
+  content: {
+    flex: 1,
+    padding: 16,
   },
   backButton: {
-    marginRight: 16,
+    marginBottom: 16,
   },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    color: '#fff',
-    opacity: 0.8,
-  },
-  bookingIdContainer: {
-    marginTop: 60,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    marginHorizontal: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  bookingIdText: {
-    fontSize: 16,
+  title: {
+    fontSize: 28,
     fontWeight: 'bold',
     color: '#333',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#666',
+    marginBottom: 24,
+  },
+  bookingIdContainer: {
+    backgroundColor: '#e9ecef',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  bookingIdText: {
+    fontSize: 14,
+    color: '#495057',
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
     padding: 12,
-    margin: 16,
     borderRadius: 25,
+    marginBottom: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -242,8 +198,7 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   buddyList: {
-    padding: 16,
-    paddingTop: 96,
+    paddingTop: 8,
   },
   buddyItem: {
     flexDirection: 'row',
@@ -257,7 +212,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
-    height: ITEM_HEIGHT,
   },
   buddyImage: {
     width: 50,
@@ -297,10 +251,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   footer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
     backgroundColor: '#fff',
+    borderTopWidth: 1,
+    borderTopColor: '#e9ecef',
   },
 });

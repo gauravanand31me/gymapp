@@ -119,18 +119,14 @@ export default function WorkoutInvitation({ route }) {
                 <Ionicons name="checkmark-circle" size={24} color="#FFF" />
                 <Text style={styles.buttonText}>Accept</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.button, styles.declineButton]} onPress={handleDecline}>
-                <Ionicons name="close-circle" size={24} color="#FFF" />
-                <Text style={styles.buttonText}>Decline</Text>
+              <TouchableOpacity style={[styles.button, styles.declineButton]}  onPress={() => navigation.goBack()}>
+                <Text style={styles.buttonText}>Back</Text>
               </TouchableOpacity>
             </View>
           </>
         )}
 
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#333" />
-          <Text style={styles.backButtonText}>Back</Text>
-        </TouchableOpacity>
+    
 
         {!isExpired && <Text style={styles.footerText}>We look forward to seeing you there!</Text>}
       </Animated.View>
@@ -223,7 +219,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#4CAF50',
   },
   declineButton: {
-    backgroundColor: '#F44336',
+    backgroundColor: '#000000',
   },
   buttonText: {
     color: '#ffffff',

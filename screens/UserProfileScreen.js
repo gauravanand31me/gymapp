@@ -124,15 +124,13 @@ export default function UserProfileScreen({ navigation, route }) {
   const totalWorkoutHours = Math.floor(userData?.total_work_out_time / 60) || 0;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <LinearGradient
           colors={['#4CAF50', '#45a049']}
           style={styles.header}
         >
-          <TouchableOpacity style={styles.settingsButton} onPress={() => navigation.navigate('Settings')}>
-            <Settings color="#fff" size={24} />
-          </TouchableOpacity>
+       
           <Image source={{ uri: userData?.profile_pic || 'https://via.placeholder.com/150' }} style={styles.profileImage} />
           <Text style={styles.name}>{userData?.full_name || 'N/A'}</Text>
           <Text style={styles.username}>@{userData?.username || 'N/A'}</Text>
@@ -183,7 +181,7 @@ export default function UserProfileScreen({ navigation, route }) {
         </View>
       </ScrollView>
       <Footer navigation={navigation} />
-    </SafeAreaView>
+    </View>
   );
 }
 
