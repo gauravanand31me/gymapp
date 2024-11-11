@@ -95,10 +95,15 @@ export default function WorkoutInvitation({ route }) {
         </View>
 
         {isExpired ? (
+        <>
           <View style={styles.expiredMessage}>
             <Ionicons name="alert-circle" size={40} color="#F44336" />
             <Text style={styles.expiredText}>This invitation has expired.</Text>
           </View>
+          <TouchableOpacity style={[styles.expireButton]} onPress={() => navigation.goBack()}>
+            <Text style={styles.buttonText}>Back</Text>
+          </TouchableOpacity>
+        </>
         ) : (
           <>
             <View style={styles.card}>
@@ -126,7 +131,6 @@ export default function WorkoutInvitation({ route }) {
           </>
         )}
 
-    
 
         {!isExpired && <Text style={styles.footerText}>We look forward to seeing you there!</Text>}
       </Animated.View>
@@ -256,6 +260,30 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginTop: 10,
     textAlign: 'center',
+  },
+  backButtonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    height:'20%',
+    marginBottom: 20,
+  },  
+    expireButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: 10,
+      paddingVertical: 10, // Reduced padding for smaller height
+      paddingHorizontal: 15, // Horizontal padding can remain as is
+      marginHorizontal: 5,
+      elevation: 3,
+      backgroundColor: '#000000',
+  },
+  buttonText: {
+    color: '#ffffff',
+    fontWeight: 'bold',
+    fontSize: 16,
+    marginLeft: 5,
   },
 });
 
