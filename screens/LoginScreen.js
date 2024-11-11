@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert, Modal, ActivityIndicator } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
-import { loginUser, userDetails } from '../api/apiService'; // Import the loginUser function
-import { Ionicons } from '@expo/vector-icons'; // For adding icons
+import { View, Text, TouchableOpacity, StyleSheet, Image, Alert, Modal, ActivityIndicator, SafeAreaView, KeyboardAvoidingView, Platform, TextInput } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { loginUser, userDetails } from '../api/apiService';
+import { Ionicons } from '@expo/vector-icons';
 import { CommonActions } from '@react-navigation/native';
+import indiaFlag from "../assets/india-flag.png";
 
 const LoginScreen = ({ navigation }) => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [errorVisible, setErrorVisible] = useState(false);
-  const [isLoading, setIsLoading] = useState(false); // New state for loader
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Check AsyncStorage on component mount
   useEffect(() => {
     const checkLoginStatus = async () => {
       const data = await userDetails();
@@ -29,22 +29,19 @@ const LoginScreen = ({ navigation }) => {
   }, []);
 
   const handleLogin = async () => {
-    if (!phoneNumber) {
-      setErrorMessage('Please enter your phone number.');
+    if (!phoneNumber || phoneNumber.length !== 10) {
+      setErrorMessage('Please enter a valid 10-digit phone number.');
       setErrorVisible(true);
       return;
     }
-
-    setIsLoading(true); // Start the loader
+    console.log("Phone number is", phoneNumber);
+    setIsLoading(true);
     try {
-      const data = await loginUser(phoneNumber); // Call the API service
-      console.log("Data received", data);
-      // Navigate to OTP screen on successful login
+      const data = await loginUser(phoneNumber);
       if (data.status) {
-        await AsyncStorage.setItem('userToken', phoneNumber); // Store user token
+        await AsyncStorage.setItem('userToken', phoneNumber);
         navigation.navigate('OTPVerification', { mobileNumber: phoneNumber, got_otp: data.data.otp});
       } else {
-        console.log("Data received", data);
         setErrorMessage(data.message);
         setErrorVisible(true);
       }
@@ -52,84 +49,102 @@ const LoginScreen = ({ navigation }) => {
       setErrorMessage(error.response?.data?.message || 'Login Failed');
       setErrorVisible(true);
     } finally {
-      setIsLoading(false); // Stop the loader
+      setIsLoading(false);
     }
   };
 
   return (
-    <View style={styles.container}>
-      {/* Logo Image */}
-      <Image
-        // source={require('../assets/logowithouticon.jpg')} // Your splash screen image
-        style={styles.logo}
-        resizeMode="contain"
-      />
-
-      {/* Welcome Text */}
-      <Text style={styles.title}>Welcome To YUPLUCK</Text>
-      <Text style={styles.subtitle}>your instant GYM booking platform!</Text>
-
-      <TextInput
-        style={styles.input}
-        placeholder="Enter your phone number"
-        keyboardType="phone-pad"
-        maxLength={10}
-        placeholderTextColor='#808080'
-        value={phoneNumber}
-        onChangeText={setPhoneNumber}
-      />
-
-      <TouchableOpacity
-        style={[styles.button, isLoading && styles.disabledButton]} // Disable button style if loading
-        onPress={handleLogin}
-        disabled={isLoading} // Disable button when loading
+    <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.keyboardAvoidingView}
       >
-        {isLoading ? (
-          <ActivityIndicator size="small" color="#fff" /> // Show loader
-        ) : (
-          <Text style={styles.buttonText}>Login</Text> // Show normal text
-        )}
-      </TouchableOpacity>
+        <Image
+          source={require('../assets/logowithouticon.jpg')}
+          style={styles.logo}
+          resizeMode="contain"
+        />
 
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>Don’t have an account? </Text>
-        <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-          <Text style={styles.linkText}>Register Now</Text>
-        </TouchableOpacity>
-      </View>
+        <Text style={styles.title}>Welcome to YUPLUCK</Text>
+        <Text style={styles.subtitle}>Your instant GYM booking platform!</Text>
 
-      {/* Error Modal */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={errorVisible}
-        onRequestClose={() => setErrorVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Ionicons name="warning" size={50} color="#D9534F" />
-            <Text style={styles.modalTitle}>Error</Text>
-            <Text style={styles.modalMessage}>{errorMessage}</Text>
-            <TouchableOpacity
-              style={styles.modalButton}
-              onPress={() => setErrorVisible(false)}
-            >
-              <Text style={styles.modalButtonText}>OK</Text>
-            </TouchableOpacity>
+        <View style={styles.phoneInputContainer}>
+          <View style={styles.flagContainer}>
+            <Image
+              source={indiaFlag}
+              style={styles.flagIcon}
+            />
+            <Text style={styles.countryCode}>+91</Text>
           </View>
+          <TextInput
+            style={styles.phoneInput}
+            placeholder="Enter your phone number"
+            keyboardType="phone-pad"
+            value={phoneNumber}
+            onChangeText={setPhoneNumber}
+            maxLength={10}
+          />
         </View>
-      </Modal>
-    </View>
+
+        <TouchableOpacity
+          style={[styles.button, isLoading && styles.disabledButton]}
+          onPress={handleLogin}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}>Login</Text>
+          )}
+        </TouchableOpacity>
+
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>Don't have an account? </Text>
+          <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+            <Text style={styles.linkText}>Register Now</Text>
+          </TouchableOpacity>
+        </View>
+
+        <Modal
+          animationType="fade"
+          transparent={true}
+          visible={errorVisible}
+          onRequestClose={() => setErrorVisible(false)}
+        >
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <Ionicons name="warning" size={50} color="#D9534F" />
+              <Text style={styles.modalTitle}>Error</Text>
+              <Text style={styles.modalMessage}>{errorMessage}</Text>
+              <TouchableOpacity
+                style={styles.modalButton}
+                onPress={() => setErrorVisible(false)}
+              >
+                <Text style={styles.modalButtonText}>OK</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  keyboardAvoidingView: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#FFFFFF',
+  },
+  logo: {
+    width: 200,
+    height: 100,
+    marginBottom: 20,
   },
   title: {
     fontSize: 28,
@@ -143,19 +158,33 @@ const styles = StyleSheet.create({
     color: '#808080',
     textAlign: 'center',
     marginBottom: 40,
-    fontWeight: 'bold',
+    fontWeight: '500',
   },
-  input: {
+  phoneInputContainer: {
     width: '100%',
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 5,
-    padding: 15,
-    backgroundColor: '#D3D3D3',
-    color: '#333',
     marginBottom: 20,
-    fontSize: 18,
-    fontWeight: 'bold',
+    flexDirection: 'row',
+  },
+  flagContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    borderRightWidth: 1,
+    borderColor: '#ccc',
+  },
+  flagIcon: {
+    width: 25,
+    height: 15,
+    marginRight: 5,
+  },
+  countryCode: {
+    fontSize: 16,
+    color: '#333',
+  },
+  phoneInput: {
+    flex: 1,
+    fontSize: 16,
+    padding: 10,
   },
   button: {
     backgroundColor: '#28a745',
@@ -165,7 +194,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   disabledButton: {
-    backgroundColor: '#aaa', // Change button color when disabled
+    backgroundColor: '#aaa',
   },
   buttonText: {
     color: '#fff',
@@ -183,7 +212,6 @@ const styles = StyleSheet.create({
     color: '#28a745',
     fontWeight: 'bold',
   },
-  // Modal Styles
   modalContainer: {
     flex: 1,
     justifyContent: 'center',

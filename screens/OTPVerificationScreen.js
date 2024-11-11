@@ -1,14 +1,18 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
-import { userDetails, verifyOtp } from '../api/apiService'; // Import the verifyOtp function
-import { CommonActions } from '@react-navigation/native';
+import React, { useEffect, useState, useRef } from 'react';
+import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, SafeAreaView, KeyboardAvoidingView, Platform, Animated } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { userDetails, verifyOtp } from '../api/apiService';
+import { CommonActions, useNavigation } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 
-export default function OTPVerificationScreen({ route, navigation }) {
-  const { got_otp } = route.params; // Get the mobile number passed from the Login Screen
-  console.log("got_otp", got_otp);
+export default function OTPVerificationScreen({ route }) {
+  const { got_otp, mobileNumber } = route.params;
   const [otp, setOtp] = useState(got_otp);
-  const { mobileNumber } = route.params; // Get the mobile number passed from the Login Screen
+  const [timer, setTimer] = useState(30);
+  const navigation = useNavigation();
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  const inputRefs = useRef([]);
 
   useEffect(() => {
     const checkLoginStatus = async () => {
@@ -22,120 +26,182 @@ export default function OTPVerificationScreen({ route, navigation }) {
         );
       }
     };
-  
     checkLoginStatus();
-  }, []);
+
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 1000,
+      useNativeDriver: true,
+    }).start();
+
+    const interval = setInterval(() => {
+      setTimer((prevTimer) => (prevTimer > 0 ? prevTimer - 1 : 0));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [navigation, fadeAnim]);
 
   const handleVerifyOtp = async () => {
-
-    if (!otp) {
-      Alert.alert('Error', 'Please enter the OTP.');
+    if (!otp || otp.length !== 6) {
+      Alert.alert('Error', 'Please enter a valid 6-digit OTP.');
       return;
     }
 
     try {
-      const data = await verifyOtp(mobileNumber, otp); // Call the API to verify OTP
-      console.log("Data.status is", data.status);
-      if (data.status) { // If verification is successful, store the token
-        await AsyncStorage.setItem('authToken', data.token); // Store token in AsyncStorage
-        // Navigate to the Register screen or Home screen
-        if (data.token) {
-          navigation.navigate('GymList');
-        } 
-      
+      const data = await verifyOtp(mobileNumber, otp);
+      if (data.status) {
+        await AsyncStorage.setItem('authToken', data.token);
+        navigation.navigate('GymList');
       } else {
-        Alert.alert('OTP Verification Failed', data.message || 'The OTP verification failed. Please try again.');
-        return false;
+        Alert.alert('Verification Failed', data.message || 'The OTP verification failed. Please try again.');
       }
     } catch (error) {
       console.error('OTP Verification Error:', error);
       Alert.alert('Error', 'Something went wrong. Please try again later.');
-      return false;
+    }
+  };
+
+  const handleResendOtp = () => {
+    // Implement resend OTP logic here
+    setTimer(30);
+    Alert.alert('OTP Resent', 'A new OTP has been sent to your mobile number.');
+  };
+
+  const handleOtpChange = (value, index) => {
+    const newOtp = otp.split('');
+    newOtp[index] = value;
+    setOtp(newOtp.join(''));
+
+    if (value && index < 5) {
+      inputRefs.current[index + 1].focus();
     }
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>OTP Verification</Text>
-      <Text style={styles.subtitle}>Enter the verification code we just sent to {mobileNumber}.</Text>
+    <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.keyboardAvoidingView}
+      >
+        <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
+          <Ionicons name="lock-closed" size={64} color="#0ED94A" style={styles.icon} />
+          <Text style={styles.title}>OTP Verification</Text>
+          <Text style={styles.subtitle}>
+            Enter the verification code we just sent to {mobileNumber}.
+          </Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Enter OTP"
-        placeholderTextColor='#808080'
-        keyboardType="numeric"
-        maxLength={6}
-        value={otp}
-        onChangeText={setOtp}
-      />
+          <View style={styles.otpContainer}>
+            {[0, 1, 2, 3, 4, 5].map((index) => (
+              <TextInput
+                key={index}
+                ref={(ref) => (inputRefs.current[index] = ref)}
+                style={styles.otpInput}
+                keyboardType="numeric"
+                maxLength={1}
+                value={otp[index] || ''}
+                onChangeText={(value) => handleOtpChange(value, index)}
+              />
+            ))}
+          </View>
 
-      <TouchableOpacity style={styles.button} onPress={handleVerifyOtp}>
-        <Text style={styles.buttonText}>Verify</Text>
-      </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={handleVerifyOtp}>
+            <Text style={styles.buttonText}>Verify</Text>
+          </TouchableOpacity>
 
-      <Text style={styles.resendText}>
-        Didn’t receive the code?{' '}
-        <Text style={styles.linkText} onPress={() => {/* Resend OTP logic */}}>
-          Resend
-        </Text>
-      </Text>
-    </View>
+          <View style={styles.resendContainer}>
+            <Text style={styles.resendText}>
+              Didn't receive the code?{' '}
+            </Text>
+            <TouchableOpacity 
+              onPress={handleResendOtp} 
+              disabled={timer > 0}
+            >
+              <Text style={[styles.linkText, timer > 0 && styles.disabledLink]}>
+                {timer > 0 ? `Resend in ${timer}s` : 'Resend'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </Animated.View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  keyboardAvoidingView: {
+    flex: 1,
+  },
+  content: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#FFFFFF', // white background
+  },
+  icon: {
+    marginBottom: 20,
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
     textAlign: 'center',
-    color: '#0ED94A', // White text
-    marginBottom: 20,
+    color: '#0ED94A',
+    marginBottom: 10,
   },
   subtitle: {
     textAlign: 'center',
-    color: '#808080', // Light gray subtitle text
+    color: '#808080',
     marginBottom: 40,
+    fontSize: 16,
   },
-  input: {
+  otpContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     width: '100%',
-    borderColor: '#555', // Darker gray border for input
-    borderWidth: 1,
-    borderRadius: 5,
-    padding: 15,
-    backgroundColor: '#D3D3D3', // Dark gray input background
-    color: '#333', // White text in input
-    marginBottom: 20,
-    fontSize: 18,
-    fontWeight:'bold',
+    marginBottom: 30,
+  },
+  otpInput: {
+    width: 50,
+    height: 50,
+    borderWidth: 2,
+    borderColor: '#0ED94A',
+    borderRadius: 10,
+    fontSize: 24,
+    textAlign: 'center',
+    backgroundColor: '#F0F0F0',
   },
   button: {
-    backgroundColor: '#28a745', // Green button
+    backgroundColor: '#28a745',
     paddingVertical: 15,
     paddingHorizontal: 50,
-    borderRadius: 5,
+    borderRadius: 25,
     alignItems: 'center',
     marginBottom: 20,
     width: '100%',
   },
   buttonText: {
-    color: '#fff', // White text on button
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 18,
+  },
+  resendContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  resendText: {
+    color: '#808080',
+    fontSize: 16,
+  },
+  linkText: {
+    color: '#28a745',
     fontWeight: 'bold',
     fontSize: 16,
   },
-  resendText: {
-    color: '#808080', // Light gray resend text
-    marginTop: 20,
-    textAlign: 'center',
-  },
-  linkText: {
-    color: '#28a745', // Green text for Resend link
-    fontWeight: 'bold',
+  disabledLink: {
+    color: '#A0A0A0',
   },
 });
