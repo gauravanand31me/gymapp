@@ -156,13 +156,13 @@ export default function ProfileScreen({ navigation, route }) {
         if (selectedTab === 'Visited Gym') {
           navigation.navigate('GymDetails', { gym_id: item.gymId });
         }
+        if (selectedTab === 'Gym Buddies') {
+          navigation.navigate('UserProfile', { userId: item.buddyId });
+        }
       }}
     >
       <View style={styles.listItemContent}>
-        <Image
-          source={{ uri: item.image || 'https://via.placeholder.com/50' }}
-          style={styles.listItemImage}
-        />
+        
         <View style={styles.listItemTextContainer}>
           <Text style={styles.listItemText}>{item.gymName || item.buddyName || 'N/A'}</Text>
           <Text style={styles.listItemSubText}>
