@@ -1,34 +1,65 @@
-import React, {useEffect, useState} from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { useNavigation } from '@react-navigation/native'; // Import the hook for navigation
+import React, { useEffect, useState, useRef } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView, Animated, Dimensions } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { acceptBuddyRequest, declineBuddyRequest } from '../api/apiService';
+import { Ionicons } from '@expo/vector-icons';
 
-const WorkoutInvitation = ({navigation, route}) => {
-  const {relatedId} = route.params;
+const { width } = Dimensions.get('window');
+
+export default function WorkoutInvitation({ route }) {
+  const { relatedId } = route.params;
   const [booking, setBooking] = useState({});
-
-  const handleAccept = () => {
-    // Logic to handle acceptance of the invitation
-    console.log('Invitation accepted!');
-  };
-
-  const handleDecline = async () => {
-    // Logic to handle declining the invitation
-    const declineRequest = await declineBuddyRequest(relatedId);
-    Alert.alert("Buddy Request declined");
-    navigation.navigate("GymList");
-  };
-
+  const [isExpired, setIsExpired] = useState(false);
+  const navigation = useNavigation();
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(width)).current;
 
   useEffect(() => {
     const handleActionRequest = async (requestId) => {
-      const data = await acceptBuddyRequest(requestId);
-      console.log("data.booking", data.booking);
-      setBooking(data.booking);
-      console.log("Data is in this page", data);
-    }
+      try {
+        const data = await acceptBuddyRequest(requestId);
+        setBooking(data.booking);
+        checkExpiration(data.booking);
+      } catch (error) {
+        console.error("Error fetching booking details:", error);
+        Alert.alert("Error", "Failed to load invitation details. Please try again.");
+      }
+    };
     handleActionRequest(relatedId);
-  }, [])
+
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 1000,
+        useNativeDriver: true,
+      }),
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        speed: 12,
+        bounciness: 8,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [relatedId, fadeAnim, slideAnim]);
+
+  const checkExpiration = (bookingData) => {
+    if (bookingData.bookingDate && bookingData.slotStartTime) {
+      const bookingDateTime = new Date(`${bookingData.bookingDate}T${bookingData.slotStartTime}`);
+      const now = new Date();
+      setIsExpired(bookingDateTime < now);
+    }
+  };
+
+  const handleDecline = async () => {
+    try {
+      await declineBuddyRequest(relatedId);
+      Alert.alert("Success", "Buddy Request declined");
+      navigation.navigate("GymList");
+    } catch (error) {
+      console.error("Error declining request:", error);
+      Alert.alert("Error", "Failed to decline the request. Please try again.");
+    }
+  };
 
   const {
     bookingDate,
@@ -39,129 +70,153 @@ const WorkoutInvitation = ({navigation, route}) => {
     gymRating,
   } = booking;
 
-  // Format date and time display
-  const formattedDate = new Date(bookingDate).toDateString(); // Format date
-  const formattedTime = slotStartTime; // Assuming slotStartTime is already in HH:MM:SS format
+  const formattedDate = bookingDate ? new Date(bookingDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : '';
+  const formattedTime = slotStartTime || '';
 
-
-
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>
-        You're <Text style={styles.highlightedText}>Invited</Text> to a Workout!
-      </Text>
-
-      <View style={styles.detailsContainer}>
-        <Text style={styles.label}>Invitation Details:</Text>
-
-        {/* Make the username clickable */}
-        <Text style={styles.detailText}>
-          You've been invited to join a gym session at{' '}
-          <TouchableOpacity onPress={() => navigation.navigate('GymDetails')}>
-            <Text style={styles.username}>{gymName}</Text>
-          </TouchableOpacity>.
-        </Text>
-
-        <Text style={styles.detailText}>
-          Session Date & Time:{' '}
-          <Text style={styles.bold}>
-            {formattedDate}, {formattedTime}
-          </Text>
-        </Text>
-
-        <Text style={styles.detailText}>
-          Session Duration:{' '}
-          <Text style={styles.bold}>{bookingDuration} minutes</Text>
-        </Text>
-
-        <Text style={styles.detailText}>
-          Subscription Price: <Text style={styles.bold}>INR {subscriptionPrice}</Text>
-        </Text>
-
-        <Text style={styles.detailText}>
-          Gym Rating: <Text style={styles.bold}>{gymRating}</Text>
-        </Text>
+  const renderDetailItem = (icon, label, value) => (
+    <View style={styles.detailItem}>
+      <Ionicons name={icon} size={24} color="#28A745" style={styles.icon} />
+      <View>
+        <Text style={styles.detailLabel}>{label}</Text>
+        <Text style={styles.detailValue}>{value}</Text>
       </View>
-
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={[styles.button, styles.acceptButton]} onPress={() => navigation.navigate('PaymentScreen', { slotDetails: booking, requestId: relatedId })}>
-          <Text style={styles.buttonText}>Accept</Text>
-        </TouchableOpacity>
-        {/* <TouchableOpacity style={[styles.button, styles.declineButton]} onPress={handleDecline}>
-          <Text style={styles.buttonText}>Decline</Text>
-        </TouchableOpacity> */}
-        <TouchableOpacity style={[styles.button, styles.backButton]} onPress={() => navigation.goBack()}>
-          <Text style={styles.buttonText}>Back</Text>
-        </TouchableOpacity>
-      </View>
-
-      <Text style={styles.footerText}>We look forward to seeing you there!</Text>
     </View>
   );
-};
+
+  return (
+    <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <Animated.View style={[styles.container, { opacity: fadeAnim, transform: [{ translateX: slideAnim }] }]}>
+        <View style={styles.header}>
+          <Ionicons name="fitness" size={60} color="#28A745" />
+          <Text style={styles.title}>
+            You're <Text style={styles.highlightedText}>Invited</Text>
+          </Text>
+          <Text style={styles.subtitle}>to an Exciting Workout Session!</Text>
+        </View>
+
+        {isExpired ? (
+          <View style={styles.expiredMessage}>
+            <Ionicons name="alert-circle" size={40} color="#F44336" />
+            <Text style={styles.expiredText}>This invitation has expired.</Text>
+          </View>
+        ) : (
+          <>
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Invitation Details</Text>
+              {renderDetailItem("business", "Gym", gymName || 'Loading...')}
+              {renderDetailItem("calendar", "Date", formattedDate || 'Loading...')}
+              {renderDetailItem("time", "Time", formattedTime || 'Loading...')}
+              {renderDetailItem("timer", "Duration", `${bookingDuration || '...'} minutes`)}
+              {renderDetailItem("cash", "Price", `₹${subscriptionPrice || '...'}`)}
+              {renderDetailItem("star", "Rating", `${gymRating || '...'} / 5`)}
+            </View>
+
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={[styles.button, styles.acceptButton]}
+                onPress={() => navigation.navigate('PaymentScreen', { slotDetails: booking, requestId: relatedId })}
+              >
+                <Ionicons name="checkmark-circle" size={24} color="#FFF" />
+                <Text style={styles.buttonText}>Accept</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.button, styles.declineButton]} onPress={handleDecline}>
+                <Ionicons name="close-circle" size={24} color="#FFF" />
+                <Text style={styles.buttonText}>Decline</Text>
+              </TouchableOpacity>
+            </View>
+          </>
+        )}
+
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={24} color="#333" />
+          <Text style={styles.backButtonText}>Back</Text>
+        </TouchableOpacity>
+
+        {!isExpired && <Text style={styles.footerText}>We look forward to seeing you there!</Text>}
+      </Animated.View>
+    </ScrollView>
+  );
+}
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
+  scrollContainer: {
+    flexGrow: 1,
     backgroundColor: '#F3F4F6',
   },
+  container: {
+    flex: 1,
+    padding: 20,
+    alignItems: 'center',
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 30,
+  },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: 'bold',
     color: '#2C3E50',
     textAlign: 'center',
-    marginBottom: 20,
-    textTransform: 'uppercase',
+    marginTop: 10,
   },
-  detailsContainer: {
-    marginBottom: 20,
+  subtitle: {
+    fontSize: 18,
+    color: '#7F8C8D',
+    textAlign: 'center',
+    marginTop: 5,
+  },
+  highlightedText: {
+    color: '#28A745',
+  },
+  card: {
     backgroundColor: '#FFFFFF',
     borderRadius: 15,
     padding: 20,
+    width: '100%',
+    marginBottom: 20,
     elevation: 5,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 5,
-    width: '100%',
   },
-  label: {
-    fontSize: 20,
+  cardTitle: {
+    fontSize: 22,
     fontWeight: 'bold',
-    marginBottom: 10,
     color: '#34495E',
+    marginBottom: 15,
   },
-  detailText: {
+  detailItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  icon: {
+    marginRight: 15,
+  },
+  detailLabel: {
     fontSize: 16,
-    marginBottom: 5,
-    color: '#333',
+    color: '#7F8C8D',
   },
-  highlightedText: {
+  detailValue: {
+    fontSize: 18,
     fontWeight: 'bold',
-    color: '#28A745', // Green color for "Invited"
-  },
-  username: {
-    fontWeight: 'bold',
-    color: '#28A745', // Green color for emphasis
-    textDecorationLine: 'underline', // Add underline to indicate it's clickable
-  },
-  bold: {
-    fontWeight: 'bold',
-    color: '#28A745',
+    color: '#2C3E50',
   },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '100%',
+    marginBottom: 20,
   },
   button: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     borderRadius: 10,
     padding: 15,
     flex: 1,
-    marginHorizontal: 5, // Adjusted to fit all buttons
+    marginHorizontal: 5,
     elevation: 3,
   },
   acceptButton: {
@@ -170,20 +225,41 @@ const styles = StyleSheet.create({
   declineButton: {
     backgroundColor: '#F44336',
   },
-  backButton: {
-    backgroundColor: '#000000', // Black color for the back button
-  },
   buttonText: {
     color: '#ffffff',
-    textAlign: 'center',
     fontWeight: 'bold',
+    fontSize: 16,
+    marginLeft: 5,
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    marginBottom: 20,
+  },
+  backButtonText: {
+    fontSize: 16,
+    color: '#333',
+    marginLeft: 5,
   },
   footerText: {
-    marginTop: 20,
     fontSize: 16,
     color: '#7F8C8D',
     textAlign: 'center',
   },
+  expiredMessage: {
+    alignItems: 'center',
+    backgroundColor: '#FFEBEE',
+    borderRadius: 15,
+    padding: 20,
+    marginBottom: 20,
+  },
+  expiredText: {
+    fontSize: 18,
+    color: '#F44336',
+    fontWeight: 'bold',
+    marginTop: 10,
+    textAlign: 'center',
+  },
 });
 
-export default WorkoutInvitation;

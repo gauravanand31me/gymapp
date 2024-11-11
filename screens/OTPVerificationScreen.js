@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, SafeAreaView, KeyboardAvoidingView, Platform, Animated } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, SafeAreaView, KeyboardAvoidingView, Platform, Animated, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { userDetails, verifyOtp } from '../api/apiService';
 import { CommonActions, useNavigation } from '@react-navigation/native';
@@ -9,6 +9,7 @@ export default function OTPVerificationScreen({ route }) {
   const { got_otp, mobileNumber } = route.params;
   const [otp, setOtp] = useState(got_otp);
   const [timer, setTimer] = useState(30);
+  const [isLoading, setIsLoading] = useState(false); // Added loading state
   const navigation = useNavigation();
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -47,6 +48,7 @@ export default function OTPVerificationScreen({ route }) {
       return;
     }
 
+    setIsLoading(true); // Set loading to true before API call
     try {
       const data = await verifyOtp(mobileNumber, otp);
       if (data.status) {
@@ -58,6 +60,8 @@ export default function OTPVerificationScreen({ route }) {
     } catch (error) {
       console.error('OTP Verification Error:', error);
       Alert.alert('Error', 'Something went wrong. Please try again later.');
+    } finally {
+      setIsLoading(false); // Set loading to false after API call, regardless of success or failure
     }
   };
 
@@ -104,8 +108,16 @@ export default function OTPVerificationScreen({ route }) {
             ))}
           </View>
 
-          <TouchableOpacity style={styles.button} onPress={handleVerifyOtp}>
-            <Text style={styles.buttonText}>Verify</Text>
+          <TouchableOpacity 
+            style={[styles.button, isLoading && styles.disabledButton]} 
+            onPress={handleVerifyOtp}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Text style={styles.buttonText}>Verify</Text>
+            )}
           </TouchableOpacity>
 
           <View style={styles.resendContainer}>
@@ -203,5 +215,8 @@ const styles = StyleSheet.create({
   },
   disabledLink: {
     color: '#A0A0A0',
+  },
+  disabledButton: { // Added style for disabled button
+    backgroundColor: '#94d3a2',
   },
 });
