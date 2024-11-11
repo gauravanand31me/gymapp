@@ -1,64 +1,95 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, Image, SafeAreaView, Alert } from 'react-native';
-import { acceptFriendRequest, fetchAllNotifications, markAllNotificationsAsRead, rejectFriendRequest, acceptBuddyRequest } from '../api/apiService'; // Ensure this path is correct
-import Footer from '../components/Footer';
+import React, { useEffect, useState } from 'react'
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+  Image,
+  SafeAreaView,
+  Alert,
+  Animated,
+} from 'react-native'
+import { acceptFriendRequest, fetchAllNotifications, markAllNotificationsAsRead, rejectFriendRequest, acceptBuddyRequest } from '../api/apiService'
+import Footer from '../components/Footer'
+import { Bell, Check, X, ChevronRight } from 'lucide-react-native'
 
-const NotificationListScreen = ({ navigation }) => {
-  const [notifications, setNotifications] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+export default function NotificationListScreen({ navigation }) {
+  const [notifications, setNotifications] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [fadeAnim] = useState(new Animated.Value(0))
 
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
-        const data = await fetchAllNotifications();
-        console.log("Data is", data);
+        const data = await fetchAllNotifications()
         if (data.notifications) {
-          setNotifications(data.notifications); 
+          setNotifications(data.notifications)
+          Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 500,
+            useNativeDriver: true,
+          }).start()
         } else {
-          setError(data.message);
+          setError(data.message)
         }
       } catch (error) {
-        setError("Failed to fetch notifications. Please try again.");
+        setError("Failed to fetch notifications. Please try again.")
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
     const markNotificationsAsRead = async () => {
       try {
-        await markAllNotificationsAsRead(); // Mark all notifications as read
+        await markAllNotificationsAsRead()
       } catch (error) {
-        console.error("Failed to mark notifications as read:", error);
+        console.error("Failed to mark notifications as read:", error)
       }
-    };
+    }
 
-    markNotificationsAsRead();
-    fetchNotifications();
-  }, []);
+    markNotificationsAsRead()
+    fetchNotifications()
+  }, [])
 
   const handleActionRequest = async (requestId, action, type) => {
     try {
       if (action === 'accept') {
         if (type === 'buddyInvite') {
-          const data = await acceptBuddyRequest(requestId);
-          navigation.navigate('PaymentScreen', { slotDetails: data.booking, requestId });
+          const data = await acceptBuddyRequest(requestId)
+          navigation.navigate('PaymentScreen', { slotDetails: data.booking, requestId })
         } else {
-          await acceptFriendRequest(requestId);
+          await acceptFriendRequest(requestId)
         }
       } else if (action === 'reject') {
-        await rejectFriendRequest(requestId);
+        await rejectFriendRequest(requestId)
       }
-      // Optimistically update UI
-      setNotifications(prev => prev.filter(notification => notification.relatedId !== requestId));
+      setNotifications(prev => prev.filter(notification => notification.relatedId !== requestId))
     } catch (error) {
-      setError(error.message);
-      Alert.alert("Error", error.message);
+      setError(error.message)
+      Alert.alert("Error", error.message)
     }
-  };
+  }
 
-  const renderItem = ({ item }) => (
-    <View style={styles.notificationItem}>
+  const renderItem = ({ item, index }) => (
+    <Animated.View
+      style={[
+        styles.notificationItem,
+        {
+          opacity: fadeAnim,
+          transform: [
+            {
+              translateY: fadeAnim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [50, 0],
+              }),
+            },
+          ],
+        },
+      ]}
+    >
       <Image
         source={{ uri: item.profileImage || 'https://via.placeholder.com/50' }}
         style={styles.profileImage}
@@ -77,14 +108,14 @@ const NotificationListScreen = ({ navigation }) => {
               onPress={() => handleActionRequest(item.relatedId, 'accept', item.type)}
               accessibilityLabel="Accept Buddy Request"
             >
-              <Text style={styles.buttonText}>Accept</Text>
+              <Check size={20} color="#fff" />
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.declineButton}
               onPress={() => handleActionRequest(item.relatedId, 'reject', item.type)}
               accessibilityLabel="Decline Buddy Request"
             >
-              <Text style={styles.buttonText}>Decline</Text>
+              <X size={20} color="#fff" />
             </TouchableOpacity>
           </>
         )}
@@ -96,143 +127,129 @@ const NotificationListScreen = ({ navigation }) => {
               onPress={() => handleActionRequest(item.relatedId, 'accept', item.type)}
               accessibilityLabel="Accept Friend Request"
             >
-              <Text style={styles.buttonText}>Accept</Text>
+              <Check size={20} color="#fff" />
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.declineButton}
               onPress={() => handleActionRequest(item.relatedId, 'reject', item.type)}
               accessibilityLabel="Decline Friend Request"
             >
-              <Text style={styles.buttonText}>Decline</Text>
+              <X size={20} color="#fff" />
             </TouchableOpacity>
           </>
         )}
 
-        {item.type === 'workoutRequestInvite' && (
+        {(item.type === 'workoutRequestInvite' ||
+          item.type === 'acceptedBuddyRequest' ||
+          item.type === 'acceptedSelfBuddyRequest' ||
+          item.type === 'declinedBuddyRequest') && (
           <TouchableOpacity 
             style={styles.viewButton} 
-            onPress={() => navigation.navigate('WorkoutInvitation', {relatedId: item.relatedId})}
-            accessibilityLabel="View Workout Invitation"
+            onPress={() => navigation.navigate(
+              item.type === 'workoutRequestInvite' ? 'WorkoutInvitation' : 'WorkoutRequest',
+              {relatedId: item.relatedId, message: item.message}
+            )}
+            accessibilityLabel={`View ${item.type === 'workoutRequestInvite' ? 'Workout Invitation' : 'Workout Request'}`}
           >
-            <Text style={styles.buttonText}>View Details</Text>
-          </TouchableOpacity>
-        )}
-        {item.type === 'acceptedBuddyRequest' && (
-          <TouchableOpacity 
-            style={styles.viewButton} 
-            onPress={() => navigation.navigate('WorkoutRequest', {relatedId: item.relatedId, message: item.message})}
-            accessibilityLabel="View Workout Request"
-          >
-            <Text style={styles.buttonText}>View Details</Text>
-          </TouchableOpacity>
-        )} 
-
-        {item.type === 'acceptedSelfBuddyRequest' && (
-          <TouchableOpacity 
-            style={styles.viewButton} 
-            onPress={() => navigation.navigate('WorkoutRequest', {relatedId: item.relatedId, message: item.message})}
-            accessibilityLabel="View Workout Request"
-          >
-            <Text style={styles.buttonText}>View Details</Text>
-          </TouchableOpacity>
-        )} 
-        {item.type === 'declinedBuddyRequest' && (
-          <TouchableOpacity 
-            style={styles.viewButton} 
-            onPress={() => navigation.navigate('WorkoutRequest', {relatedId: item.relatedId, message: item.message})}
-            accessibilityLabel="View Workout Request"
-          >
-            <Text style={styles.buttonText}>View Details</Text>
+            <ChevronRight size={20} color="#fff" />
           </TouchableOpacity>
         )}
       </View>
-    </View>
-  );
+    </Animated.View>
+  )
 
   if (loading) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator size="large" color="#0000ff" />
+        <ActivityIndicator size="large" color="#4CAF50" />
         <Text style={styles.loadingText}>Loading notifications...</Text>
       </View>
-    );
+    )
   }
 
   if (error) {
     return (
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container}>
         <Text style={styles.errorText}>{error}</Text>
-        <View style={styles.footerContainer}>
         <Footer navigation={navigation} />
-        </View>
-       
-      </View>
-    );
+      </SafeAreaView>
+    )
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>Notifications</Text>
-      <FlatList
-        data={notifications}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.relatedId.toString()} // Use a unique key
-        contentContainerStyle={styles.listContent}
-      />
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <Bell size={24} color="#4CAF50" />
+        <Text style={styles.headerText}>Notifications</Text>
+      </View>
+      {notifications.length === 0 ? (
+        <View style={styles.emptyState}>
+          <Bell size={48} color="#ccc" />
+          <Text style={styles.emptyStateText}>No notifications yet</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={notifications}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.relatedId.toString()}
+          contentContainerStyle={styles.listContent}
+        />
+      )}
       <Footer navigation={navigation} />
-    </View>
-  );
-};
+    </SafeAreaView>
+  )
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
-    paddingTop: 30,
   },
   header: {
-    fontSize: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  headerText: {
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#333',
-    marginVertical: 20,
-    textAlign: 'center',
+    marginLeft: 8,
   },
   listContent: {
-    paddingBottom: 20,
+    paddingVertical: 16,
   },
   notificationItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     backgroundColor: '#fff',
     padding: 16,
-    borderRadius: 10,
+    borderRadius: 12,
     marginBottom: 12,
+    marginHorizontal: 16,
     alignItems: 'center',
     shadowColor: '#000',
     shadowOpacity: 0.1,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-  },
-  footerContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 60,  // Adjust based on footer height
-    backgroundColor: '#f5f5f5',
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 5 },
+    elevation: 5,
   },
   profileImage: {
-    width: 30,
-    height: 30,
-    borderRadius: 25,
-    marginRight: 15,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 12,
   },
   notificationContent: {
     flex: 1,
   },
   notificationText: {
-    fontSize: 12,
-    color: '#555',
+    fontSize: 14,
+    color: '#333',
     marginBottom: 4,
   },
   time: {
@@ -244,39 +261,41 @@ const styles = StyleSheet.create({
   },
   acceptButton: {
     backgroundColor: '#4CAF50',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 5,
-    marginRight: 10,
+    padding: 8,
+    borderRadius: 20,
+    marginRight: 8,
   },
   declineButton: {
     backgroundColor: '#F44336',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 5,
+    padding: 8,
+    borderRadius: 20,
   },
   viewButton: {
-    backgroundColor: '#4CAF50',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 5,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 14,
+    backgroundColor: '#2196F3',
+    padding: 8,
+    borderRadius: 20,
   },
   errorText: {
-    color: '#4CAF50',
+    color: '#F44336',
     fontSize: 16,
-    fontWeight:'bold',
+    fontWeight: 'bold',
     textAlign: 'center',
+    marginTop: 20,
   },
   loadingText: {
     fontSize: 16,
     color: '#333',
     textAlign: 'center',
-    marginTop: 10,
+    marginTop: 16,
   },
-});
-
-export default NotificationListScreen;
+  emptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyStateText: {
+    fontSize: 18,
+    color: '#888',
+    marginTop: 16,
+  },
+})

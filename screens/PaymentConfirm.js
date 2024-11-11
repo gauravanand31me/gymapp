@@ -1,272 +1,281 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ImageBackground, Alert, ActivityIndicator } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
-import * as WebBrowser from 'expo-web-browser';
-import { acceptBuddyRequest, createBooking, createOrder } from '../api/apiService';
-import { Platform } from 'react-native';
-import * as Notifications from 'expo-notifications';
-import { NotificationContext } from '../context/NotificationContext';
+import React, { useState, useEffect, useContext } from 'react'
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  Alert,
+  ActivityIndicator,
+  SafeAreaView,
+} from 'react-native'
+import { Calendar, Clock, DollarSign, ArrowLeft, CheckCircle } from 'lucide-react-native'
+import * as WebBrowser from 'expo-web-browser'
+import { acceptBuddyRequest, createBooking, createOrder } from '../api/apiService'
+import { NotificationContext } from '../context/NotificationContext'
+import { LinearGradient } from 'expo-linear-gradient'
 
-const PaymentScreen = ({ route, navigation }) => {
-  const { slotDetails, requestId } = route.params; // Extract slot details from navigation parameters
-  const [loading, setLoading] = useState(false); // Loading state for button
-  const [isExpired, setIsExpired] = useState(false); // State to check if the booking is expired
-  const [openModel, setOpenModel] = useState(true);
-  const [paymentLink, setPaymentLink] = useState("");
-  const {notification} = useContext(NotificationContext);
-  // Effect to check if the booking is expired
-
+export default function PaymentScreen({ route, navigation }) {
+  const { slotDetails, requestId } = route.params
+  const [loading, setLoading] = useState(false)
+  const [isExpired, setIsExpired] = useState(false)
+  const [confirm, setConfirm] = useState(false)
+  const { notification } = useContext(NotificationContext)
 
   useEffect(() => {
     if (notification) {
-      console.log('New notification received:', notification.request.content);
-      // Handle the notification (e.g., show a message or update the UI)
+      console.log('New notification received:', notification.request.content)
     }
-  }, [notification]);
+  }, [notification])
 
   useEffect(() => {
     const checkExpiration = () => {
-      if (!slotDetails.date || !slotDetails.time) return; // Ensure date and time are available
-  
-      let formattedDate;
-  
-      // Conditionally format the date based on the platform
-      if (slotDetails.date) {
-        const [day, month, year] = slotDetails.date.split("/");
-        formattedDate = `${year}-${month}-${day}`;
-      }
-  
-      // iOS expects a 'T' between date and time for reliable parsing
-      const slotDateTimeString = Platform.OS === 'ios'
-        ? `${formattedDate || slotDetails.bookingDate}T${slotDetails.time || slotDetails.slotStartTime}`
-        : `${formattedDate || slotDetails.bookingDate} ${slotDetails.time || slotDetails.slotStartTime}`;
-  
-      console.log("Formatted Slot Date and Time:", slotDateTimeString);
-  
-      const slotDateTime = new Date(slotDateTimeString);
-      const currentDate = new Date();
-  
-      if (isNaN(slotDateTime.getTime())) {
-        console.error("Invalid date format:", slotDateTimeString);
-        return;
-      }
-      
-      console.log("slotDateTimeString", currentDate);
-      console.log("slotDateTime", slotDateTime);
+      if (!slotDetails.date || !slotDetails.time) return
 
-      
-      // Check if the current date and time is greater than the slot date and time
-      if (currentDate > slotDateTime) {
-        setIsExpired(true); // Set expired state
+      const formattedDate = slotDetails.date instanceof Date
+        ? slotDetails.date.toISOString().split('T')[0]
+        : slotDetails.date.split('/').reverse().join('-')
+
+      const slotDateTimeString = `${formattedDate}T${slotDetails.time}`
+      const slotDateTime = new Date(slotDateTimeString)
+      const currentDate = new Date()
+
+      if (isNaN(slotDateTime.getTime())) {
+        console.error("Invalid date format:", slotDateTimeString)
+        return
       }
-    };
-  
-    checkExpiration(); // Run the expiration check
-  }, [slotDetails.date, slotDetails.time]); // Dependency array includes date and time
+
+      if (currentDate > slotDateTime) {
+        setIsExpired(true)
+      }
+    }
+
+    checkExpiration()
+  }, [slotDetails.date, slotDetails.time])
 
   const handlePayment = async () => {
     try {
-      setLoading(true);
+      setLoading(true)
       if (requestId) {
-        slotDetails.requestId = requestId;
+        slotDetails.requestId = requestId
       }
-      const bookingResponse = await createBooking(slotDetails); // Create booking on success
+      const bookingResponse = await createBooking(slotDetails)
 
       if (bookingResponse) {
-      // Step 1: Create the payment order first
-      const orderResponse = await createOrder(slotDetails.price * (slotDetails.duration / 60) || slotDetails.subscriptionPrice, bookingResponse.bookingId, requestId);
-    
-      if (orderResponse && orderResponse.orderId) {
-        // Step 2: Open Razorpay payment link in the browser
-        setOpenModel(true);
-        setPaymentLink(orderResponse.paymentLink)
-        const result = await WebBrowser.openBrowserAsync(orderResponse.paymentLink);
-        // Step 3: After successful payment, create the booking
-        
-        if (result.type === 'dismiss') {
-          // Handle the case where the user closed or dismissed the browser
-          console.log('User dismissed the payment page');
-          // You can add additional logic here to notify the user or retry payment
-      } else if (result.type === 'opened') {
-          // Browser was successfully opened
-          console.log('Payment page opened');
-      }
-      
-  
-        if (result.type === 'opened' || result.type === 'cancel') {
-          pollPaymentStatus(bookingResponse.bookingId, bookingResponse);
+        const orderResponse = await createOrder(
+          slotDetails.price * (slotDetails.duration / 60) || slotDetails.subscriptionPrice,
+          bookingResponse.bookingId,
+          requestId
+        )
+
+        if (orderResponse && orderResponse.orderId) {
+          const result = await WebBrowser.openBrowserAsync(orderResponse.paymentLink)
+
+          if (result.type === 'dismiss') {
+            console.log('User dismissed the payment page')
+          } else if (result.type === 'opened') {
+            console.log('Payment page opened')
+          }
+
+          if (result.type === 'opened' || result.type === 'cancel') {
+            setConfirm(true)
+            pollPaymentStatus(bookingResponse.bookingId, bookingResponse)
+          } else {
+            Alert.alert('Payment was not completed.')
+          }
         } else {
-          Alert.alert('Payment was not completed.');
+          Alert.alert('An error occurred while creating the payment order.')
         }
       } else {
-        Alert.alert('Some error occurred while creating the payment order.');
-      }
-      } else {
-        Alert.alert("Slot or gym may not be available for booking");
+        Alert.alert("Slot or gym may not be available for booking")
       }
     } catch (error) {
       console.log("error", error.response)
-      Alert.alert('Error: ' + error.message);
+      Alert.alert('Error: ' + error.message)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
-
-  async function pollPaymentStatus(orderId, bookingResponse) {
+  const pollPaymentStatus = async (orderId, bookingResponse) => {
     const pollInterval = setInterval(async () => {
       try {
-        const indvBooking = await acceptBuddyRequest(orderId);
+        const indvBooking = await acceptBuddyRequest(orderId)
       
         if (indvBooking.booking.isPaid) {
-            clearInterval(pollInterval); // Stop polling when payment is successful
-            navigation.replace('ConfirmationScreen', { slotDetails, data: bookingResponse });
+          clearInterval(pollInterval)
+          navigation.replace('ConfirmationScreen', { slotDetails, data: bookingResponse })
         } else {
-            clearInterval(pollInterval); // Stop polling when payment fails
-            navigation.replace('PaymentFailed');
+          clearInterval(pollInterval)
+          navigation.replace('PaymentFailed')
         }
       } catch (e) {
-        clearInterval(pollInterval); // Stop polling when payment fails
+        clearInterval(pollInterval)
       }
-    }, 3000); // Poll every 3 seconds
-}
-
+    }, 3000)
+  }
 
   return (
-    <ImageBackground style={styles.background}>
-      <View style={styles.container}>
-        {/* Gym Information Section */}
-        <View style={styles.card}>
-          <Text style={styles.gymName}>{slotDetails.gymName}</Text>
-          <Text style={styles.gymDescription}>
-            Please verify the details before booking this gym. Welcome to {slotDetails.gymName}, your ultimate fitness destination!
-          </Text>
-          <Text style={styles.gymLocation}>{slotDetails.location}</Text>
-        </View>
-        <View style={styles.detailRow}>
-          <Icon name="access-time" size={24} color="#2e7d32" />
-          <Text style={styles.detail}>Date: {slotDetails.date || slotDetails.bookingDate}</Text>
-        </View>
-        <View style={styles.detailRow}>
-          <Icon name="access-time" size={24} color="#2e7d32" />
-          <Text style={styles.detail}>Time: {slotDetails.time || slotDetails.slotStartTime}</Text>
-        </View>
-        <View style={styles.detailRow}>
-          <Icon name="hourglass-empty" size={24} color="#2e7d32" />
-          <Text style={styles.detail}>Duration: {slotDetails.duration || slotDetails.bookingDuration} mn</Text>
-        </View>
-        <View style={styles.detailRow}>
-          <Text style={styles.price}>Price: INR {slotDetails.price * (slotDetails.duration / 60) || slotDetails.subscriptionPrice}</Text>
-        </View>
+    <SafeAreaView style={styles.container}>
+      <LinearGradient
+        colors={['#4CAF50', '#2E7D32']}
+        style={styles.background}
+      >
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <View style={styles.card}>
+            <Text style={styles.gymName}>{slotDetails.gymName}</Text>
+            <Text style={styles.gymDescription}>
+              Please verify the details before booking this gym. Welcome to {slotDetails.gymName}, your ultimate fitness destination!
+            </Text>
 
-        {isExpired ? (
-          <Text style={styles.expiredText}>This booking time has expired.</Text>
-        ) : (
-          <TouchableOpacity style={styles.button} onPress={handlePayment} disabled={loading}>
-            {loading ? (
-              <ActivityIndicator size="small" color="#fff" />
+            <View style={styles.detailsContainer}>
+              <View style={styles.detailRow}>
+                <Calendar size={24} color="#4CAF50" />
+                <Text style={styles.detail}>Date: {slotDetails.date || slotDetails.bookingDate}</Text>
+              </View>
+              <View style={styles.detailRow}>
+                <Clock size={24} color="#4CAF50" />
+                <Text style={styles.detail}>Time: {slotDetails.time || slotDetails.slotStartTime}</Text>
+              </View>
+              <View style={styles.detailRow}>
+                <Clock size={24} color="#4CAF50" />
+                <Text style={styles.detail}>Duration: {slotDetails.duration || slotDetails.bookingDuration} min</Text>
+              </View>
+              <View style={styles.detailRow}>
+                <DollarSign size={24} color="#4CAF50" />
+                <Text style={styles.price}>
+                  Price: INR {slotDetails.price * (slotDetails.duration / 60) || slotDetails.subscriptionPrice}
+                </Text>
+              </View>
+            </View>
+
+            {isExpired ? (
+              <Text style={styles.expiredText}>This booking time has expired.</Text>
+            ) : !confirm ? (
+              <TouchableOpacity style={styles.button} onPress={handlePayment} disabled={loading}>
+                {loading ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text style={styles.buttonText}>Proceed to Payment</Text>
+                )}
+              </TouchableOpacity>
             ) : (
-              <Text style={styles.buttonText}>Proceed</Text>
+              <View style={styles.statusContainer}>
+                <ActivityIndicator size="large" color="#4CAF50" />
+                <Text style={styles.statusText}>Verifying Payment Status...</Text>
+              </View>
             )}
-          </TouchableOpacity>
-        )}
 
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Text style={styles.backButtonText}>Go Back</Text>
-        </TouchableOpacity>
-      </View>
-    </ImageBackground>
-  );
-};
+            <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+              <ArrowLeft size={24} color="#4CAF50" />
+              <Text style={styles.backButtonText}>Go Back</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </LinearGradient>
+    </SafeAreaView>
+  )
+}
 
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   container: {
     flex: 1,
-    justifyContent: 'flex-start',
-    alignItems: 'center',
+  },
+  background: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
     padding: 20,
-    borderRadius: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    width: '90%',
+  },
+  card: {
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 24,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
     elevation: 5,
-    marginVertical: 50,
   },
   gymName: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
-    color: '#2e7d32',
-    marginBottom: 5,
+    color: '#4CAF50',
+    marginBottom: 8,
     textAlign: 'center',
-    fontFamily: 'Roboto',
   },
   gymDescription: {
     fontSize: 16,
-    color: '#555',
-    marginBottom: 10,
+    color: '#666',
+    marginBottom: 24,
     textAlign: 'center',
-    fontFamily: 'Roboto',
+    lineHeight: 24,
   },
-  gymLocation: {
-    fontSize: 16,
-    color: '#555',
-    textAlign: 'center',
-    fontFamily: 'Roboto',
+  detailsContainer: {
+    marginBottom: 24,
   },
   detailRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 16,
   },
   detail: {
     fontSize: 18,
     color: '#333',
-    marginLeft: 10,
-    fontFamily: 'Roboto',
+    marginLeft: 12,
   },
   price: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#2e7d32',
-    marginBottom: 20,
+    color: '#4CAF50',
+    marginLeft: 12,
   },
   button: {
-    backgroundColor: '#2e7d32',
-    padding: 15,
-    borderRadius: 10,
-    width: '100%',
+    backgroundColor: '#4CAF50',
+    padding: 16,
+    borderRadius: 12,
     alignItems: 'center',
-    elevation: 5,
-    marginTop: 20,
+    marginBottom: 16,
   },
   buttonText: {
-    color: '#fff',
+    color: 'white',
     fontSize: 18,
     fontWeight: 'bold',
   },
   backButton: {
-    marginTop: 10,
-    backgroundColor: '#c8e6c9',
-    padding: 15,
-    borderRadius: 10,
-    width: '100%',
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    borderRadius: 12,
+    backgroundColor: '#E8F5E9',
   },
   backButtonText: {
-    color: '#2e7d32',
-    fontSize: 18,
-  },
-  expiredText: {
-    color: 'red',
+    color: '#4CAF50',
     fontSize: 18,
     fontWeight: 'bold',
-    marginTop: 20,
-    textAlign: 'center',
+    marginLeft: 8,
   },
-});
-
-export default PaymentScreen;
+  expiredText: {
+    color: '#D32F2F',
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  statusContainer: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  statusText: {
+    fontSize: 18,
+    color: '#4CAF50',
+    marginTop: 12,
+    fontWeight: 'bold',
+  },
+})

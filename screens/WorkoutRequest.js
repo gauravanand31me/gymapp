@@ -1,22 +1,54 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ImageBackground } from 'react-native';
-import { useNavigation } from '@react-navigation/native'; // Import the hook for navigation
+import React, { useEffect, useState, useRef } from 'react';
+import { 
+  View, 
+  Text, 
+  TouchableOpacity, 
+  StyleSheet, 
+  ImageBackground, 
+  Animated, 
+  Dimensions,
+  ScrollView,
+  SafeAreaView
+} from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { acceptBuddyRequest } from '../api/apiService';
+import { Ionicons } from '@expo/vector-icons';
+import goldMedal from "../assets/goldmedal.jpg";
 
-const WorkoutRequest = ({ route, navigation }) => {
+const { width } = Dimensions.get('window');
+
+const WorkoutRequest = ({ route }) => {
   const { message, relatedId } = route.params;
-  const [booking, setBooking] = React.useState({});
-  console.log("relatedId", relatedId);
+  const [booking, setBooking] = useState({});
+  const navigation = useNavigation();
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(width)).current;
 
-  React.useEffect(() => {
+  useEffect(() => {
     const handleActionRequest = async (requestId) => {
-      const data = await acceptBuddyRequest(requestId);
-      console.log("data.booking", data);
-      setBooking(data.booking);
-      console.log("Data is in this page", data);
+      try {
+        const data = await acceptBuddyRequest(requestId);
+        setBooking(data.booking);
+      } catch (error) {
+        console.error("Error fetching booking details:", error);
+      }
     };
     handleActionRequest(relatedId);
-  }, []);
+
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 1000,
+        useNativeDriver: true,
+      }),
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        speed: 12,
+        bounciness: 8,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [relatedId, fadeAnim, slideAnim]);
 
   const {
     bookingDate,
@@ -27,45 +59,54 @@ const WorkoutRequest = ({ route, navigation }) => {
     gymRating,
   } = booking;
 
-  // Format date and time display
-  const formattedDate = new Date(bookingDate).toDateString(); // Format date
-  const formattedTime = slotStartTime; // Assuming slotStartTime is already in HH:MM:SS format
+  const formattedDate = bookingDate ? new Date(bookingDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'Loading...';
+  const formattedTime = slotStartTime || 'Loading...';
+
+  const renderDetailItem = (icon, label, value) => (
+    <View style={styles.detailItem}>
+      <Ionicons name={icon} size={24} color="#28A745" style={styles.icon} />
+      <View>
+        <Text style={styles.detailLabel}>{label}</Text>
+        <Text style={styles.detailValue}>{value}</Text>
+      </View>
+    </View>
+  );
 
   return (
     <ImageBackground 
-      //source={require('../assets/goldmedal.png')} // Add your downloaded image path here
+      source={goldMedal}
       style={styles.background}
     >
-      <View style={styles.container}>
-        <Text style={styles.title}>
-          <Text style={styles.highlightedText}>Invite</Text> Accepted!
-        </Text>
+      <SafeAreaView style={styles.safeArea}>
+        <ScrollView contentContainerStyle={styles.scrollContainer}>
+          <Animated.View style={[styles.container, { opacity: fadeAnim, transform: [{ translateX: slideAnim }] }]}>
+            <View style={styles.header}>
+              <Ionicons name="checkmark-circle" size={60} color="#28A745" />
+              <Text style={styles.title}>
+                <Text style={styles.highlightedText}>Invite</Text> Accepted!
+              </Text>
+            </View>
 
-        <View style={styles.detailsContainer}>
-          <Text style={styles.label}>Invitation Details:</Text>
-          <Text>
-            <TouchableOpacity onPress={() => navigation.navigate('GymDetails')}>
-              <Text style={styles.username}>{gymName}</Text>
-            </TouchableOpacity>.
-          </Text>
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Invitation Details</Text>
+              {renderDetailItem("business", "Gym", gymName || 'Loading...')}
+              {renderDetailItem("calendar", "Date", formattedDate)}
+              {renderDetailItem("time", "Time", formattedTime)}
+              {renderDetailItem("timer", "Duration", `${bookingDuration || '...'} minutes`)}
+              {renderDetailItem("cash", "Price", `₹${subscriptionPrice || '...'}`)}
+              {renderDetailItem("star", "Rating", `${gymRating || '...'} / 5`)}
+              <Text style={styles.message}>{message}</Text>
+            </View>
 
-          {/* Make the username clickable */}
-          <Text style={styles.detailText}>
-            {' '}
-            {message}
-          </Text>
+            <Text style={styles.footerText}>We look forward to seeing you there!</Text>
 
-          <Text style={styles.detailText}>Session Date & Time: <Text style={styles.bold}>{formattedDate}, {formattedTime}</Text></Text>
-          <Text style={styles.detailText}>Session Duration: <Text style={styles.bold}>{bookingDuration} minutes</Text></Text>
-        </View>
-
-        <Text style={styles.footerText}>We look forward to seeing you there!</Text>
-
-        {/* Back Button */}
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Text style={styles.backButtonText}>Back</Text>
-        </TouchableOpacity>
-      </View>
+            <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+              <Ionicons name="arrow-back" size={24} color="#FFF" />
+              <Text style={styles.backButtonText}>Back</Text>
+            </TouchableOpacity>
+          </Animated.View>
+        </ScrollView>
+      </SafeAreaView>
     </ImageBackground>
   );
 };
@@ -73,78 +114,100 @@ const WorkoutRequest = ({ route, navigation }) => {
 const styles = StyleSheet.create({
   background: {
     flex: 1,
-    resizeMode: 'cover', // Adjust the background image to cover the whole screen
+    resizeMode: 'cover',
+  },
+  safeArea: {
+    flex: 1,
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
   },
   container: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: 'rgba(243, 244, 246, 0.8)', // Semi-transparent background to overlay on the image
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
   },
-  backButton: {
-    position: 'absolute',
-    bottom: 30, // Position it 30 pixels from the bottom
-    padding: 15,
-    backgroundColor: '#28A745', // Green background
-    borderRadius: 5,
-    width: '50%', // Adjust the width of the button
-    alignItems: 'center', // Center text
-  },
-  backButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
+  header: {
+    alignItems: 'center',
+    marginBottom: 30,
   },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: 'bold',
     color: '#2C3E50',
     textAlign: 'center',
-    marginBottom: 20,
+    marginTop: 10,
     textTransform: 'uppercase',
   },
-  detailsContainer: {
-    marginBottom: 20,
+  highlightedText: {
+    color: '#28A745',
+  },
+  card: {
     backgroundColor: '#FFFFFF',
     borderRadius: 15,
     padding: 20,
+    width: '100%',
+    marginBottom: 20,
     elevation: 5,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 5,
-    width: '100%',
   },
-  label: {
-    fontSize: 20,
+  cardTitle: {
+    fontSize: 22,
     fontWeight: 'bold',
-    marginBottom: 10,
     color: '#34495E',
+    marginBottom: 15,
   },
-  detailText: {
+  detailItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  icon: {
+    marginRight: 15,
+  },
+  detailLabel: {
     fontSize: 16,
-    marginBottom: 5,
-    color: '#333',
+    color: '#7F8C8D',
   },
-  highlightedText: {
+  detailValue: {
+    fontSize: 18,
     fontWeight: 'bold',
-    color: '#28A745', // Green color for "Invited"
+    color: '#2C3E50',
   },
-  username: {
-    fontWeight: 'bold',
-    color: '#28A745', // Green color for emphasis
-    textDecorationLine: 'underline', // Add underline to indicate it's clickable
-  },
-  bold: {
-    fontWeight: 'bold',
-    color: '#28A745',
+  message: {
+    fontSize: 16,
+    color: '#34495E',
+    fontStyle: 'italic',
+    marginTop: 10,
   },
   footerText: {
     marginTop: 20,
-    fontSize: 16,
-    color: '#7F8C8D',
+    fontSize: 18,
+    color: '#2C3E50',
     textAlign: 'center',
+    fontWeight: 'bold',
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#28A745',
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 25,
+    marginTop: 20,
+  },
+  backButtonText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginLeft: 10,
   },
 });
 

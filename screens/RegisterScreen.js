@@ -1,104 +1,134 @@
-// screens/RegisterScreen.js
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert, ActivityIndicator, Linking } from 'react-native';
-import { registerUser } from '../api/apiService'; // Import the registerUser function
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert, ActivityIndicator, Linking, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
+import { registerUser } from '../api/apiService';
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 
-const RegisterScreen = ({ navigation }) => {
+// Import images
+import logoImage from '../assets/logowithouticon.jpg';
+import indiaFlagImage from '../assets/india-flag.png';
+
+const RegisterScreen = () => {
   const [fullName, setFullName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [loading, setLoading] = useState(false); // Add loading state
-  const [isPolicyAccepted, setIsPolicyAccepted] = useState(false); // State for policy checkbox
+  const [loading, setLoading] = useState(false);
+  const [isPolicyAccepted, setIsPolicyAccepted] = useState(false);
+  const navigation = useNavigation();
 
   const handleRegister = async () => {
-    if (!fullName || !phoneNumber) {
-      Alert.alert('Error', 'Please fill in all fields');
+    if (!fullName || !phoneNumber || phoneNumber.length !== 10) {
+      Alert.alert('Error', 'Please fill in all fields correctly');
       return;
     }
 
-    setLoading(true); // Show loader while registering
+    if (!isPolicyAccepted) {
+      Alert.alert('Error', 'Please accept the Privacy Policy');
+      return;
+    }
+
+    setLoading(true);
     try {
       const response = await registerUser(fullName, phoneNumber);
       console.log("Registration Success:", response);
-      setLoading(false); // Hide loader after successful registration
-      // Navigate to OTP screen with phoneNumber
       navigation.navigate('OTPVerification', { mobileNumber: phoneNumber, got_otp: response.otp });
     } catch (error) {
-      setLoading(false); // Hide loader if there's an error
       console.error('Registration failed:', error);
       Alert.alert('Registration Error', 'Something went wrong during registration. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <View style={styles.container}>
-      {/* Logo Image */}
-      <Image
-        source={{ uri: 'https://example.com/logo.png' }} // Replace with your logo URL
-        style={styles.logo}
-      />
-
-      <Text style={styles.title}>Create Your Account</Text>
-      <Text style={styles.subtitle}>Join us to book your workouts!</Text>
-
-      <TextInput
-        style={styles.input}
-        placeholder="Full Name"
-        placeholderTextColor='#808080'
-        value={fullName}
-        onChangeText={setFullName}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Mobile Number"
-        keyboardType="phone-pad"
-        maxLength={10}
-        placeholderTextColor='#808080'
-        value={phoneNumber}
-        onChangeText={setPhoneNumber}
-      />
-
-      {/* Privacy Policy Section */}
-      <View style={styles.policyContainer}>
-        <TouchableOpacity onPress={() => Linking.openURL('https://yupluck.com/privacy')}>
-          <Text style={styles.policyLink}>I have read and agree to the Privacy Policy</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.checkbox}
-          onPress={() => setIsPolicyAccepted(!isPolicyAccepted)}
-        >
-          <View style={isPolicyAccepted ? styles.checkboxSelected : styles.checkboxUnselected} />
-        </TouchableOpacity>
-      </View>
-
-      <TouchableOpacity
-        style={[styles.button, !isPolicyAccepted && styles.buttonDisabled]}
-        onPress={handleRegister}
-        disabled={!isPolicyAccepted || loading} // Disable button while loading or if policy is not accepted
+    <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.keyboardAvoidingView}
       >
-        {loading ? (
-          <ActivityIndicator size="small" color="#fff" />
-        ) : (
-          <Text style={styles.buttonText}>Register</Text>
-        )}
-      </TouchableOpacity>
+        <Image
+          source={logoImage}
+          style={styles.logo}
+          resizeMode="contain"
+        />
 
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>Already have an account? </Text>
-        <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-          <Text style={styles.linkText}>Login Now</Text>
+        <Text style={styles.title}>Create Your Account</Text>
+        <Text style={styles.subtitle}>Join us to book your workouts!</Text>
+
+        <TextInput
+          style={styles.input}
+          placeholder="Full Name"
+          placeholderTextColor='#808080'
+          value={fullName}
+          onChangeText={setFullName}
+        />
+
+        <View style={styles.phoneInputContainer}>
+          <View style={styles.flagContainer}>
+            <Image
+              source={indiaFlagImage}
+              style={styles.flagIcon}
+            />
+            <Text style={styles.countryCode}>+91</Text>
+          </View>
+          <TextInput
+            style={styles.phoneInput}
+            placeholder="Mobile Number"
+            keyboardType="phone-pad"
+            maxLength={10}
+            value={phoneNumber}
+            onChangeText={setPhoneNumber}
+          />
+        </View>
+
+        <View style={styles.policyContainer}>
+          <TouchableOpacity onPress={() => setIsPolicyAccepted(!isPolicyAccepted)}>
+            <View style={[styles.checkbox, isPolicyAccepted && styles.checkboxSelected]}>
+              {isPolicyAccepted && <Ionicons name="checkmark" size={16} color="#fff" />}
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => Linking.openURL('https://yupluck.com/privacy')}>
+            <Text style={styles.policyLink}>I have read and agree to the Privacy Policy</Text>
+          </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity
+          style={[styles.button, (!isPolicyAccepted || loading) && styles.buttonDisabled]}
+          onPress={handleRegister}
+          disabled={!isPolicyAccepted || loading}
+        >
+          {loading ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}>Register</Text>
+          )}
         </TouchableOpacity>
-      </View>
-    </View>
+
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>Already have an account? </Text>
+          <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+            <Text style={styles.linkText}>Login Now</Text>
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  keyboardAvoidingView: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#FFFFFF',
+  },
+  logo: {
+    width: 200,
+    height: 100,
+    marginBottom: 20,
   },
   title: {
     fontSize: 28,
@@ -112,6 +142,7 @@ const styles = StyleSheet.create({
     color: '#808080',
     textAlign: 'center',
     marginBottom: 40,
+    fontWeight: '500',
   },
   input: {
     width: '100%',
@@ -119,23 +150,47 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 5,
     padding: 15,
-    backgroundColor: '#D3D3D3',
+    backgroundColor: '#F0F0F0',
     color: '#333',
     marginBottom: 20,
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  phoneInputContainer: {
+    flexDirection: 'row',
+    width: '100%',
+    marginBottom: 20,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 5,
+    backgroundColor: '#F0F0F0',
+  },
+  flagContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    borderRightWidth: 1,
+    borderColor: '#ccc',
+  },
+  flagIcon: {
+    width: 25,
+    height: 15,
+    marginRight: 5,
+  },
+  countryCode: {
+    fontSize: 16,
+    color: '#333',
+  },
+  phoneInput: {
+    flex: 1,
+    padding: 15,
+    fontSize: 16,
+    color: '#333',
   },
   policyContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 20,
     width: '100%',
-    justifyContent: 'space-between',
-  },
-  policyLink: {
-    color: '#0ED94A',
-    textDecorationLine: 'underline',
-    fontSize: 14,
   },
   checkbox: {
     width: 20,
@@ -145,16 +200,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 3,
-  },
-  checkboxUnselected: {
-    width: 16,
-    height: 16,
-    backgroundColor: 'transparent',
+    marginRight: 10,
   },
   checkboxSelected: {
-    width: 16,
-    height: 16,
     backgroundColor: '#0ED94A',
+  },
+  policyLink: {
+    color: '#0ED94A',
+    textDecorationLine: 'underline',
+    fontSize: 14,
+    flex: 1,
   },
   button: {
     backgroundColor: '#28a745',
@@ -164,7 +219,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buttonDisabled: {
-    backgroundColor: '#94d3a2', // Light green for disabled state
+    backgroundColor: '#94d3a2',
   },
   buttonText: {
     color: '#fff',
@@ -181,11 +236,6 @@ const styles = StyleSheet.create({
   linkText: {
     color: '#28a745',
     fontWeight: 'bold',
-  },
-  logo: {
-    width: 150,
-    height: 150,
-    marginBottom: 30,
   },
 });
 

@@ -1,43 +1,91 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { fetchIndividualGymData } from '../api/apiService'; // Adjust the import path as needed
+import React, { useState, useEffect } from 'react';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  TouchableOpacity, 
+  ScrollView, 
+  ActivityIndicator,
+  Dimensions,
+  SafeAreaView
+} from 'react-native';
+import { fetchIndividualGymData } from '../api/apiService';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+
+const { width, height } = Dimensions.get('window');
 
 const AmenitiesListScreen = ({ gymId, onClose }) => {
-  const [amenities, setAmenities] = React.useState([]);
+  const [amenities, setAmenities] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const fetchAmenities = async () => {
       try {
-        const data = await fetchIndividualGymData(gymId); // Fetch amenities using gymId
-        setAmenities(data.equipment_list || []); // Set amenities list
+        setLoading(true);
+        const data = await fetchIndividualGymData(gymId);
+        setAmenities(data.equipment_list || []);
       } catch (error) {
         console.error('Error fetching amenities:', error);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchAmenities();
   }, [gymId]);
 
+  const renderAmenityIcon = (amenityName) => {
+    const iconMap = {
+      'Treadmill': 'run',
+      'Weights': 'dumbbell',
+      'Yoga Mat': 'yoga',
+      'Bicycle': 'bike',
+      'Pool': 'pool',
+      'Sauna': 'hot-tub',
+      'Locker': 'locker',
+      'Shower': 'shower',
+    };
+
+    const iconName = iconMap[amenityName] || 'fitness';
+    return <Icon name={iconName} size={24} color="#4CAF50" />;
+  };
+
   return (
-    <View style={styles.overlay}>
+    <SafeAreaView style={styles.overlay}>
       <View style={styles.container}>
-        <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-          <Text style={styles.closeButtonText}>✖️</Text>
-        </TouchableOpacity>
-        <Text style={styles.title}>Amenities</Text>
-        <ScrollView contentContainerStyle={styles.scrollView}>
-          {amenities.length > 0 ? (
-            amenities.map((amenity, index) => (
-              <View key={index} style={styles.amenityItem}>
-                <Text style={styles.amenityText}>{amenity.equipment_name || 'Unnamed Equipment'}</Text>
+        <View style={styles.header}>
+          <Text style={styles.title}>Gym Amenities</Text>
+          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+            <Icon name="close" size={24} color="#4CAF50" />
+          </TouchableOpacity>
+        </View>
+        
+        {loading ? (
+          <ActivityIndicator size="large" color="#4CAF50" style={styles.loader} />
+        ) : (
+          <ScrollView 
+            contentContainerStyle={styles.scrollView}
+            showsVerticalScrollIndicator={false}
+          >
+            {amenities.length > 0 ? (
+              amenities.map((amenity, index) => (
+                <View key={index} style={styles.amenityItem}>
+                  {renderAmenityIcon(amenity.equipment_name)}
+                  <Text style={styles.amenityText}>
+                    {amenity.equipment_name || 'Unnamed Equipment'}
+                  </Text>
+                </View>
+              ))
+            ) : (
+              <View style={styles.noAmenitiesContainer}>
+                <Icon name="alert-circle-outline" size={48} color="#999" />
+                <Text style={styles.noAmenitiesText}>No amenities listed for this gym.</Text>
               </View>
-            ))
-          ) : (
-            <Text style={styles.noAmenitiesText}>No amenities listed.</Text>
-          )}
-        </ScrollView>
+            )}
+          </ScrollView>
+        )}
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -49,45 +97,64 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   container: {
-    width: '80%',
+    width: width * 0.9,
+    maxHeight: height * 0.8,
     backgroundColor: '#fff',
-    borderRadius: 10,
+    borderRadius: 20,
     padding: 20,
     elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
-  closeButton: {
-    alignSelf: 'flex-end',
-  },
-  closeButtonText: {
-    fontSize: 24,
-    color: '#4CAF50',
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
   },
   title: {
-    fontSize: 18,
+    fontSize: 24,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: 10,
-    textAlign: 'center',
+  },
+  closeButton: {
+    padding: 5,
   },
   scrollView: {
-    maxHeight: 400,
+    flexGrow: 1,
   },
   amenityItem: {
-    paddingVertical: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
+    borderBottomColor: '#E0E0E0',
   },
   amenityText: {
-    fontSize: 16,
+    fontSize: 18,
     color: '#333',
+    marginLeft: 15,
+  },
+  noAmenitiesContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 40,
   },
   noAmenitiesText: {
-    fontSize: 16,
+    fontSize: 18,
     color: '#999',
     textAlign: 'center',
+    marginTop: 10,
+  },
+  loader: {
     marginVertical: 20,
   },
 });
-
 
 export default AmenitiesListScreen;
