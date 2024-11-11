@@ -12,11 +12,14 @@ import {
   SafeAreaView,
   StatusBar,
   Platform,
+  Modal,
 } from 'react-native';
 import { ProgressBar } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
 import Footer from '../components/Footer';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import * as ImageManipulator from 'expo-image-manipulator';
+
 import {
   userDetails,
   uploadProfileImage,
@@ -24,7 +27,6 @@ import {
   getVisitedBuddies,
 } from '../api/apiService';
 
-// Import milestone images
 import bronzeMedal from '../assets/bronzemedal.jpg';
 import silverMedal from '../assets/silvermedal.jpg';
 import goldMedal from '../assets/goldmedal.jpg';
@@ -40,8 +42,24 @@ const milestoneImages = {
 const milestones = {
   bronze: 50,
   silver: 100,
-  gold: 150,
-  diamond: 200,
+  gold: 200,
+  diamond: 300,
+};
+
+const getCurrentMilestone = (hours) => {
+  if (parseInt(hours) >= milestones.diamond) return 'diamond';
+  if (parseInt(hours) >= milestones.gold) return 'gold';
+  if (parseInt(hours) >= milestones.silver) return 'silver';
+  if (parseInt(hours) >= milestones.bronze) return 'bronze';
+  return null;
+};
+
+const getProgress = (hours) => {
+  if (hours >= 300) return 1; // Full progress for Diamond milestone
+  if (hours >= 200) return (hours - 200) / 100 + 0.75; // Progress towards Diamond (200-300 hours)
+  if (hours >= 100) return (hours - 100) / 100 + 0.5; // Progress towards Gold (100-200 hours)
+  if (hours >= 50) return (hours - 50) / 50 + 0.25; // Progress towards Silver (50-100 hours)
+  return hours / 50 * 0.25; // Progress towards Bronze (0-50 hours)
 };
 
 export default function ProfileScreen({ navigation, route }) {
@@ -53,6 +71,8 @@ export default function ProfileScreen({ navigation, route }) {
   const [visitedBuddies, setVisitedBuddies] = useState([]);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+
 
   const getCurrentMilestone = (hours) => {
     const numericHours = parseFloat(hours) || 0;
@@ -125,21 +145,26 @@ export default function ProfileScreen({ navigation, route }) {
 
     if (!result.canceled) {
       const selectedImage = result.assets[0].uri;
-      setUploadingImage(true);
-      setUploadSuccess(false);
 
       try {
-        await uploadProfileImage(selectedImage);
-        setProfileImage(selectedImage);
-        setUploadSuccess(true);
-        setTimeout(() => setUploadSuccess(false), 3000); // Hide success message after 3 seconds
+        const manipulatedImage = await ImageManipulator.manipulateAsync(
+          selectedImage,
+          [{ resize: { width: 800 } }],
+          { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
+        );
+
+        setProfileImage(manipulatedImage.uri);
+        await uploadProfileImage(manipulatedImage.uri);
+        Alert.alert('Success', 'Profile image uploaded successfully.');
       } catch (error) {
         console.error('Error uploading profile image:', error);
         Alert.alert('Upload Error', 'Failed to upload profile image.');
-      } finally {
-        setUploadingImage(false);
       }
     }
+  };
+
+  const toggleModal = () => {
+    setIsModalVisible(!isModalVisible);
   };
 
   if (loading) {
@@ -149,7 +174,6 @@ export default function ProfileScreen({ navigation, route }) {
       </View>
     );
   }
-
   const totalWorkoutHours = (userData?.total_work_out_time || 0) / 60;
   const currentMilestone = getCurrentMilestone(totalWorkoutHours);
   const progress = getProgress(totalWorkoutHours);
@@ -184,22 +208,27 @@ export default function ProfileScreen({ navigation, route }) {
   );
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
       <ScrollView style={styles.container}>
-        <View style={styles.profileSection}>
-          <View style={styles.profileHeader}>
+      <View style={styles.profileSection}>
+        <View style={styles.profileHeader}>
+          <TouchableOpacity onPress={toggleModal}>
             <View style={styles.profileImageContainer}>
-              {uploadingImage ? (
-                <View style={[styles.profileImage, styles.uploadingOverlay]}>
-                  <ActivityIndicator size="large" color="#4CAF50" />
-                </View>
-              ) : (
-                <Image source={{ uri: profileImage }} style={styles.profileImage} />
-              )}
+              <Image source={{ uri: profileImage }} style={styles.profileImage} />
               <TouchableOpacity style={styles.addPhotoButton} onPress={selectProfileImage}>
-                <Icon name="camera" size={20} color="#fff" />
+                <Icon name="plus-circle-outline" size={25} color="#fff" />
               </TouchableOpacity>
             </View>
+          </TouchableOpacity>
+
+          <Modal visible={isModalVisible} transparent={true} onRequestClose={toggleModal}>
+            <View style={styles.modalContainer}>
+              <TouchableOpacity style={styles.closeModalButton} onPress={toggleModal}>
+                <Icon name="close" size={30} color="#fff" />
+              </TouchableOpacity>
+              <Image source={{ uri: profileImage }} style={styles.enlargedProfileImage} />
+            </View>
+          </Modal>
             <View style={styles.profileDetails}>
               <Text style={styles.fullName}>
                 {userData?.full_name || 'N/A'}
@@ -312,7 +341,7 @@ export default function ProfileScreen({ navigation, route }) {
         </View>
       </ScrollView>
       <Footer navigation={navigation} />
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -320,7 +349,7 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#f5f5f5',
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+    paddingTop: 25,
   },
   container: {
     flex: 1,
@@ -545,5 +574,21 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+  },
+  enlargedProfileImage: {
+    width: 300,
+    height: 300,
+    borderRadius: 150,
+  },
+  closeModalButton: {
+    position: 'absolute',
+    top: 40,
+    right: 20,
   },
 });

@@ -127,21 +127,21 @@ export default function BookingsScreen({ navigation }) {
   );
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
       <View style={styles.container}>
         <Text style={styles.headerText}>My Bookings</Text>
 
         <View style={styles.tabContainer}>
           {['Upcoming', 'Completed', 'No Show'].map((tab) => (
-            <TouchableOpacity
-              key={tab}
-              style={[styles.tabButton, selectedTab === tab && styles.activeTabButton]}
-              onPress={() => setSelectedTab((tab === "No Show") ? "noShow" : tab )}
-            >
-              <Text style={[styles.tabText, selectedTab === tab && styles.activeTabText]}>
-                {tab}
-              </Text>
-            </TouchableOpacity>
+     <TouchableOpacity
+     key={tab}
+     style={[styles.tabButton, selectedTab === tab && styles.activeTabButton]}
+     onPress={() => setSelectedTab(tab)}  // Use the same value as displayed
+   >
+     <Text style={[styles.tabText, selectedTab === tab && styles.activeTabText]}>
+       {tab}
+     </Text>
+   </TouchableOpacity>
           ))}
         </View>
 
@@ -199,7 +199,7 @@ export default function BookingsScreen({ navigation }) {
       <View style={styles.footerContainer}>
         <Footer navigation={navigation} />
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -216,6 +216,7 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#F3F4F6',
+    paddingTop:10
   },
   container: {
     flex: 1,
@@ -230,27 +231,29 @@ const styles = StyleSheet.create({
   },
   tabContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 8,
-    padding: 4,
+    justifyContent: 'center',
+    marginBottom: 10,
   },
   tabButton: {
-    flex: 1,
-    paddingVertical: 8,
+    padding: 10,
+    backgroundColor: '#e0e0e0',
+    borderRadius: 10,
+    marginHorizontal: 5,
+    width: '25%',
     alignItems: 'center',
-    borderRadius: 6,
+    flex: 1
   },
   activeTabButton: {
-    backgroundColor: '#4F46E5',
+    backgroundColor: '#4CAF50',
   },
   tabText: {
-    fontWeight: '600',
-    color: '#4B5563',
+    color: '#777',
+    fontWeight: 'bold',
+    fontSize: 12,
   },
   activeTabText: {
-    color: '#FFFFFF',
+    color: '#FFFFFF',  // White text color when active
+    fontWeight: 'bold', // Bold text when active
   },
   contentContainer: {
     flex: 1,

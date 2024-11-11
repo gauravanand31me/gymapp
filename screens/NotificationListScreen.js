@@ -177,7 +177,7 @@ export default function NotificationListScreen({ navigation }) {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <View style={styles.header}>
         <Bell size={24} color="#4CAF50" />
         <Text style={styles.headerText}>Notifications</Text>
@@ -196,7 +196,7 @@ export default function NotificationListScreen({ navigation }) {
         />
       )}
       <Footer navigation={navigation} />
-    </SafeAreaView>
+    </View>
   )
 }
 
@@ -204,6 +204,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
+    paddingTop: 25
   },
   header: {
     flexDirection: 'row',
@@ -271,7 +272,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   viewButton: {
-    backgroundColor: '#2196F3',
+    backgroundColor: '#4CAF50',
     padding: 8,
     borderRadius: 20,
   },

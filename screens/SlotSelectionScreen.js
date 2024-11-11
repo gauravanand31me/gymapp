@@ -9,10 +9,10 @@ import {
   SafeAreaView,
 } from 'react-native'
 import DateTimePicker from '@react-native-community/datetimepicker'
-import { Calendar, Clock, ChevronLeft, Check } from 'lucide-react-native'
+import { Calendar, ChevronLeft } from 'lucide-react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 
-const SlotSelectionScreen = ({ navigation, route }) => {
+export default function Component({ navigation, route }) {
   const { gym } = route.params
   const [date, setDate] = useState(new Date())
   const [showDatePicker, setShowDatePicker] = useState(false)
@@ -182,6 +182,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 20,
+    marginTop: 20, // Added to move the button down
   },
   backButtonText: {
     fontSize: 18,
@@ -220,34 +221,36 @@ const styles = StyleSheet.create({
   },
   timeSlotContainer: {
     flexDirection: 'row',
-    marginBottom: 24,
+    marginBottom: 20,
+    paddingVertical: 4,
   },
   timeSlot: {
     backgroundColor: '#FFFFFF',
-    padding: 16,
-    borderRadius: 12,
-    marginRight: 12,
+    padding: 8,
+    borderRadius: 8,
+    marginRight: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    minWidth: 100,
+    minWidth: 70,
+    height: 80,
   },
   selectedTimeSlot: {
-    backgroundColor: '#81C784',
+    backgroundColor: '#2E7D32',
   },
   disabledTimeSlot: {
     opacity: 0.5,
   },
   timeSlotText: {
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: '600',
     color: '#4CAF50',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   selectedTimeSlotText: {
     color: '#FFFFFF',
   },
   priceText: {
-    fontSize: 16,
+    fontSize: 12,
     color: '#4CAF50',
   },
   disabledText: {
@@ -268,7 +271,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   selectedDurationButton: {
-    backgroundColor: '#81C784',
+    backgroundColor: '#2E7D32',
   },
   durationButtonText: {
     fontSize: 16,
@@ -290,5 +293,3 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 })
-
-export default SlotSelectionScreen
