@@ -27,18 +27,6 @@ import {
   getVisitedBuddies,
 } from '../api/apiService';
 
-import bronzeMedal from '../assets/bronzemedal.jpg';
-import silverMedal from '../assets/silvermedal.jpg';
-import goldMedal from '../assets/goldmedal.jpg';
-import diamondMedal from '../assets/diamondmedal.jpg';
-
-const milestoneImages = {
-  bronze: bronzeMedal,
-  silver: silverMedal,
-  gold: goldMedal,
-  diamond: diamondMedal,
-};
-
 const milestones = {
   bronze: 50,
   silver: 100,
@@ -74,23 +62,6 @@ export default function ProfileScreen({ navigation, route }) {
   const [isModalVisible, setIsModalVisible] = useState(false);
 
 
-  const getCurrentMilestone = (hours) => {
-    const numericHours = parseFloat(hours) || 0;
-    if (numericHours >= milestones.diamond) return 'diamond';
-    if (numericHours >= milestones.gold) return 'gold';
-    if (numericHours >= milestones.silver) return 'silver';
-    if (numericHours >= milestones.bronze) return 'bronze';
-    return null;
-  };
-
-  const getProgress = (hours) => {
-    const numericHours = parseFloat(hours) || 0;
-    if (numericHours >= milestones.diamond) return 1;
-    if (numericHours >= milestones.gold) return numericHours / milestones.diamond;
-    if (numericHours >= milestones.silver) return numericHours / milestones.gold;
-    if (numericHours >= milestones.bronze) return numericHours / milestones.silver;
-    return numericHours / milestones.bronze;
-  };
 
   const fetchUserData = async () => {
     try {
@@ -233,9 +204,17 @@ export default function ProfileScreen({ navigation, route }) {
               <Text style={styles.fullName}>
                 {userData?.full_name || 'N/A'}
                 {currentMilestone && (
-                  <Image
-                    source={milestoneImages[currentMilestone]}
-                    style={styles.milestoneIconNearName}
+                <Image
+                  source={
+                    currentMilestone === 'bronze'
+                      ? require('../assets/bronzemedal.jpg')
+                      : currentMilestone === 'silver'
+                      ? require('../assets/silvermedal.jpg')
+                      : currentMilestone === 'gold'
+                      ? require('../assets/goldmedal.jpg')
+                      : require('../assets/diamondmedal.jpg')
+                  }
+                  style={styles.milestoneIconNearName}
                   />
                 )}
               </Text>
@@ -273,38 +252,34 @@ export default function ProfileScreen({ navigation, route }) {
         </View>
 
         <View style={styles.milestoneContainer}>
-          <Text style={styles.sectionTitle}>Milestone Progress</Text>
-          <View style={styles.milestoneIcons}>
-            {['bronze', 'silver', 'gold', 'diamond'].map((milestone) => (
-              <Image
-                key={milestone}
-                source={milestoneImages[milestone]}
-                style={[
-                  styles.milestoneIcon,
-                  currentMilestone === milestone && styles.activeMilestone,
-                ]}
-              />
-            ))}
-          </View>
-          <ProgressBar
-            progress={progress}
-            color="#4CAF50"
-            style={styles.progressBar}
-          />
-          <Text style={styles.milestoneText}>
-            {currentMilestone !== 'diamond'
-              ? `${(milestones[currentMilestone || 'bronze'] - totalWorkoutHours).toFixed(1)} hours away from earning ${
-                  currentMilestone === 'bronze'
-                    ? 'Silver'
-                    : currentMilestone === 'silver'
-                    ? 'Gold'
-                    : currentMilestone === 'gold'
-                    ? 'Diamond'
-                    : 'Bronze'
-                }.`
-              : `Congratulations! You've reached the highest milestone!`}
-          </Text>
+        <Text style={styles.sectionTitle}>Milestone Progress</Text>
+        <View style={styles.milestoneIcons}>
+          <Image source={require('../assets/bronzemedal.jpg')} style={styles.milestoneIcon} />
+          <Image source={require('../assets/silvermedal.jpg')} style={styles.milestoneIcon} />
+          <Image source={require('../assets/goldmedal.jpg')} style={styles.milestoneIcon} />
+          <Image source={require('../assets/diamondmedal.jpg')} style={styles.milestoneIcon} />
         </View>
+        <ProgressBar
+         progress={progress} // Use the updated progress logic here
+         width={null}
+         height={10}
+         color="#6FCF97"
+         unfilledColor="#E0E0E0"
+         borderColor="transparent"
+         style={styles.progressBar}
+        />
+        <Text style={styles.milestoneText}>
+          {milestones[currentMilestone || 'bronze'] - totalWorkoutHours} hours away from earning{' '}
+          {currentMilestone === 'bronze'
+            ? 'Silver'
+            : currentMilestone === 'silver'
+            ? 'Gold'
+            : currentMilestone === 'gold'
+            ? 'Diamond'
+            : 'Bronze'}
+          .
+        </Text>
+      </View>
 
         <View style={styles.tabContainer}>
           <TouchableOpacity
@@ -478,20 +453,18 @@ const styles = StyleSheet.create({
   },
   milestoneIcons: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 10,
+    justifyContent: 'space-around',
+    marginBottom: 5, // Reduced space below the icons
+    marginLeft: 20,  // This moves the icons slightly to the right
+    backgroundColor:'#fff'
   },
   milestoneIcon: {
-    width: 40,
-    height: 40,
-    opacity: 0.3,
-  },
-  activeMilestone: {
-    opacity: 1,
+    width: 40, // Reduced icon size
+    height: 40, // Reduced icon size
   },
   progressBar: {
-    height: 10,
-    borderRadius: 5,
+    marginTop: 10, // Reduced space above the progress bar
+    height: 8, // Slightly thinner progress bar
   },
   milestoneText: {
     marginTop: 10,

@@ -142,9 +142,8 @@ export default function PaymentScreen({ route, navigation }) {
                 <Text style={styles.detail}>Duration: {slotDetails.duration || slotDetails.bookingDuration} min</Text>
               </View>
               <View style={styles.detailRow}>
-                <DollarSign size={24} color="#4CAF50" />
-                <Text style={styles.price}>
-                  Price: INR {slotDetails.price * (slotDetails.duration / 60) || slotDetails.subscriptionPrice}
+                
+                <Text style={styles.price}>₹  Price: INR {slotDetails.price * (slotDetails.duration / 60) || slotDetails.subscriptionPrice}
                 </Text>
               </View>
             </View>
