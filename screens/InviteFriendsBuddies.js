@@ -92,9 +92,12 @@ export default function InviteFriendBuddiesScreen({ navigation, route }) {
           source={item.profile_pic ? { uri: item.profile_pic } : require('../assets/cultfit.jpg')}
           style={styles.buddyImage}
         />
-        <View style={styles.buddyInfo}>
+        <TouchableOpacity 
+          style={styles.buddyInfo}
+          onPress={() => navigation.navigate('UserProfile', { userId: item.fromUserId })}
+        >
           <Text style={styles.buddyName}>{item.full_name}</Text>
-        </View>
+        </TouchableOpacity>
         {bookingId ? (
           <TouchableOpacity
             style={[styles.inviteButton, isInvited && styles.invitedButton]}
