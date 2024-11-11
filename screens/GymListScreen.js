@@ -171,8 +171,7 @@ export default function GymListScreen({ navigation }) {
           {item.distance ? `${item.distance.toFixed(1)} km away` : 'N/A'}
         </Text>
         <Text style={styles.gymPrice}>
-          <MaterialIcon name="attach-money" size={16} color="#4CAF50" />
-          {item.subscriptionPrices?.[0] || 'N/A'}/session
+        <Text style={styles.gymPrice}>₹ {item.subscriptionPrices?.[0] || 'N/A'}/session</Text>
         </Text>
         <TouchableOpacity 
           style={styles.bookNowButton}
@@ -196,7 +195,7 @@ export default function GymListScreen({ navigation }) {
         <View style={styles.pincodeContainer}>
           <TextInput
             style={styles.pincodeInput}
-            placeholder="Enter pincode"
+            placeholder="Search Gym using Pincode"
             placeholderTextColor="#aaa"
             value={pincode}
             onChangeText={setPincode}
