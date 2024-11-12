@@ -491,4 +491,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  footerContainer: {
+    position: 'absolute', // Fix it at the bottom
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 60, // Adjust height as needed
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+  }
 });

@@ -59,11 +59,7 @@ const LoginScreen = ({ navigation }) => {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardAvoidingView}
       >
-        <Image
-          source={require('../assets/logowithouticon.jpg')}
-          style={styles.logo}
-          resizeMode="contain"
-        />
+  
 
         <Text style={styles.title}>Welcome to YUPLUCK</Text>
         <Text style={styles.subtitle}>Your instant GYM booking platform!</Text>
