@@ -11,13 +11,12 @@ import {
   Platform,
   Alert,
   ActivityIndicator,
-  Dimensions,
+  Dimensions 
 } from 'react-native';
 import * as Location from 'expo-location';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigationState } from '@react-navigation/native';
 import axios from 'axios';
-import Icon from 'react-native-vector-icons/FontAwesome';
-import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
 import { fetchAllGyms } from '../api/apiService';
 import Footer from '../components/Footer';
 import * as Linking from 'expo-linking';
@@ -27,6 +26,7 @@ const GOOGLE_MAPS_API_KEY = 'AIzaSyAAMaXbIBC1IgC_B1kyALkcH87grvcSBhY';
 
 export default function GymListScreen({ navigation }) {
   const [gyms, setGyms] = useState([]);
+  const currentRouteName = useNavigationState(state => state.routes[state.index].name);
   const [address, setAddress] = useState('');
   const [pincode, setPincode] = useState('');
   const [loading, setLoading] = useState(true);
@@ -36,29 +36,35 @@ export default function GymListScreen({ navigation }) {
   const [isFooterVisible, setIsFooterVisible] = useState(true);
   const [page, setPage] = useState(1);
   const [hasMoreGyms, setHasMoreGyms] = useState(true);
-  const [pageStart, setPageStart] = useState(false);
   const limit = 3;
+  const [unfocused, setUnfocused] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
-      setPincode("");
+      // Reset state when the screen comes into focus
+     
+      setPincode('');
       setGyms([]);
       setPage(1);
-      setPageStart(true);
+      
       setHasMoreGyms(true);
+      
+
       return () => {
-        console.log("Screen is unfocused!");
+        // Clean up function when the screen loses focus
+        setUnfocused(true);
+        console.log('Screen is unfocused!');
       };
-    }, [])
+    }, [currentRouteName])
   );
 
   useEffect(() => {
-    if (!pincode && !pageStart) {
-      getLocation();
-    } else {
+    if (lat && long) {
       fetchGyms(lat, long);
+    } else {
+      getLocation();
     }
-  }, [page]);
+  }, [unfocused, page, lat, long]);
 
   const getLocation = async () => {
     try {
@@ -78,7 +84,6 @@ export default function GymListScreen({ navigation }) {
       setLat(location.coords.latitude);
       setLong(location.coords.longitude);
       fetchAddress(location.coords.latitude, location.coords.longitude);
-      fetchGyms(location.coords.latitude, location.coords.longitude);
     } catch (error) {
       console.error('Error getting location:', error);
       Alert.alert('Error', 'Could not retrieve location. Please try again later.');
@@ -86,6 +91,7 @@ export default function GymListScreen({ navigation }) {
   };
 
   const fetchGyms = async (lat, long) => {
+ 
     if (page === 1) {
       setLoading(true);
     } else {
@@ -95,11 +101,10 @@ export default function GymListScreen({ navigation }) {
       const response = await fetchAllGyms(lat, long, '', limit, page);
       if (response?.length > 0) {
         setHasMoreGyms(true);
-        setGyms(prevGyms => [...prevGyms, ...response]);
+        setGyms(prevGyms => page === 1 ? response : [...prevGyms, ...response]);
       } else {
         setHasMoreGyms(false);
       }
-      setPageStart(false);
     } catch (error) {
       console.error('Error fetching gyms:', error);
       Alert.alert('Error', 'Failed to load gyms. Please try again later.');
@@ -128,6 +133,7 @@ export default function GymListScreen({ navigation }) {
     }
     setLoading(true);
     setGyms([]);
+    setPage(1);
     try {
       const response = await axios.get(`https://maps.googleapis.com/maps/api/geocode/json?address=${pincode}&key=${GOOGLE_MAPS_API_KEY}`);
       const location = response.data.results[0].geometry.location;
@@ -135,12 +141,10 @@ export default function GymListScreen({ navigation }) {
       const cityComponent = addressComponents.find(component =>
         component.types.includes("locality") || component.types.includes("administrative_area_level_2")
       );
-      console.log("location is", location);
       const city = cityComponent ? cityComponent.long_name : null;
       setAddress(city || 'Unknown location');
       setLat(location.lat);
       setLong(location.lng);
-      fetchGyms(location.lat, location.lng);
     } catch (error) {
       console.error('Error fetching location from pincode:', error);
       Alert.alert('Error', 'Could not retrieve location for the entered pincode.');
@@ -150,9 +154,14 @@ export default function GymListScreen({ navigation }) {
   };
 
   const loadMoreGyms = () => {
-    if (hasMoreGyms && !loadingMore) {
+    if (hasMoreGyms && !loadingMore && !unfocused) {
       setPage(prevPage => prevPage + 1);
+    } else {
+     
+      setPage(1);
+      setUnfocused(false);
     }
+
   };
 
   const renderGym = ({ item }) => (
@@ -167,12 +176,10 @@ export default function GymListScreen({ navigation }) {
       <View style={styles.gymInfo}>
         <Text style={styles.gymName}>{item.gymName}</Text>
         <Text style={styles.gymDistance}>
-          <MaterialIcon name="location-on" size={14} color="#757575" /> 
+          <MaterialIcons name="location-on" size={14} color="#757575" /> 
           {item.distance ? `${item.distance.toFixed(1)} km away` : 'N/A'}
         </Text>
-        <Text style={styles.gymPrice}>
         <Text style={styles.gymPrice}>₹ {item.subscriptionPrices?.[0] || 'N/A'}/session</Text>
-        </Text>
         <TouchableOpacity 
           style={styles.bookNowButton}
           onPress={() => navigation.navigate('GymDetails', { gym_id: item.gymId })}
@@ -190,7 +197,7 @@ export default function GymListScreen({ navigation }) {
     >
       <View style={styles.header}>
         <Text style={styles.locationText}>
-          <MaterialIcon name="location-on" size={18} color="#fff" /> {address || 'Fetching location...'}
+          <MaterialIcons name="location-on" size={18} color="#fff" /> {address || 'Fetching location...'}
         </Text>
         <View style={styles.pincodeContainer}>
           <TextInput
@@ -202,14 +209,14 @@ export default function GymListScreen({ navigation }) {
             keyboardType="numeric"
           />
           <TouchableOpacity onPress={fetchGymsByPincode} style={styles.searchButton}>
-            <Icon name="search" size={18} color="#4CAF50" />
+            <FontAwesome name="search" size={18} color="#4CAF50" />
           </TouchableOpacity>
         </View>
         <TouchableOpacity
           style={styles.searchGymButton}
           onPress={() => navigation.navigate('SearchGym', { lat, long })}
         >
-          <MaterialIcon name="search" size={20} color="#fff" />
+          <MaterialIcons name="search" size={20} color="#fff" />
           <Text style={styles.searchGymText}>Search nearby Gym</Text>
         </TouchableOpacity>
       </View>
@@ -225,7 +232,7 @@ export default function GymListScreen({ navigation }) {
           keyExtractor={(item) => item.gymId.toString()}
           contentContainerStyle={styles.gymList}
           onEndReached={loadMoreGyms}
-          onEndReachedThreshold={0.5}
+          onEndReachedThreshold={0.1}
           ListFooterComponent={
             loadingMore ? (
               <ActivityIndicator size="small" color="#4CAF50" style={styles.loadingMore} />
