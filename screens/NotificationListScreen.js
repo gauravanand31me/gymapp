@@ -73,7 +73,7 @@ export default function NotificationListScreen({ navigation }) {
     }
   }
 
-  const renderItem = ({ item, index }) => (
+  const renderItem = ({ item }) => (
     <Animated.View
       style={[
         styles.notificationItem,
@@ -158,44 +158,41 @@ export default function NotificationListScreen({ navigation }) {
     </Animated.View>
   )
 
-  if (loading) {
-    return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color="#4CAF50" />
-        <Text style={styles.loadingText}>Loading notifications...</Text>
-      </View>
-    )
-  }
-
-  if (error) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <Text style={styles.errorText}>{error}</Text>
-        <Footer navigation={navigation} />
-      </SafeAreaView>
-    )
-  }
-
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Bell size={24} color="#4CAF50" />
         <Text style={styles.headerText}>Notifications</Text>
       </View>
-      {notifications.length === 0 ? (
-        <View style={styles.emptyState}>
-          <Bell size={48} color="#ccc" />
-          <Text style={styles.emptyStateText}>No notifications yet</Text>
-        </View>
-      ) : (
-        <FlatList
-          data={notifications}
-          renderItem={renderItem}
-          keyExtractor={(item) => item.relatedId.toString()}
-          contentContainerStyle={styles.listContent}
-        />
-      )}
-      <Footer navigation={navigation} />
+
+      {/* Content Area */}
+      <View style={[styles.content, { justifyContent: notifications.length === 0 ? 'center' : 'flex-start' }]}>
+        {loading ? (
+          <View style={styles.emptyState}>
+            <ActivityIndicator size="large" color="#4CAF50" />
+            <Text style={styles.loadingText}>Loading notifications...</Text>
+          </View>
+        ) : error ? (
+          <Text style={styles.errorText}>{error}</Text>
+        ) : notifications.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Bell size={48} color="#ccc" />
+            <Text style={styles.emptyStateText}>No notifications yet</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={notifications}
+            renderItem={renderItem}
+            keyExtractor={(item) => item.relatedId.toString()}
+            contentContainerStyle={styles.listContent}
+          />
+        )}
+      </View>
+
+      {/* Fixed Footer */}
+      <View style={styles.footerContainer}>
+        <Footer navigation={navigation} />
+      </View>
     </View>
   )
 }
@@ -204,7 +201,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
-    paddingTop: 25
+    paddingTop: 30
   },
   header: {
     flexDirection: 'row',
@@ -214,6 +211,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
+  },
+  content: {
+    flex: 1, // Takes up the remaining space between header and footer
+    //justifyContent: notifications.length === 0 ? 'center' : 'flex-start', // Center empty state if no notifications
+    paddingBottom: 60, // Ensure content is not hidden behind footer
   },
   headerText: {
     fontSize: 20,
@@ -299,4 +301,14 @@ const styles = StyleSheet.create({
     color: '#888',
     marginTop: 16,
   },
+  footerContainer: {
+    position: 'absolute', // Fix it at the bottom
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 60, // Adjust height as needed
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+  }
 })

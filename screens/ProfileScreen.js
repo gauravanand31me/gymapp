@@ -20,6 +20,7 @@ import Footer from '../components/Footer';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import * as ImageManipulator from 'expo-image-manipulator';
 
+
 import {
   userDetails,
   uploadProfileImage,
@@ -67,7 +68,7 @@ export default function ProfileScreen({ navigation, route }) {
     try {
       const data = await userDetails();
       setUserData(data);
-      setProfileImage(data.profile_pic || profileImage);
+      setProfileImage(data.profile_pic || 'https://via.placeholder.com/150');
     } catch (error) {
       console.error('Error fetching user data:', error);
       Alert.alert('Error', 'Could not fetch user data. Please try again later.');
@@ -134,6 +135,7 @@ export default function ProfileScreen({ navigation, route }) {
     }
   };
 
+
   const toggleModal = () => {
     setIsModalVisible(!isModalVisible);
   };
@@ -177,6 +179,15 @@ export default function ProfileScreen({ navigation, route }) {
       )}
     </TouchableOpacity>
   );
+  const nextMilestone = currentMilestone === 'bronze'
+  ? 'Silver'
+  : currentMilestone === 'silver'
+  ? 'Gold'
+  : currentMilestone === 'gold'
+  ? 'Diamond'
+  : 'Bronze'; // Reset to 'Bronze' if at Diamond
+
+  const hoursToNextMilestone = milestones[nextMilestone.toLowerCase()] - totalWorkoutHours;
 
   return (
     <View style={styles.safeArea}>
@@ -220,6 +231,7 @@ export default function ProfileScreen({ navigation, route }) {
               </Text>
               <Text style={styles.username}>@{userData?.username || 'N/A'}</Text>
               <Text style={styles.mobileNumber}>{userData?.mobile_number || 'N/A'}</Text>
+                  
             </View>
           </View>
           <TouchableOpacity
@@ -251,35 +263,29 @@ export default function ProfileScreen({ navigation, route }) {
           </View>
         </View>
 
-        <View style={styles.milestoneContainer}>
-        <Text style={styles.sectionTitle}>Milestone Progress</Text>
-        <View style={styles.milestoneIcons}>
-          <Image source={require('../assets/bronzemedal.jpg')} style={styles.milestoneIcon} />
-          <Image source={require('../assets/silvermedal.jpg')} style={styles.milestoneIcon} />
-          <Image source={require('../assets/goldmedal.jpg')} style={styles.milestoneIcon} />
-          <Image source={require('../assets/diamondmedal.jpg')} style={styles.milestoneIcon} />
+         <View style={styles.milestoneContainer}>
+          <Text style={styles.sectionTitle}>Milestone Progress</Text>
+          <View style={styles.milestoneIcons}>
+            <Image source={require('../assets/bronzemedal.jpg')} style={styles.milestoneIcon} />
+            <Image source={require('../assets/silvermedal.jpg')} style={styles.milestoneIcon} />
+            <Image source={require('../assets/goldmedal.jpg')} style={styles.milestoneIcon} />
+            <Image source={require('../assets/diamondmedal.jpg')} style={styles.milestoneIcon} />
+          </View>
+          <ProgressBar
+            progress={progress}
+            width={null}
+            height={10}
+            color="#6FCF97"
+            unfilledColor="#E0E0E0"
+            borderColor="transparent"
+            style={styles.progressBar}
+          />
+          <Text style={styles.milestoneText}>
+            {hoursToNextMilestone > 0
+              ? `${Math.floor(hoursToNextMilestone)} hous away from earning ${nextMilestone}.`
+              : `You have achieved ${nextMilestone} milestone!`}
+          </Text>
         </View>
-        <ProgressBar
-         progress={progress} // Use the updated progress logic here
-         width={null}
-         height={10}
-         color="#6FCF97"
-         unfilledColor="#E0E0E0"
-         borderColor="transparent"
-         style={styles.progressBar}
-        />
-        <Text style={styles.milestoneText}>
-          {milestones[currentMilestone || 'bronze'] - totalWorkoutHours} hours away from earning{' '}
-          {currentMilestone === 'bronze'
-            ? 'Silver'
-            : currentMilestone === 'silver'
-            ? 'Gold'
-            : currentMilestone === 'gold'
-            ? 'Diamond'
-            : 'Bronze'}
-          .
-        </Text>
-      </View>
 
         <View style={styles.tabContainer}>
           <TouchableOpacity
@@ -315,7 +321,9 @@ export default function ProfileScreen({ navigation, route }) {
           )}
         </View>
       </ScrollView>
-      <Footer navigation={navigation} />
+      <View style={styles.footerContainer}>
+        <Footer navigation={navigation} />
+      </View>
     </View>
   );
 }
@@ -564,4 +572,14 @@ const styles = StyleSheet.create({
     top: 40,
     right: 20,
   },
+  footerContainer: {
+    position: 'absolute', // Fix it at the bottom
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 60, // Adjust height as needed
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+  }
 });

@@ -5,7 +5,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
 // Import images
-import logoImage from '../assets/logowithouticon.jpg';
 import indiaFlagImage from '../assets/india-flag.png';
 
 const RegisterScreen = () => {
@@ -45,11 +44,7 @@ const RegisterScreen = () => {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardAvoidingView}
       >
-        <Image
-          source={logoImage}
-          style={styles.logo}
-          resizeMode="contain"
-        />
+       
 
         <Text style={styles.title}>Create Your Account</Text>
         <Text style={styles.subtitle}>Join us to book your workouts!</Text>
