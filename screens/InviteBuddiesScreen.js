@@ -208,10 +208,14 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   footer: {
-    position: 'absolute',
+    position: 'absolute', // Fix it at the bottom
+    bottom: 0,
     left: 0,
     right: 0,
-    bottom: 0,
+    height: 60, // Adjust height as needed
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
     // Additional styles if necessary
   },
 });

@@ -207,7 +207,13 @@ export default function GymListScreen({ navigation }) {
             value={pincode}
             onChangeText={setPincode}
             keyboardType="numeric"
+            onFocus={() => setIsFooterVisible(false)}  
+            onBlur={() => setIsFooterVisible(true)}  
+            returnKeyType="done" // Shows the "Done" button
+            onSubmitEditing={fetchGymsByPincode} // Triggers the search when "Done" is pressed
           />
+       
+    
           <TouchableOpacity onPress={fetchGymsByPincode} style={styles.searchButton}>
             <FontAwesome name="search" size={18} color="#4CAF50" />
           </TouchableOpacity>
@@ -242,7 +248,9 @@ export default function GymListScreen({ navigation }) {
           }
         />
       )}
-      {!loading && isFooterVisible && <Footer navigation={navigation}/>}
+      {!loading && isFooterVisible && <View style={styles.footerContainer}>
+        <Footer navigation={navigation} />
+      </View>}
     </KeyboardAvoidingView>
   );
 }
@@ -361,4 +369,14 @@ const styles = StyleSheet.create({
     padding: 20,
     fontWeight: '500',
   },
+  footerContainer: {
+    position: 'absolute', // Fix it at the bottom
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 60, // Adjust height as needed
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+  }
 });
