@@ -41,17 +41,12 @@ export default function GymListScreen({ navigation }) {
 
   useFocusEffect(
     useCallback(() => {
-      // Reset state when the screen comes into focus
-     
       setPincode('');
       setGyms([]);
       setPage(1);
-      
       setHasMoreGyms(true);
-      
 
       return () => {
-        // Clean up function when the screen loses focus
         setUnfocused(true);
         console.log('Screen is unfocused!');
       };
@@ -91,7 +86,6 @@ export default function GymListScreen({ navigation }) {
   };
 
   const fetchGyms = async (lat, long) => {
- 
     if (page === 1) {
       setLoading(true);
     } else {
@@ -154,14 +148,34 @@ export default function GymListScreen({ navigation }) {
   };
 
   const loadMoreGyms = () => {
+
     if (hasMoreGyms && !loadingMore && !unfocused) {
       setPage(prevPage => prevPage + 1);
     } else {
-     
-      setPage(1);
-      setUnfocused(false);
+      if (unfocused) {
+        setPage(1);
+        setUnfocused(false);
+      }
+      
     }
+  };
 
+  const renderStars = (rating) => {
+    const fullStars = Math.floor(rating);
+    const halfStar = rating % 1 >= 0.5;
+    const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
+
+    return (
+      <View style={styles.starContainer}>
+        {[...Array(fullStars)].map((_, i) => (
+          <FontAwesome key={`full_${i}`} name="star" size={16} color="#FFD700" />
+        ))}
+        {halfStar && <FontAwesome name="star-half-o" size={16} color="#FFD700" />}
+        {[...Array(emptyStars)].map((_, i) => (
+          <FontAwesome key={`empty_${i}`} name="star-o" size={16} color="#FFD700" />
+        ))}
+      </View>
+    );
   };
 
   const renderGym = ({ item }) => (
@@ -174,7 +188,10 @@ export default function GymListScreen({ navigation }) {
         style={styles.gymImage} 
       />
       <View style={styles.gymInfo}>
-        <Text style={styles.gymName}>{item.gymName}</Text>
+        <View style={styles.gymNameRating}>
+          <Text style={styles.gymName}>{item.gymName}</Text>
+          {renderStars(item.gymRating)}
+        </View>
         <Text style={styles.gymDistance}>
           <MaterialIcons name="location-on" size={14} color="#757575" /> 
           {item.distance ? `${item.distance.toFixed(1)} km away` : 'N/A'}
@@ -209,11 +226,9 @@ export default function GymListScreen({ navigation }) {
             keyboardType="numeric"
             onFocus={() => setIsFooterVisible(false)}  
             onBlur={() => setIsFooterVisible(true)}  
-            returnKeyType="done" // Shows the "Done" button
-            onSubmitEditing={fetchGymsByPincode} // Triggers the search when "Done" is pressed
+            returnKeyType="done"
+            onSubmitEditing={fetchGymsByPincode}
           />
-       
-    
           <TouchableOpacity onPress={fetchGymsByPincode} style={styles.searchButton}>
             <FontAwesome name="search" size={18} color="#4CAF50" />
           </TouchableOpacity>
@@ -325,11 +340,21 @@ const styles = StyleSheet.create({
   gymInfo: {
     padding: 15,
   },
+  gymNameRating: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
   gymName: {
     fontSize: 20,
     fontWeight: '700',
     color: '#333',
-    marginBottom: 8,
+    flex: 1,
+  },
+  starContainer: {
+    flexDirection: 'row',
+    marginLeft: 10,
   },
   gymDistance: {
     fontSize: 14,
@@ -370,11 +395,11 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   footerContainer: {
-    position: 'absolute', // Fix it at the bottom
+    position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    height: 60, // Adjust height as needed
+    height: 60,
     backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
