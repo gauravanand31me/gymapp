@@ -21,7 +21,7 @@ import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import Footer from '../components/Footer';
 
 export default function SearchGymList({ navigation, route }) {
-  const { query, lat, long } = route.params;
+  const { query, lat, long, city } = route.params;
   const [searchText, setSearchText] = useState(query);
   const [gyms, setGyms] = useState([]);
   const [address, setAddress] = useState('');
@@ -102,7 +102,7 @@ export default function SearchGymList({ navigation, route }) {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <MaterialIcon name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
-        <Text style={styles.headerText}>Results for "{searchText}"</Text>
+        <Text style={styles.headerText}>Results for "{searchText || city}"</Text>
       </View>
 
       <FlatList

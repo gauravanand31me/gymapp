@@ -137,8 +137,9 @@ export default function GymListScreen({ navigation }) {
       );
       const city = cityComponent ? cityComponent.long_name : null;
       setAddress(city || 'Unknown location');
-      setLat(location.lat);
-      setLong(location.lng);
+      
+      navigation.navigate("SearchGymList", {query: "", lat: location.lat, long: location.lng, city})
+    
     } catch (error) {
       console.error('Error fetching location from pincode:', error);
       Alert.alert('Error', 'Could not retrieve location for the entered pincode.');
