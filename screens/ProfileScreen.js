@@ -9,9 +9,6 @@ import {
   ActivityIndicator,
   FlatList,
   ScrollView,
-  SafeAreaView,
-  StatusBar,
-  Platform,
   Modal,
 } from 'react-native';
 import { ProgressBar } from 'react-native-paper';
@@ -20,12 +17,12 @@ import Footer from '../components/Footer';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import * as ImageManipulator from 'expo-image-manipulator';
 
-
 import {
   userDetails,
   uploadProfileImage,
   getVisitedGyms,
   getVisitedBuddies,
+  deleteProfileImage,
 } from '../api/apiService';
 
 const milestones = {
@@ -61,8 +58,7 @@ export default function ProfileScreen({ navigation, route }) {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
-
-
+  const [isImageOptionsVisible, setIsImageOptionsVisible] = useState(false);
 
   const fetchUserData = async () => {
     try {
@@ -107,7 +103,34 @@ export default function ProfileScreen({ navigation, route }) {
     fetchVisitedBuddies();
   }, []);
 
-  const selectProfileImage = async () => {
+  const toggleModal = () => {
+    setIsModalVisible(!isModalVisible);
+  };
+
+  const toggleImageOptions = () => {
+    setIsImageOptionsVisible(!isImageOptionsVisible);
+  };
+
+  const takePhoto = async () => {
+    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+    if (permissionResult.granted === false) {
+      Alert.alert("Permission required", "Camera access is required to take a photo.");
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      await processAndUploadImage(result.assets[0].uri);
+    }
+    toggleImageOptions();
+  };
+
+  const selectFromGallery = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
@@ -116,40 +139,43 @@ export default function ProfileScreen({ navigation, route }) {
     });
 
     if (!result.canceled) {
-      const selectedImage = result.assets[0].uri;
+      await processAndUploadImage(result.assets[0].uri);
+    }
+    toggleImageOptions();
+  };
 
-      try {
-        const manipulatedImage = await ImageManipulator.manipulateAsync(
-          selectedImage,
-          [{ resize: { width: 800 } }],
-          { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
-        );
+  const processAndUploadImage = async (imageUri) => {
+    try {
+      setUploadingImage(true);
+      const manipulatedImage = await ImageManipulator.manipulateAsync(
+        imageUri,
+        [{ resize: { width: 800 } }],
+        { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
+      );
 
-        setProfileImage(manipulatedImage.uri);
-        await uploadProfileImage(manipulatedImage.uri);
-        Alert.alert('Success', 'Profile image uploaded successfully.');
-      } catch (error) {
-        console.error('Error uploading profile image:', error);
-        Alert.alert('Upload Error', 'Failed to upload profile image.');
-      }
+      setProfileImage(manipulatedImage.uri);
+      await uploadProfileImage(manipulatedImage.uri);
+      setUploadSuccess(true);
+      setTimeout(() => setUploadSuccess(false), 3000);
+    } catch (error) {
+      console.error('Error uploading profile image:', error);
+      Alert.alert('Upload Error', 'Failed to upload profile image.');
+    } finally {
+      setUploadingImage(false);
     }
   };
 
-
-  const toggleModal = () => {
-    setIsModalVisible(!isModalVisible);
+  const handleDeleteImage = async () => {
+    try {
+      await deleteProfileImage();
+      setProfileImage('https://via.placeholder.com/150');
+      Alert.alert('Success', 'Profile image deleted successfully.');
+    } catch (error) {
+      console.error('Error deleting profile image:', error);
+      Alert.alert('Delete Error', 'Failed to delete profile image.');
+    }
+    toggleImageOptions();
   };
-
-  if (loading) {
-    return (
-      <View style={styles.loader}>
-        <ActivityIndicator size="large" color="#4CAF50" />
-      </View>
-    );
-  }
-  const totalWorkoutHours = (userData?.total_work_out_time || 0) / 60;
-  const currentMilestone = getCurrentMilestone(totalWorkoutHours);
-  const progress = getProgress(totalWorkoutHours);
 
   const renderListItem = ({ item }) => (
     <TouchableOpacity
@@ -164,7 +190,6 @@ export default function ProfileScreen({ navigation, route }) {
       }}
     >
       <View style={styles.listItemContent}>
-        
         <View style={styles.listItemTextContainer}>
           <Text style={styles.listItemText}>{item.gymName || item.buddyName || 'N/A'}</Text>
           <Text style={styles.listItemSubText}>
@@ -179,59 +204,100 @@ export default function ProfileScreen({ navigation, route }) {
       )}
     </TouchableOpacity>
   );
+
+  if (loading) {
+    return (
+      <View style={styles.loader}>
+        <ActivityIndicator size="large" color="#4CAF50" />
+      </View>
+    );
+  }
+
+  const totalWorkoutHours = (userData?.total_work_out_time || 0) / 60;
+  const currentMilestone = getCurrentMilestone(totalWorkoutHours);
+  const progress = getProgress(totalWorkoutHours);
+
   const nextMilestone = currentMilestone === 'bronze'
-  ? 'Silver'
-  : currentMilestone === 'silver'
-  ? 'Gold'
-  : currentMilestone === 'gold'
-  ? 'Diamond'
-  : 'Bronze'; // Reset to 'Bronze' if at Diamond
+    ? 'Silver'
+    : currentMilestone === 'silver'
+    ? 'Gold'
+    : currentMilestone === 'gold'
+    ? 'Diamond'
+    : 'Bronze'; // Reset to 'Bronze' if at Diamond
 
   const hoursToNextMilestone = milestones[nextMilestone.toLowerCase()] - totalWorkoutHours;
 
   return (
     <View style={styles.safeArea}>
       <ScrollView style={styles.container}>
-      <View style={styles.profileSection}>
-        <View style={styles.profileHeader}>
-          <TouchableOpacity onPress={toggleModal}>
-            <View style={styles.profileImageContainer}>
-              <Image source={{ uri: profileImage }} style={styles.profileImage} />
-              <TouchableOpacity style={styles.addPhotoButton} onPress={selectProfileImage}>
-                <Icon name="plus-circle-outline" size={25} color="#fff" />
-              </TouchableOpacity>
-            </View>
-          </TouchableOpacity>
+        <View style={styles.profileSection}>
+          <View style={styles.profileHeader}>
+            <TouchableOpacity onPress={toggleImageOptions}>
+              <View style={styles.profileImageContainer}>
+                <Image source={{ uri: profileImage }} style={styles.profileImage} />
+                {uploadingImage && (
+                  <View style={[styles.profileImage, styles.uploadingOverlay]}>
+                    <ActivityIndicator size="large" color="#4CAF50" />
+                  </View>
+                )}
+                <TouchableOpacity style={styles.addPhotoButton} onPress={toggleImageOptions}>
+                  <Icon name="camera" size={25} color="#fff" />
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
 
-          <Modal visible={isModalVisible} transparent={true} onRequestClose={toggleModal}>
-            <View style={styles.modalContainer}>
-              <TouchableOpacity style={styles.closeModalButton} onPress={toggleModal}>
-                <Icon name="close" size={30} color="#fff" />
-              </TouchableOpacity>
-              <Image source={{ uri: profileImage }} style={styles.enlargedProfileImage} />
-            </View>
-          </Modal>
+            <Modal visible={isImageOptionsVisible} transparent={true} animationType="slide">
+              <View style={styles.modalContainer}>
+                <View style={styles.modalContent}>
+                  <TouchableOpacity style={styles.modalOption} onPress={takePhoto}>
+                    <Icon name="camera" size={24} color="#4CAF50" />
+                    <Text style={styles.modalOptionText}>Take Photo</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.modalOption} onPress={selectFromGallery}>
+                    <Icon name="image" size={24} color="#4CAF50" />
+                    <Text style={styles.modalOptionText}>Choose from Gallery</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.modalOption} onPress={handleDeleteImage}>
+                    <Icon name="delete" size={24} color="#FF0000" />
+                    <Text style={styles.modalOptionText}>Delete Photo</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.modalOption} onPress={toggleImageOptions}>
+                    <Icon name="close" size={24} color="#000" />
+                    <Text style={styles.modalOptionText}>Cancel</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </Modal>
+
+            <Modal visible={isModalVisible} transparent={true} onRequestClose={toggleModal}>
+              <View style={styles.modalContainer}>
+                <TouchableOpacity style={styles.closeModalButton} onPress={toggleModal}>
+                  <Icon name="close" size={30} color="#fff" />
+                </TouchableOpacity>
+                <Image source={{ uri: profileImage }} style={styles.enlargedProfileImage} />
+              </View>
+            </Modal>
+
             <View style={styles.profileDetails}>
               <Text style={styles.fullName}>
                 {userData?.full_name || 'N/A'}
                 {currentMilestone && (
-                <Image
-                  source={
-                    currentMilestone === 'bronze'
-                      ? require('../assets/bronzemedal.jpg')
-                      : currentMilestone === 'silver'
-                      ? require('../assets/silvermedal.jpg')
-                      : currentMilestone === 'gold'
-                      ? require('../assets/goldmedal.jpg')
-                      : require('../assets/diamondmedal.jpg')
-                  }
-                  style={styles.milestoneIconNearName}
+                  <Image
+                    source={
+                      currentMilestone === 'bronze'
+                        ? require('../assets/bronzemedal.jpg')
+                        : currentMilestone === 'silver'
+                        ? require('../assets/silvermedal.jpg')
+                        : currentMilestone === 'gold'
+                        ? require('../assets/goldmedal.jpg')
+                        : require('../assets/diamondmedal.jpg')
+                    }
+                    style={styles.milestoneIconNearName}
                   />
                 )}
               </Text>
               <Text style={styles.username}>@{userData?.username || 'N/A'}</Text>
               <Text style={styles.mobileNumber}>{userData?.mobile_number || 'N/A'}</Text>
-                  
             </View>
           </View>
           <TouchableOpacity
@@ -263,7 +329,7 @@ export default function ProfileScreen({ navigation, route }) {
           </View>
         </View>
 
-         <View style={styles.milestoneContainer}>
+        <View style={styles.milestoneContainer}>
           <Text style={styles.sectionTitle}>Milestone Progress</Text>
           <View style={styles.milestoneIcons}>
             <Image source={require('../assets/bronzemedal.jpg')} style={styles.milestoneIcon} />
@@ -282,7 +348,7 @@ export default function ProfileScreen({ navigation, route }) {
           />
           <Text style={styles.milestoneText}>
             {hoursToNextMilestone > 0
-              ? `${Math.floor(hoursToNextMilestone)} hous away from earning ${nextMilestone}.`
+              ? `${Math.floor(hoursToNextMilestone)} hours away from earning ${nextMilestone}.`
               : `You have achieved ${nextMilestone} milestone!`}
           </Text>
         </View>
@@ -462,17 +528,17 @@ const styles = StyleSheet.create({
   milestoneIcons: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginBottom: 5, // Reduced space below the icons
-    marginLeft: 20,  // This moves the icons slightly to the right
+    marginBottom: 5,
+    marginLeft: 20,
     backgroundColor:'#fff'
   },
   milestoneIcon: {
-    width: 40, // Reduced icon size
-    height: 40, // Reduced icon size
+    width: 40,
+    height: 40,
   },
   progressBar: {
-    marginTop: 10, // Reduced space above the progress bar
-    height: 8, // Slightly thinner progress bar
+    marginTop: 10,
+    height: 8,
   },
   milestoneText: {
     marginTop: 10,
@@ -526,12 +592,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  listItemImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    marginRight: 15,
-  },
   listItemTextContainer: {
     flex: 1,
   },
@@ -573,13 +633,35 @@ const styles = StyleSheet.create({
     right: 20,
   },
   footerContainer: {
-    position: 'absolute', // Fix it at the bottom
+    position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    height: 60, // Adjust height as needed
+    height: 60,
     backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
-  }
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+  },
+  modalOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  modalOptionText: {
+    fontSize: 16,
+    marginLeft: 15,
+  },
 });
