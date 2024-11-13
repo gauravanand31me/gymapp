@@ -339,6 +339,7 @@ const styles = StyleSheet.create({
   },
   gymInfo: {
     padding: 15,
+    fontSize: 10,
   },
   gymNameRating: {
     flexDirection: 'row',
@@ -347,7 +348,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   gymName: {
-    fontSize: 20,
+    fontSize: 15,
     fontWeight: '700',
     color: '#333',
     flex: 1,
@@ -372,12 +373,14 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 25,
-    alignSelf: 'flex-start',
+    alignSelf: 'flex-end', // This moves the button to the right
+    marginTop: 10,
   },
   bookNowText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  
   },
   loaderContainer: {
     flex: 1,

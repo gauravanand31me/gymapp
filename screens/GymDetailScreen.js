@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   gymName: {
-    fontSize: 24,
+    fontSize: 15,
     fontWeight: 'bold',
     color: '#333333',
     marginBottom: 8,
@@ -263,7 +263,7 @@ const styles = StyleSheet.create({
     color: '#666666',
   },
   gymDescription: {
-    fontSize: 16,
+    fontSize: 15,
     color: '#666666',
     lineHeight: 24,
     marginBottom: 12,
