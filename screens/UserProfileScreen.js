@@ -111,7 +111,7 @@ export default function UserProfileScreen({ navigation, route }) {
   }
 
   const handleDeclineRequest = async (id) => {
-    await rejectFriendRequest(id);
+    await rejectFriendRequest(friends?.invited?.id);
     getFriendShip();
   }
 
