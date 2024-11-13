@@ -18,13 +18,14 @@ import {
   fetchAllNearByUser,
   addFriend,
   rejectFriendRequest,
+  acceptFriendRequest,
 } from '../api/apiService';
 
 export default function UserProfileScreen({ navigation, route }) {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [friends, setFriends] = useState({ invited: { accepted: false, sent: false } });
-  const [loadFriend, setLoadFriend] = useState(false);
+  const [loadFriend, setLoadFriend] = useState(true);
 
   const { userId } = route.params;
 
@@ -104,6 +105,17 @@ export default function UserProfileScreen({ navigation, route }) {
     }
   };
 
+  const handleAcceptRequest = async (id) => {
+      await acceptFriendRequest(friends?.invited?.id)
+      getFriendShip();
+  }
+
+  const handleDeclineRequest = async (id) => {
+    await rejectFriendRequest(id);
+    getFriendShip();
+  }
+
+
   const getMilestoneDetails = () => {
     const workoutHours = (userData?.total_work_out_time || 0) / 60;
     if (workoutHours > 1000) return { image: require('../assets/diamondmedal.jpg'), label: 'Diamond' };
@@ -130,7 +142,7 @@ export default function UserProfileScreen({ navigation, route }) {
           colors={['#4CAF50', '#45a049']}
           style={styles.header}
         >
-       
+
           <Image source={{ uri: userData?.profile_pic || 'https://via.placeholder.com/150' }} style={styles.profileImage} />
           <Text style={styles.name}>{userData?.full_name || 'N/A'}</Text>
           <Text style={styles.username}>@{userData?.username || 'N/A'}</Text>
@@ -140,18 +152,34 @@ export default function UserProfileScreen({ navigation, route }) {
             ) : (
               <>
                 {friends?.invited?.accepted ? (
-                  <UserCheck color="#fff" size={20} />
+                  <>
+                    <UserCheck color="#fff" size={20} />
+                    <Text style={styles.friendButtonText}>Friends</Text>
+                  </>
                 ) : friends?.invited?.sent ? (
-                  <UserMinus color="#fff" size={20} />
+                  <>
+                    <UserMinus color="#fff" size={20} />
+                    <Text style={styles.friendButtonText}>Cancel Request</Text>
+                  </>
+                ) : friends?.invited?.received ? (
+                  <View style={styles.friendRequestContainer}>
+                    <TouchableOpacity style={styles.acceptButton} onPress={() => handleAcceptRequest(userId)}>
+                      <Text style={styles.buttonText}>Accept</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.declineButton} onPress={() => handleDeclineRequest(userId)}>
+                      <Text style={styles.buttonText}>Decline</Text>
+                    </TouchableOpacity>
+                  </View>
                 ) : (
-                  <UserPlus color="#fff" size={20} />
+                  <>
+                    <UserPlus color="#fff" size={20} />
+                    <Text style={styles.friendButtonText}>Add Friend</Text>
+                  </>
                 )}
-                <Text style={styles.friendButtonText}>
-                  {friends?.invited?.accepted ? 'Friends' : friends?.invited?.sent ? 'Cancel Request' : 'Add Friend'}
-                </Text>
               </>
             )}
           </TouchableOpacity>
+
         </LinearGradient>
 
         <View style={styles.statsContainer}>
@@ -303,5 +331,39 @@ const styles = StyleSheet.create({
   milestoneDescription: {
     fontSize: 14,
     color: '#666',
+  },
+  friendRequestContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 10,
+  },
+  acceptButton: {
+    backgroundColor: '#4CAF50', // Green color for accept
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    marginRight: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 2,
+    elevation: 5,
+  },
+  declineButton: {
+    backgroundColor: '#F44336', // Red color for decline
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 2,
+    elevation: 5,
+  },
+  buttonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
 });
