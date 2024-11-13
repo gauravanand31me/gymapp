@@ -77,20 +77,21 @@ export default function BookingsScreen({ navigation }) {
           <Text style={styles.bookingInfoText}>Duration: {item.duration} minutes</Text>
           <Text style={styles.priceText}>Price: ₹ {item.price}</Text>
 
-          <View style={styles.inviteAddMoreContainer}>
-            <TouchableOpacity onPress={() => fetchInvitesForBooking(item)} style={styles.inviteButton}>
-              <Icon name="users" size={14} color="#6B7280" />
-              <Text style={styles.inviteText}> {item.invites} Invites</Text>
-            </TouchableOpacity>
-            {selectedTab === "Upcoming" && (
-              <TouchableOpacity
-                onPress={() => navigation.navigate('InviteFriendBuddy', { bookingId: item.id })}
-                style={styles.addMoreButton}
-              >
-                <Text style={styles.addMoreButtonText}>Add More</Text>
+                      <View style={styles.inviteAddMoreContainer}>
+              <TouchableOpacity onPress={() => fetchInvitesForBooking(item)} style={styles.inviteButton}>
+                <Icon name="users" size={14} color="#6B7280" />
+                <Text style={styles.inviteText}> {item.invites} Invites</Text>
               </TouchableOpacity>
-            )}
-          </View>
+
+              {selectedTab === "Upcoming" && (
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('InviteFriendBuddy', { bookingId: item.id })}
+                  style={styles.addMoreButton}
+                >
+                  <Text style={styles.addMoreButtonText}>Send Invite</Text>
+                </TouchableOpacity>
+              )}
+            </View>
 
           {selectedTab === "Upcoming" && (
             <>
@@ -344,24 +345,30 @@ const styles = StyleSheet.create({
   },
   inviteAddMoreContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',  // Align items to the start
     alignItems: 'center',
     marginTop: 12,
   },
   inviteButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    backgroundColor: '#E5E7EB',
+    borderRadius: 4,
   },
   inviteText: {
     marginLeft: 4,
     fontSize: 14,
-    color: '#6B7280',
+    fontWeight: '600',  // Make it bold for emphasis
+    color: '#1F2937',
   },
   addMoreButton: {
     backgroundColor: '#4F46E5',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 4,
+  paddingVertical: 6,
+  paddingHorizontal: 12,
+  borderRadius: 4,
+  marginLeft: 10,
   },
   addMoreButtonText: {
     color: '#FFFFFF',
