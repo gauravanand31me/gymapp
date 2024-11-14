@@ -312,6 +312,25 @@ export const verifyOtp = async (mobileNumber, otp) => {
     }
   };
 
+
+
+  export const fetchIndividualFriendRequest = async (requestId) => {
+    try {
+      const userToken = await AsyncStorage.getItem('authToken'); // Fetch token if needed
+      const response = await axios.get(`${BASE_URL}/friends/getindv?requestId=${requestId}`, {
+        headers: {
+          Authorization: `Bearer ${userToken}`, // Make sure to replace <your_token> with the actual token
+        },
+      });
+      console.log("Friend Request data rfeceived0", response.data);
+      return response.data
+    } catch (error) {
+      console.log("Error", error.response.data.message);
+      console.log('Failed to load notifications');
+      return error.response.data;
+    }
+  };
+
   export const markAllNotificationsAsRead = async () => {
     try {
       const userToken = await AsyncStorage.getItem('authToken'); // Fetch token if needed
@@ -325,6 +344,8 @@ export const verifyOtp = async (mobileNumber, otp) => {
       console.log('Error marking notifications as read:', error.response.data.message);
     }
   };
+
+
   
 
 

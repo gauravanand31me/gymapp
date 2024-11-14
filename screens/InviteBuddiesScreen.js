@@ -55,7 +55,7 @@ const InviteBuddiesScreen = ({ navigation }) => {
 
       <TouchableOpacity style={styles.invitedButton} onPress={() => navigation.navigate("UserProfile", { userId: item.id })}>
           <Text style={styles.invitedButtonText}><Ionicons name="person" size={20} color="#28A745" /></Text>
-        </TouchableOpacity>
+      </TouchableOpacity>
 
       {/* {(item?.invited?.accepted) && (
         <TouchableOpacity style={styles.invitedButton}>

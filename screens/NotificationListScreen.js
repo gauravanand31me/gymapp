@@ -99,8 +99,7 @@ export default function NotificationListScreen({ navigation }) {
       ]}
     >
       <TouchableOpacity
-              style={styles.acceptButton}
-              onPress={() =>  navigation.navigate("UserProfile", {userId: item.forUserId})}>
+             onPress={() =>  navigation.navigate("UserProfile", {userId: item.forUserId})}>
         <Image
           source={{ uri: item.profileImage || 'https://via.placeholder.com/50' }}
           style={styles.profileImage}
