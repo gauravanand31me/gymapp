@@ -5,6 +5,7 @@ import Footer from '../components/Footer';
 import { fetchAllNearByUser } from '../api/apiService';
 import { addFriend } from '../api/apiService'; // Import the addFriend function
 import EmptyFriendsContainer from '../components/EmptyFriendContainer';
+import { Ionicons } from '@expo/vector-icons';
 
 const InviteBuddiesScreen = ({ navigation }) => {
   const [searchText, setSearchText] = useState('');
@@ -52,8 +53,11 @@ const InviteBuddiesScreen = ({ navigation }) => {
         </View>
       </TouchableOpacity>
 
+      <TouchableOpacity style={styles.invitedButton} onPress={() => navigation.navigate("UserProfile", { userId: item.id })}>
+          <Text style={styles.invitedButtonText}><Ionicons name="person" size={20} color="#28A745" /></Text>
+        </TouchableOpacity>
 
-      {(item?.invited?.accepted) && (
+      {/* {(item?.invited?.accepted) && (
         <TouchableOpacity style={styles.invitedButton}>
           <Text style={styles.invitedButtonText}>Friends</Text>
         </TouchableOpacity>
@@ -72,7 +76,7 @@ const InviteBuddiesScreen = ({ navigation }) => {
         <TouchableOpacity style={styles.inviteButton} onPress={() => handleInvite(item.id)}>
           <Text style={styles.invitedButtonText}>Add Friend</Text>
         </TouchableOpacity>
-      )}
+      )} */}
     </View>
   );
 
