@@ -30,7 +30,6 @@ export const loginUser = async (phoneNumber) => {
 
 export const registerUser = async (fullName, phoneNumber) => {
   try {
-    console.log(`${BASE_URL}/auth/login`);
     const response = await axios.post(`${BASE_URL}/auth/register`, {
       full_name: fullName,
       mobile_number: phoneNumber
@@ -43,6 +42,22 @@ export const registerUser = async (fullName, phoneNumber) => {
   }
 };
 
+
+
+export const deleteProfileImage = async () => {
+  try {
+    const userToken = await AsyncStorage.getItem('authToken'); // Fetch token if needed
+    const response = await axios.put(`${BASE_URL}/users/delete-profileimage`, {
+      headers: {
+        Authorization: `Bearer ${userToken}`,  // Add the Bearer token here
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching visited gyms:', error);
+    throw error;
+  }
+}
 
 
 
@@ -116,7 +131,7 @@ export const verifyOtp = async (mobileNumber, otp) => {
 
 
   export const fetchAllNearByUser = async (searchText = '') => {
-    console.log("Search Text received", searchText);
+  
     try {
       const userToken = await AsyncStorage.getItem('authToken'); // Fetch token if needed
       const endpoint = `${BASE_URL}/users/search/${searchText}`
