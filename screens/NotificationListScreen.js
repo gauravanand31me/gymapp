@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import {
   View,
   Text,
@@ -15,6 +15,8 @@ import { acceptFriendRequest, fetchAllNotifications, markAllNotificationsAsRead,
 import Footer from '../components/Footer'
 import { Bell, Check, X, ChevronRight } from 'lucide-react-native'
 import { Ionicons } from '@expo/vector-icons';
+import { NotificationContext } from '../context/NotificationContext'
+
 
 export default function NotificationListScreen({ navigation }) {
   const [notifications, setNotifications] = useState([])
@@ -22,6 +24,9 @@ export default function NotificationListScreen({ navigation }) {
   const [error, setError] = useState(null)
   const [fadeAnim] = useState(new Animated.Value(0))
 
+  const { notification } = useContext(NotificationContext)
+  
+  
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
@@ -54,7 +59,7 @@ export default function NotificationListScreen({ navigation }) {
 
     markNotificationsAsRead()
     fetchNotifications()
-  }, [])
+  }, [notification])
 
   const handleActionRequest = async (requestId, action, type) => {
     try {

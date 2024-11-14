@@ -12,7 +12,7 @@ import {
 import { Calendar, Clock, DollarSign, ArrowLeft, CheckCircle } from 'lucide-react-native'
 import * as WebBrowser from 'expo-web-browser'
 import { acceptBuddyRequest, createBooking, createOrder } from '../api/apiService'
-import { NotificationContext } from '../context/NotificationContext'
+
 import { LinearGradient } from 'expo-linear-gradient'
 
 export default function PaymentScreen({ route, navigation }) {
@@ -20,13 +20,9 @@ export default function PaymentScreen({ route, navigation }) {
   const [loading, setLoading] = useState(false)
   const [isExpired, setIsExpired] = useState(false)
   const [confirm, setConfirm] = useState(false)
-  const { notification } = useContext(NotificationContext)
 
-  useEffect(() => {
-    if (notification) {
-      console.log('New notification received:', notification.request.content)
-    }
-  }, [notification])
+
+  
 
   useEffect(() => {
     const checkExpiration = () => {
