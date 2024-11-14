@@ -44,20 +44,7 @@ export const registerUser = async (fullName, phoneNumber) => {
 
 
 
-export const deleteProfileImage = async () => {
-  try {
-    const userToken = await AsyncStorage.getItem('authToken'); // Fetch token if needed
-    const response = await axios.put(`${BASE_URL}/users/delete-profileimage`, {
-      headers: {
-        Authorization: `Bearer ${userToken}`,  // Add the Bearer token here
-      }
-    });
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching visited gyms:', error);
-    throw error;
-  }
-}
+
 
 
 
@@ -619,5 +606,21 @@ export const rateBooking = async (bookingId, gymId, rating) => {
     throw error;
   }
 };
+
+
+export const deleteProfileImage = async () => {
+  try {
+    const userToken = await AsyncStorage.getItem('authToken'); // Fetch token if needed
+    const response = await axios.put(`${BASE_URL}/users/delete-profileimage`, {}, {
+      headers: {
+        Authorization: `Bearer ${userToken}`,  // Add the Bearer token here
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching visited gyms:', error);
+    throw error;
+  }
+}
 
 

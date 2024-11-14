@@ -168,7 +168,7 @@ export default function ProfileScreen({ navigation, route }) {
   const handleDeleteImage = async () => {
     try {
       await deleteProfileImage();
-      setProfileImage('https://via.placeholder.com/150');
+      fetchUserData();
       Alert.alert('Success', 'Profile image deleted successfully.');
     } catch (error) {
       console.error('Error deleting profile image:', error);

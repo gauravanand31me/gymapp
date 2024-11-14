@@ -23,6 +23,7 @@ export default function Component({ navigation, route }) {
   const fetchBuddyList = useCallback(async () => {
     try {
       const data = await fetchFriends();
+ 
       setBuddyList(data.accepted);
     } catch (error) {
       console.error('Error fetching buddy list:', error);
@@ -93,8 +94,8 @@ export default function Component({ navigation, route }) {
             </Text>
           </TouchableOpacity>
         ) : (
-          <TouchableOpacity style={styles.unfriendButton}>
-            <Text style={styles.unfriendButtonText}>Unfriend</Text>
+          <TouchableOpacity style={styles.unfriendButton} onPress={() => navigation.navigate('UserProfile', { userId: item.fromUserId })}>
+            <Text style={styles.unfriendButtonText}>View Profile</Text>
           </TouchableOpacity>
         )}
       </View>

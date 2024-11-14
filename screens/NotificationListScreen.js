@@ -25,6 +25,7 @@ export default function NotificationListScreen({ navigation }) {
     const fetchNotifications = async () => {
       try {
         const data = await fetchAllNotifications()
+       
         if (data.notifications) {
           setNotifications(data.notifications)
           Animated.timing(fadeAnim, {
