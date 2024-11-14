@@ -208,7 +208,7 @@ export default function ProfileScreen({ navigation, route }) {
   if (loading) {
     return (
       <View style={styles.loader}>
-        <ActivityIndicator size="large" color="#4CAF50" />
+        <ActivityIndicator size="1" color="#4CAF50" />
       </View>
     );
   }
@@ -237,7 +237,7 @@ export default function ProfileScreen({ navigation, route }) {
                 <Image source={{ uri: profileImage }} style={styles.profileImage} />
                 {uploadingImage && (
                   <View style={[styles.profileImage, styles.uploadingOverlay]}>
-                    <ActivityIndicator size="large" color="#4CAF50" />
+                    <ActivityIndicator size="1" color="#4CAF50" />
                   </View>
                 )}
                 <TouchableOpacity style={styles.addPhotoButton} onPress={toggleImageOptions}>

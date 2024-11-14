@@ -169,7 +169,7 @@ export default function NotificationListScreen({ navigation }) {
       <View style={[styles.content, { justifyContent: notifications.length === 0 ? 'center' : 'flex-start' }]}>
         {loading ? (
           <View style={styles.emptyState}>
-            <ActivityIndicator size="large" color="#4CAF50" />
+            <ActivityIndicator size="1" color="#4CAF50" />
             <Text style={styles.loadingText}>Loading notifications...</Text>
           </View>
         ) : error ? (

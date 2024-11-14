@@ -61,7 +61,7 @@ const AmenitiesListScreen = ({ gymId, onClose }) => {
         </View>
         
         {loading ? (
-          <ActivityIndicator size="large" color="#4CAF50" style={styles.loader} />
+          <ActivityIndicator size="1" color="#4CAF50" style={styles.loader} />
         ) : (
           <ScrollView 
             contentContainerStyle={styles.scrollView}

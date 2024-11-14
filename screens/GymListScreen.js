@@ -136,7 +136,7 @@ export default function GymListScreen({ navigation }) {
         component.types.includes("locality") || component.types.includes("administrative_area_level_2")
       );
       const city = cityComponent ? cityComponent.long_name : null;
-      setAddress(city || 'Unknown location');
+     
       
       navigation.navigate("SearchGymList", {query: "", lat: location.lat, long: location.lng, city})
     
@@ -245,7 +245,7 @@ export default function GymListScreen({ navigation }) {
 
       {loading ? (
         <View style={styles.loaderContainer}>
-          <ActivityIndicator size="large" color="#4CAF50" />
+          <ActivityIndicator size="1" color="#4CAF50" />
         </View>
       ) : (
         <FlatList

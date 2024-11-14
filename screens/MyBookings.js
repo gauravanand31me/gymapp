@@ -147,7 +147,7 @@ export default function BookingsScreen({ navigation }) {
         </View>
 
         {isLoading ? (
-          <ActivityIndicator size="large" color="#4F46E5" style={styles.loader} />
+          <ActivityIndicator size="1" color="#4F46E5" style={styles.loader} />
         ) : (
           <View style={styles.contentContainer}>
             {isEmpty ? (
