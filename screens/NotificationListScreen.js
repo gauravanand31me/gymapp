@@ -11,9 +11,10 @@ import {
   Alert,
   Animated,
 } from 'react-native'
-import { acceptFriendRequest, fetchAllNotifications, markAllNotificationsAsRead, rejectFriendRequest, acceptBuddyRequest } from '../api/apiService'
+import { acceptFriendRequest, fetchAllNotifications, markAllNotificationsAsRead, rejectFriendRequest, acceptBuddyRequest, fetchIndividualFriendRequest } from '../api/apiService'
 import Footer from '../components/Footer'
 import { Bell, Check, X, ChevronRight } from 'lucide-react-native'
+import { Ionicons } from '@expo/vector-icons';
 
 export default function NotificationListScreen({ navigation }) {
   const [notifications, setNotifications] = useState([])
@@ -25,7 +26,7 @@ export default function NotificationListScreen({ navigation }) {
     const fetchNotifications = async () => {
       try {
         const data = await fetchAllNotifications()
-       
+        
         if (data.notifications) {
           setNotifications(data.notifications)
           Animated.timing(fadeAnim, {
@@ -72,6 +73,12 @@ export default function NotificationListScreen({ navigation }) {
       setError(error.message)
       Alert.alert("Error", error.message)
     }
+  }
+
+  const getFriendRequest = async (friendRequestId) => {
+    const getFriendRequest = await fetchIndividualFriendRequest(friendRequestId);
+    console.log("friendRequestId", getFriendRequest);
+    //navigation.navigate("UserProfile", { userId: item.relatedId });
   }
 
   const renderItem = ({ item }) => (
@@ -125,18 +132,12 @@ export default function NotificationListScreen({ navigation }) {
           <>
             <TouchableOpacity
               style={styles.acceptButton}
-              onPress={() => handleActionRequest(item.relatedId, 'accept', item.type)}
+              onPress={() =>  navigation.navigate("UserProfile", {userId: item.forUserId})}
               accessibilityLabel="Accept Friend Request"
             >
-              <Check size={20} color="#fff" />
+              <Ionicons name="person" size={20} color="#fff" />
             </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.declineButton}
-              onPress={() => handleActionRequest(item.relatedId, 'reject', item.type)}
-              accessibilityLabel="Decline Friend Request"
-            >
-              <X size={20} color="#fff" />
-            </TouchableOpacity>
+            
           </>
         )}
 
