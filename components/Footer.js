@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { fetchAllNotifications } from '../api/apiService'; // Import the fetch function
+import { NotificationContext } from '../context/NotificationContext';
 
 const Footer = ({ navigation }) => {
   const [unreadCount, setUnreadCount] = useState(0);
-
+  const { notification } = useContext(NotificationContext)
   // Fetch notifications on component mount
   useEffect(() => {
     const loadNotifications = async () => {
@@ -17,7 +18,7 @@ const Footer = ({ navigation }) => {
     };
 
     loadNotifications();
-  }, []);
+  }, [notification]);
 
   return (
     <View style={styles.footer}>
