@@ -98,10 +98,14 @@ export default function NotificationListScreen({ navigation }) {
         },
       ]}
     >
-      <Image
-        source={{ uri: item.profileImage || 'https://via.placeholder.com/50' }}
-        style={styles.profileImage}
-      />
+      <TouchableOpacity
+              style={styles.acceptButton}
+              onPress={() =>  navigation.navigate("UserProfile", {userId: item.forUserId})}>
+        <Image
+          source={{ uri: item.profileImage || 'https://via.placeholder.com/50' }}
+          style={styles.profileImage}
+        />
+      </TouchableOpacity>
       <View style={styles.notificationContent}>
         <Text style={styles.notificationText}>
           {item.others ? `, ${item.others}` : ''} {item.message || 'No message available.'}
