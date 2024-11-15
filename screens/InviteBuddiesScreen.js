@@ -17,6 +17,7 @@ const InviteBuddiesScreen = ({ navigation }) => {
   const fetchNearbyUsers = async () => {
     try {
       const data = await fetchAllNearByUser(searchText);
+    
       setBuddyList(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching nearby users:', error);
@@ -105,9 +106,10 @@ const InviteBuddiesScreen = ({ navigation }) => {
       </View>
 
       {/* Buddy List */}
+    
       <View style={styles.listContainer}>
         <FlatList
-          data={buddyList.filter((buddy) => buddy.name.toLowerCase().includes(searchText.toLowerCase()))}
+          data={buddyList}
           keyExtractor={(item) => item.id.toString()}
           renderItem={renderBuddy}
           contentContainerStyle={styles.buddyList}

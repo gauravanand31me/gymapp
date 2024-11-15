@@ -103,13 +103,22 @@ export default function NotificationListScreen({ navigation }) {
         },
       ]}
     >
-      <TouchableOpacity
+        {item.type !== 'acceptedSelfBuddyRequest' && <TouchableOpacity
              onPress={() =>  navigation.navigate("UserProfile", {userId: item.forUserId})}>
         <Image
           source={{ uri: item.profileImage || 'https://via.placeholder.com/50' }}
           style={styles.profileImage}
         />
-      </TouchableOpacity>
+      </TouchableOpacity> }
+
+      {item.type === 'acceptedSelfBuddyRequest' && <TouchableOpacity
+             onPress={() =>  navigation.navigate("Profile")}>
+        <Image
+          source={{ uri: item.profileImage || 'https://via.placeholder.com/50' }}
+          style={styles.profileImage}
+        />
+      </TouchableOpacity> }
+
       <View style={styles.notificationContent}>
         <Text style={styles.notificationText}>
           {item.others ? `, ${item.others}` : ''} {item.message || 'No message available.'}

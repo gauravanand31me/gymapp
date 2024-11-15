@@ -20,6 +20,8 @@ import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
 import { fetchAllGyms } from '../api/apiService';
 import Footer from '../components/Footer';
 import * as Linking from 'expo-linking';
+import SearchHeader from '../components/SearchComponent';
+
 
 const { width } = Dimensions.get('window');
 const GOOGLE_MAPS_API_KEY = 'AIzaSyAAMaXbIBC1IgC_B1kyALkcH87grvcSBhY';
@@ -209,39 +211,14 @@ export default function GymListScreen({ navigation }) {
   );
 
   return (
+    <>
     <KeyboardAvoidingView 
       style={styles.container} 
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <View style={styles.header}>
-        <Text style={styles.locationText}>
-          <MaterialIcons name="location-on" size={18} color="#fff" /> {address || 'Fetching location...'}
-        </Text>
-        <View style={styles.pincodeContainer}>
-          <TextInput
-            style={styles.pincodeInput}
-            placeholder="Search Gym using Pincode"
-            placeholderTextColor="#aaa"
-            value={pincode}
-            onChangeText={setPincode}
-            keyboardType="numeric"
-            onFocus={() => setIsFooterVisible(false)}  
-            onBlur={() => setIsFooterVisible(true)}  
-            returnKeyType="done"
-            onSubmitEditing={fetchGymsByPincode}
-          />
-          <TouchableOpacity onPress={fetchGymsByPincode} style={styles.searchButton}>
-            <FontAwesome name="search" size={18} color="#4CAF50" />
-          </TouchableOpacity>
-        </View>
-        <TouchableOpacity
-          style={styles.searchGymButton}
-          onPress={() => navigation.navigate('SearchGym', { lat, long })}
-        >
-          <MaterialIcons name="search" size={20} color="#fff" />
-          <Text style={styles.searchGymText}>Search nearby Gym</Text>
-        </TouchableOpacity>
-      </View>
+      
+
+      <SearchHeader fetchGymsByPincode={fetchGymsByPincode} setPincode={setPincode} address={address} pincode={pincode} navigation={navigation}/>
 
       {loading ? (
         <View style={styles.loaderContainer}>
@@ -264,10 +241,12 @@ export default function GymListScreen({ navigation }) {
           }
         />
       )}
-      {!loading && isFooterVisible && <View style={styles.footerContainer}>
-        <Footer navigation={navigation} />
+      {!loading && isFooterVisible && <View>
+          <Footer navigation={navigation} />
       </View>}
     </KeyboardAvoidingView>
+    
+  </>
   );
 }
 
@@ -276,15 +255,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F5F5F5',
   },
-  header: {
-    backgroundColor: '#4CAF50',
-    paddingTop: 50,
-    paddingBottom: 20,
-    paddingHorizontal: 20,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-    elevation: 5,
-  },
+  
   locationText: {
     color: '#fff',
     fontSize: 18,
