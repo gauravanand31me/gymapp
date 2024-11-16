@@ -208,7 +208,7 @@ export default function ProfileScreen({ navigation, route }) {
   if (loading) {
     return (
       <View style={styles.loader}>
-        <ActivityIndicator size="1" color="#4CAF50" />
+        <ActivityIndicator size="large" color="#4CAF50" />
       </View>
     );
   }
@@ -237,7 +237,7 @@ export default function ProfileScreen({ navigation, route }) {
                 <Image source={{ uri: profileImage }} style={styles.profileImage} />
                 {uploadingImage && (
                   <View style={[styles.profileImage, styles.uploadingOverlay]}>
-                    <ActivityIndicator size="1" color="#4CAF50" />
+                    <ActivityIndicator size="large" color="#4CAF50" />
                   </View>
                 )}
                 <TouchableOpacity style={styles.addPhotoButton} onPress={toggleImageOptions}>
@@ -337,8 +337,9 @@ export default function ProfileScreen({ navigation, route }) {
             <Image source={require('../assets/goldmedal.jpg')} style={styles.milestoneIcon} />
             <Image source={require('../assets/diamondmedal.jpg')} style={styles.milestoneIcon} />
           </View>
+        
           <ProgressBar
-            progress={progress}
+            progress={Math.round(progress * 10) / 10}
             width={null}
             height={10}
             color="#6FCF97"

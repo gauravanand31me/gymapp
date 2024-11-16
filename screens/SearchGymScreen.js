@@ -112,7 +112,7 @@ export default function SearchGymList({ navigation, route }) {
         onEndReached={loadMoreGyms} // Load more gyms when reaching the end of the list
         onEndReachedThreshold={0.5}
         ListFooterComponent={
-          loading ? <ActivityIndicator size="1" color="#f4511e" /> : null
+          loading ? <ActivityIndicator size="large" color="#f4511e" /> : null
         }
         ListEmptyComponent={
           !loading && (

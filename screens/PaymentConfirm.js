@@ -156,7 +156,7 @@ export default function PaymentScreen({ route, navigation }) {
               </TouchableOpacity>
             ) : (
               <View style={styles.statusContainer}>
-                <ActivityIndicator size="1" color="#4CAF50" />
+                <ActivityIndicator size="large" color="#4CAF50" />
                 <Text style={styles.statusText}>Verifying Payment Status...</Text>
               </View>
             )}

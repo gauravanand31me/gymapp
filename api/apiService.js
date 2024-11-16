@@ -57,7 +57,7 @@ export const verifyOtp = async (mobileNumber, otp) => {
       const storedToken = await AsyncStorage.getItem('expoPushToken');
         console.log('Stored token:', storedToken);
     
-      console.log(`${BASE_URL}/auth/verify-otp`);
+      
       const response = await axios.post(`${BASE_URL}/auth/verify-otp`, {
         mobile_number: mobileNumber,
         otp: otp,
@@ -70,6 +70,22 @@ export const verifyOtp = async (mobileNumber, otp) => {
       throw error; // Rethrow the error for handling in the calling function
     }
   };
+
+
+  export const storePushToken = async () => {
+    const storedToken = await AsyncStorage.getItem('expoPushToken');
+    const userToken = await AsyncStorage.getItem('authToken'); // Fetch token if needed
+    const response = await axios.put(`${BASE_URL}/gym/store`, {
+     expoPushToken: storedToken
+    }, {
+      headers: { Authorization: `Bearer ${userToken}` }
+    });
+    
+    if (response.data.status) {
+      return response.data.status;
+    }
+
+  }
 
 
   export const fetchAllGyms = async (latitude = 12.9716, longitude = 77.5946,  searchText='', limit = 9, page = 1) => {
@@ -129,7 +145,7 @@ export const verifyOtp = async (mobileNumber, otp) => {
         },
       });
       const data = await response.json();
-      
+      console.log("Data received", data);
       if(!data.message) {
         const formattedBuddies = data?.map(user => ({
           id: user.id,
@@ -393,6 +409,7 @@ export const fetchFriends = async () => {
       Authorization: `Bearer ${userToken}`, // Make sure to replace <your_token> with the actual token
     }});
   const data = await response.data;
+  console.log("Friends data received", data);
   return data;
 };
 

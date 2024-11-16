@@ -27,7 +27,7 @@ export default function GymDetailScreen({ navigation, route }) {
   const [selectedImage, setSelectedImage] = useState(null)
   const [showAmenitiesPopup, setShowAmenitiesPopup] = useState(false)
   const [isDescriptionExpanded, setDescriptionExpanded] = useState(false)
-
+  const [loading, setLoading] = useState(false);
   const { gym_id } = route.params
 
   useEffect(() => {
@@ -75,7 +75,7 @@ export default function GymDetailScreen({ navigation, route }) {
   if (!gymData) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="1" color="#4CAF50" />
+        <ActivityIndicator size="large" color="#4CAF50" />
       </View>
     )
   }
@@ -108,7 +108,20 @@ export default function GymDetailScreen({ navigation, route }) {
           >
             {(gymData.images || []).map((image, index) => (
               <TouchableOpacity key={index} onPress={() => openModal(image)}>
-                <Image source={{ uri: image }} style={styles.image} />
+            {loading && (
+              <Image
+                source={require("../assets/icon.png")}
+                style={styles.image}
+                resizeMode="cover"
+              />
+            )}
+            <Image
+              source={{ uri: image }}
+              style={[styles.image, loading ? styles.hidden : null]}
+              resizeMode="cover"
+              onLoadStart={() => setLoading(true)}
+              onLoadEnd={() => setLoading(false)}
+            />
               </TouchableOpacity>
             ))}
           </ScrollView>

@@ -1,18 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, FlatList, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, FlatList, KeyboardAvoidingView, Platform, Animated } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { Dumbbell, Search, UserPlus, UserCheck, UserClock, User } from 'lucide-react-native'
 import Footer from '../components/Footer';
 import { fetchAllNearByUser } from '../api/apiService';
 import { addFriend } from '../api/apiService'; // Import the addFriend function
+import { LinearGradient } from 'expo-linear-gradient'
 import EmptyFriendsContainer from '../components/EmptyFriendContainer';
 import { Ionicons } from '@expo/vector-icons';
+const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient)
 
 const InviteBuddiesScreen = ({ navigation }) => {
   const [searchText, setSearchText] = useState('');
   const [buddyList, setBuddyList] = useState([]);
   const [isFooterVisible, setIsFooterVisible] = useState(true); // State to manage footer visibility
   const message = "Add users to collaborate for better gyming"; // The message for placeholder
-
+  const [scrollY] = useState(new Animated.Value(0))
   // Fetch nearby users from the API
   const fetchNearbyUsers = async () => {
     try {
@@ -85,23 +88,32 @@ const InviteBuddiesScreen = ({ navigation }) => {
     <EmptyFriendsContainer />
   );
 
+  const headerOpacity = scrollY.interpolate({
+    inputRange: [0, 100],
+    outputRange: [1, 0],
+    extrapolate: 'clamp',
+  })
+
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : "height"}>
-      <View style={styles.header}>
-        <Text><Icon name="dumbbell" size={40} color="#fff" /></Text>
-      </View>
+      <AnimatedLinearGradient
+        colors={['#4CAF50', '#2E7D32']}
+        style={[styles.header, { opacity: headerOpacity }]}
+      >
+        <Dumbbell size={40} color="#FFFFFF" />
+        <Text style={styles.headerText}>Find Gym Buddies</Text>
+      </AnimatedLinearGradient>
 
-      {/* Search bar */}
       <View style={styles.searchContainer}>
-        <Text><Icon name="magnify" size={24} color="#888" /></Text>
+        <Search size={24} color="#888" />
         <TextInput
           style={styles.searchInput}
           value={searchText}
-          onChangeText={(text) => searchUser(text)}
-          onFocus={() => setIsFooterVisible(false)} // Hide footer on focus
-          onBlur={() => setIsFooterVisible(true)} // Show footer on blur
-          placeholder={message} // Use the message as placeholder
-          placeholderTextColor="#D3D3D3" // Adjust the color of the placeholder text if needed
+          onChangeText={setSearchText}
+          onFocus={() => setIsFooterVisible(false)}
+          onBlur={() => setIsFooterVisible(true)}
+          placeholder="Search for gym buddies..."
+          placeholderTextColor="#B0BEC5"
         />
       </View>
 
@@ -132,30 +144,39 @@ const InviteBuddiesScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#F5F5F5',
   },
   header: {
-    // Add any styles you want for the header
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    paddingTop: 60,
+  },
+  headerText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginLeft: 12,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 6,
-    margin: 10,
-    borderRadius: 8,
-    height: 40,
-    borderWidth: 1,
-    borderColor: '#4CAF50',
+    padding: 12,
+    margin: 16,
+    borderRadius: 25,
+    backgroundColor: '#FFFFFF',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   searchInput: {
     flex: 1,
-    marginLeft: 8,
-    fontSize: 14,
+    marginLeft: 12,
+    fontSize: 16,
     color: '#333',
-  },
-  listContainer: {
-    flex: 1,
-    paddingBottom: 80, // Add padding for the footer
   },
   buddyList: {
     padding: 16,
@@ -163,71 +184,69 @@ const styles = StyleSheet.create({
   buddyItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 6,
-    borderRadius: 8,
-    marginBottom: 4,
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 12,
+    backgroundColor: '#FFFFFF',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
   },
   buddyImage: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    marginRight: 12,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    marginRight: 16,
   },
   buddyInfo: {
     flex: 1,
   },
   buddyName: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#333',
   },
   username: {
-    fontSize: 12,
+    fontSize: 14,
     color: '#66BB6A',
-    fontWeight: 'bold',
+    marginTop: 4,
   },
   inviteButton: {
     backgroundColor: '#4CAF50',
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 8,
-  },
-  inviteButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
+    padding: 10,
+    borderRadius: 20,
   },
   invitedButton: {
-    backgroundColor: '#B0BEC5',
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 8,
-  },
-  invitedButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
+    padding: 10,
+    borderRadius: 20,
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: 40,
   },
   emptyText: {
     fontSize: 18,
     color: '#333',
-    marginBottom: 10,
+    marginTop: 16,
     fontWeight: 'bold',
   },
+  emptySubText: {
+    fontSize: 14,
+    color: '#B0BEC5',
+    marginTop: 8,
+  },
   footer: {
-    position: 'absolute', // Fix it at the bottom
+    position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    height: 60, // Adjust height as needed
     backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
-    // Additional styles if necessary
   },
 });
 

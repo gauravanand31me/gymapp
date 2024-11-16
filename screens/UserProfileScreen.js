@@ -118,16 +118,16 @@ export default function UserProfileScreen({ navigation, route }) {
 
   const getMilestoneDetails = () => {
     const workoutHours = (userData?.total_work_out_time || 0) / 60;
-    if (workoutHours > 1000) return { image: require('../assets/diamondmedal.jpg'), label: 'Diamond' };
-    if (workoutHours > 500) return { image: require('../assets/goldmedal.jpg'), label: 'Gold' };
-    if (workoutHours > 100) return { image: require('../assets/silvermedal.jpg'), label: 'Silver' };
+    if (workoutHours > 200) return { image: require('../assets/diamondmedal.jpg'), label: 'Diamond' };
+    if (workoutHours <= 200 && workoutHours > 100) return { image: require('../assets/goldmedal.jpg'), label: 'Gold' };
+    if (workoutHours <= 100 && workoutHours > 50) return { image: require('../assets/silvermedal.jpg'), label: 'Silver' };
     return { image: require('../assets/bronzemedal.jpg'), label: 'Bronze' };
   };
 
   if (loading) {
     return (
       <View style={styles.loader}>
-        <ActivityIndicator size="1" color="#4CAF50" />
+        <ActivityIndicator size="large" color="#4CAF50" />
       </View>
     );
   }

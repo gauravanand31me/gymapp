@@ -29,11 +29,7 @@ export default function SearchHeader({ setPincode, fetchGymsByPincode, address, 
    
       <View style={styles.headerContent}>
         <View style={styles.topRow}>
-          <Image
-            source={require('../assets/icon-removebg-preview.png')}
-            style={styles.logo}
-            resizeMode="contain"
-          />
+          
           <View style={styles.locationContainer}>
             <MaterialIcons name="location-on" size={24} color="#fff" />
             <Text style={styles.locationText} numberOfLines={1} ellipsizeMode="tail">
@@ -63,7 +59,7 @@ export default function SearchHeader({ setPincode, fetchGymsByPincode, address, 
           onPress={() => navigation.navigate('SearchGym', { lat, long })}
         >
           <MaterialIcons name="near-me" size={20} color="#fff" />
-          <Text style={styles.nearbyButtonText}>Search Gym</Text>
+          <Text style={styles.nearbyButtonText}>Search Gym by name</Text>
         </TouchableOpacity>
       </View>
     </View>

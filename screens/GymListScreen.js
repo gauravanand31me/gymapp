@@ -17,7 +17,7 @@ import * as Location from 'expo-location';
 import { useFocusEffect, useNavigationState } from '@react-navigation/native';
 import axios from 'axios';
 import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
-import { fetchAllGyms } from '../api/apiService';
+import { fetchAllGyms, storePushToken } from '../api/apiService';
 import Footer from '../components/Footer';
 import * as Linking from 'expo-linking';
 import SearchHeader from '../components/SearchComponent';
@@ -40,6 +40,7 @@ export default function GymListScreen({ navigation }) {
   const [hasMoreGyms, setHasMoreGyms] = useState(true);
   const limit = 3;
   const [unfocused, setUnfocused] = useState(false);
+  const [imageload, setImageLoading] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -90,6 +91,7 @@ export default function GymListScreen({ navigation }) {
   const fetchGyms = async (lat, long) => {
     if (page === 1) {
       setLoading(true);
+      await storePushToken();
     } else {
       setLoadingMore(true);
     }
@@ -186,9 +188,11 @@ export default function GymListScreen({ navigation }) {
       style={styles.gymCard}
       onPress={() => navigation.navigate('GymDetails', { gym_id: item.gymId })}
     >
-      <Image 
+      
+     <Image 
         source={{ uri: item.images?.[0]?.imageUrl || 'https://example.com/default-gym.png' }} 
         style={styles.gymImage} 
+     
       />
       <View style={styles.gymInfo}>
         <View style={styles.gymNameRating}>
@@ -210,6 +214,37 @@ export default function GymListScreen({ navigation }) {
     </TouchableOpacity>
   );
 
+
+
+  const renderLoadingGym = () => (
+    <TouchableOpacity 
+      style={styles.gymCard}
+     
+    >
+      <Image 
+        source={ require("../assets/cultfit.jpg") } 
+        style={styles.gymImage} 
+      />
+      <View style={styles.gymInfo}>
+        <View style={styles.gymNameRating}>
+          <Text style={styles.gymName}>Loading your gym...</Text>
+          <ActivityIndicator size="small" color="#4CAF50" style={styles.loader} />
+        </View>
+        <Text style={styles.gymDistance}>
+          <MaterialIcons name="location-on" size={14} color="#757575" /> 
+          <ActivityIndicator size="small" color="#4CAF50" style={styles.loader} />
+        </Text>
+        <Text style={styles.gymPrice}>₹ <ActivityIndicator size="small" color="#4CAF50" style={styles.loader} /></Text>
+        <TouchableOpacity 
+          style={styles.bookNowButton}
+       
+        >
+          <Text style={styles.bookNowText}>Book Now</Text>
+        </TouchableOpacity>
+      </View>
+    </TouchableOpacity>
+  );
+
   return (
     <>
     <KeyboardAvoidingView 
@@ -221,9 +256,12 @@ export default function GymListScreen({ navigation }) {
       <SearchHeader fetchGymsByPincode={fetchGymsByPincode} setPincode={setPincode} address={address} pincode={pincode} navigation={navigation}/>
 
       {loading ? (
-        <View style={styles.loaderContainer}>
-          <ActivityIndicator size="1" color="#4CAF50" />
-        </View>
+       
+          <FlatList
+          data={[gyms]}
+          renderItem={renderLoadingGym}
+          />
+   
       ) : (
         <FlatList
           data={gyms}

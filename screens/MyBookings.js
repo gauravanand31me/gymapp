@@ -98,7 +98,10 @@ export default function BookingsScreen({ navigation }) {
               <Text style={styles.qrCodeText}>
                 Please scan the QR code below to log your workout hours.
               </Text>
-              <BookingQRCode booking_id={item.bookingId} booking_date={item.date} type="daily" />
+     
+                <BookingQRCode booking_id={item.bookingId} booking_date={item.date} type="daily" />
+              
+              
               <Text style={styles.cancellationText}>
                 For cancellations, please contact the administrator.
               </Text>
@@ -147,7 +150,7 @@ export default function BookingsScreen({ navigation }) {
         </View>
 
         {isLoading ? (
-          <ActivityIndicator size="1" color="#4F46E5" style={styles.loader} />
+          <ActivityIndicator size="large" color="#4F46E5" style={styles.loader} />
         ) : (
           <View style={styles.contentContainer}>
             {isEmpty ? (
@@ -223,6 +226,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
   },
+  
   headerText: {
     fontSize: 24,
     fontWeight: 'bold',
