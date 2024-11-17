@@ -110,7 +110,7 @@ export default function GymDetailScreen({ navigation, route }) {
               <TouchableOpacity key={index} onPress={() => openModal(image)}>
             {loading && (
               <Image
-                source={require("../assets/icon.png")}
+                //source={require("../assets/icon.png")}
                 style={styles.image}
                 resizeMode="cover"
               />

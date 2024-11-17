@@ -7,6 +7,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   TextInput,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   Alert,
@@ -41,6 +42,8 @@ export default function GymListScreen({ navigation }) {
   const limit = 3;
   const [unfocused, setUnfocused] = useState(false);
   const [imageload, setImageLoading] = useState(false);
+  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+
 
   useFocusEffect(
     useCallback(() => {
@@ -63,6 +66,16 @@ export default function GymListScreen({ navigation }) {
       getLocation();
     }
   }, [unfocused, page, lat, long]);
+
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
+    const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
+
+    return () => {
+      keyboardDidHideListener.remove();
+      keyboardDidShowListener.remove();
+    };
+  }, []);
 
   const getLocation = async () => {
     try {
@@ -279,10 +292,8 @@ export default function GymListScreen({ navigation }) {
           }
         />
       )}
-      {!loading && isFooterVisible && <View>
-          <Footer navigation={navigation} />
-      </View>}
-    </KeyboardAvoidingView>
+      {!isKeyboardVisible && <Footer navigation={navigation} style={styles.footer} />}
+      </KeyboardAvoidingView>
     
   </>
   );
@@ -293,7 +304,15 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F5F5F5',
   },
-  
+  header: {
+    backgroundColor: '#4CAF50',
+    paddingTop: 50,
+    paddingBottom: 20,
+    paddingHorizontal: 20,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    elevation: 5,
+  },
   locationText: {
     color: '#fff',
     fontSize: 18,

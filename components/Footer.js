@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    height: 55,
+    height: 60,
     backgroundColor: '#ffffff', // Change background to white
     borderTopWidth: 1,
     borderTopColor: '#e0e0e0', // Lighter border color
