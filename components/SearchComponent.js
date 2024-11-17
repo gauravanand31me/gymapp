@@ -11,9 +11,12 @@ import {
 } from 'react-native';
 import { MaterialIcons, FontAwesome } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
+import { Keyboard } from 'react-native'; // Add this import
+
 
 export default function SearchHeader({ setPincode, fetchGymsByPincode, address, pincode, navigation, lat, long }) {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+
 
   useEffect(() => {
     // Simulate fetching location
@@ -22,6 +25,7 @@ export default function SearchHeader({ setPincode, fetchGymsByPincode, address, 
     }, 2000);
     return () => clearTimeout(timer);
   }, []);
+
 
   return (
     <View style={styles.headerContainer}>
@@ -62,17 +66,19 @@ export default function SearchHeader({ setPincode, fetchGymsByPincode, address, 
           <Text style={styles.nearbyButtonText}>Search Gym by name</Text>
         </TouchableOpacity>
       </View>
+
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   headerContainer: {
-    // paddingTop: Platform.OS === 'ios' ? 50 : StatusBar.currentHeight + 10,
+    paddingTop: Platform.OS === 'ios' ? 50 : StatusBar.currentHeight + 10,
     backgroundColor: '#4CAF50', // Semi-transparent green
   },
   headerContent: {
     padding: 15,
+
   },
   topRow: {
     flexDirection: 'row',
