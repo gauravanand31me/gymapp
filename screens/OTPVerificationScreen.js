@@ -122,7 +122,7 @@ export default function OTPVerificationScreen({ route }) {
             Enter the verification code we just sent to {mobileNumber}.
           </Text>
 
-                    <View style={styles.otpContainer}>
+          <View style={styles.otpContainer}>
             {[0, 1, 2, 3, 4, 5].map((index) => (
               <TextInput
                 key={index}
