@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, SafeAreaView, KeyboardAvoidingView, Platform, Animated, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { userDetails, verifyOtp } from '../api/apiService';
+import { loginUser, userDetails, verifyOtp } from '../api/apiService';
 import { CommonActions, useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -65,8 +65,9 @@ export default function OTPVerificationScreen({ route }) {
     }
   };
 
-  const handleResendOtp = () => {
+  const handleResendOtp = async () => {
     // Implement resend OTP logic here
+    await loginUser(mobileNumber);
     setTimer(30);
     Alert.alert('OTP Resent', 'A new OTP has been sent to your mobile number.');
   };
