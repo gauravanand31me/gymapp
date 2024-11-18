@@ -85,7 +85,7 @@ export default function BookingsScreen({ navigation }) {
 
               {selectedTab === "Upcoming" && (
                 <TouchableOpacity
-                  onPress={() => navigation.navigate('InviteFriendBuddy', { bookingId: item.id })}
+                  onPress={() => navigation.navigate('InviteFriendBuddy', { bookingId: item.id, gymName: item.gymName })}
                   style={styles.addMoreButton}
                 >
                   <Text style={styles.addMoreButtonText}>Send Invite</Text>

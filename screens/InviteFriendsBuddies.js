@@ -19,7 +19,7 @@ export default function Component({ navigation, route }) {
   const insets = useSafeAreaInsets();
 
   const bookingId = route?.params?.bookingId;
-
+  const gymName = route?.params?.gymName;
   const fetchBuddyList = useCallback(async () => {
     try {
       const data = await fetchFriends();
@@ -114,7 +114,7 @@ export default function Component({ navigation, route }) {
           </TouchableOpacity>
       {bookingId && (
             <View style={styles.bookingIdContainer}>
-              <Text style={styles.bookingIdText}>Booking ID: {bookingId}</Text>
+              <Text style={styles.bookingIdText}>Invite for: {gymName}</Text>
             </View>
           )}
 

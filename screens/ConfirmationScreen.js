@@ -64,7 +64,7 @@ const ConfirmationScreen = ({ route, navigation }) => {
 
           <TouchableOpacity
             style={styles.button}
-            onPress={() => navigation.navigate("InviteFriendBuddy", {bookingId: data.bookingId})}
+            onPress={() => navigation.navigate("InviteFriendBuddy", {bookingId: data.bookingId, gymName: slotDetails.gymName})}
           >
             <LinearGradient
               colors={['#4CAF50', '#45a049']}
