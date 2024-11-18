@@ -72,14 +72,42 @@ export default function OTPVerificationScreen({ route }) {
   };
 
   const handleOtpChange = (value, index) => {
-    const newOtp = otp.split('');
-    newOtp[index] = value;
-    setOtp(newOtp.join(''));
-
-    if (value && index < 5) {
-      inputRefs.current[index + 1].focus();
+    if (value.length > 1) {
+      // Autofill case: User pastes the full OTP
+      const newOtp = value.split('').slice(0, 6); // Take only the first 6 characters
+      setOtp(newOtp.join(''));
+  
+      // Automatically populate inputs
+      newOtp.forEach((digit, i) => {
+        if (inputRefs.current[i]) {
+          inputRefs.current[i].setNativeProps({ text: digit });
+        }
+      });
+  
+      if (inputRefs.current[5]) {
+        inputRefs.current[5].focus(); // Focus the last field after autofill
+      }
+    } else {
+      // Normal single-character input
+      const newOtp = otp.split('');
+      newOtp[index] = value;
+      setOtp(newOtp.join(''));
+  
+      if (value && index < 5) {
+        inputRefs.current[index + 1]?.focus(); // Move to the next box
+      }
     }
   };
+  
+  const handleKeyPress = (event, index) => {
+    if (event.nativeEvent.key === 'Backspace' && index > 0 && !otp[index]) {
+      const newOtp = otp.split('');
+      newOtp[index - 1] = '';
+      setOtp(newOtp.join(''));
+      inputRefs.current[index - 1]?.focus(); // Move to the previous box
+    }
+  };
+  
 
   return (
     <SafeAreaView style={styles.container}>
@@ -101,9 +129,10 @@ export default function OTPVerificationScreen({ route }) {
                 ref={(ref) => (inputRefs.current[index] = ref)}
                 style={styles.otpInput}
                 keyboardType="numeric"
-                maxLength={1}
+                maxLength={6} // Allow pasting full OTP
                 value={otp[index] || ''}
                 onChangeText={(value) => handleOtpChange(value, index)}
+                onKeyPress={(event) => handleKeyPress(event, index)} // Backspace handling
               />
             ))}
           </View>
