@@ -12,7 +12,8 @@ import {
   Platform,
   Alert,
   ActivityIndicator,
-  Dimensions 
+  Dimensions,
+  StatusBar,
 } from 'react-native';
 import * as Location from 'expo-location';
 import { useFocusEffect, useNavigationState } from '@react-navigation/native';
@@ -263,8 +264,13 @@ export default function GymListScreen({ navigation }) {
     <KeyboardAvoidingView 
       style={styles.container} 
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      
+       >
+       {/* StatusBar Configuration */}
+       <StatusBar
+        barStyle="dark-content" // Use 'light-content' for white text on dark background
+        backgroundColor="#f5f5f5" // Ensure this matches the container's background
+        translucent={false} // Use translucent if you want to overlay content under the status bar
+      />
 
       <SearchHeader fetchGymsByPincode={fetchGymsByPincode} setPincode={setPincode} address={address} pincode={pincode} navigation={navigation}/>
 

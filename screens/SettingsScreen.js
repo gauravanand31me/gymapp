@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Linking } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Linking,StatusBar } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { updateName } from '../api/apiService';
 
@@ -29,6 +29,12 @@ const SettingsScreen = ({ navigation, route }) => {
 
   return (
     <View style={styles.container}>
+       {/* StatusBar Configuration */}
+       <StatusBar
+        barStyle="dark-content" // Use 'light-content' for white text on dark background
+        backgroundColor="#f5f5f5" // Ensure this matches the container's background
+        translucent={false} // Use translucent if you want to overlay content under the status bar
+      />
       {/* Back Button */}
       <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
         <Text style={styles.backButtonText}>Back</Text>
@@ -55,7 +61,7 @@ const SettingsScreen = ({ navigation, route }) => {
       {/* Contact Information */}
       <TouchableOpacity style={styles.contactContainer} onPress={handleContactPress}>
         <Text style={styles.contactText}>
-          For any disputes, contact us at <Text style={styles.linkText}>contact.yupluck.com</Text>
+          For any disputes, contact us at <Text style={styles.linkText}>contact@yupluck.com</Text>
         </Text>
       </TouchableOpacity>
     </View>

@@ -7,6 +7,7 @@ import {
   Alert,
   ScrollView,
   SafeAreaView,
+  StatusBar,
 } from 'react-native'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { Calendar, ChevronLeft } from 'lucide-react-native'
@@ -72,6 +73,12 @@ export default function Component({ navigation, route }) {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* StatusBar Configuration */}
+      <StatusBar
+        barStyle="dark-content" // Use 'light-content' for white text on dark background
+        backgroundColor="#f5f5f5" // Ensure this matches the container's background
+        translucent={false} // Use translucent if you want to overlay content under the status bar
+      />
       <LinearGradient
         colors={['#4CAF50', '#2E7D32']}
         style={styles.background}
