@@ -12,7 +12,8 @@ import {
   Platform,
   Alert,
   ActivityIndicator,
-  Keyboard
+  Keyboard,
+  StatusBar,
 } from 'react-native';
 import { fetchAllGyms } from '../api/apiService';
 
@@ -98,6 +99,13 @@ export default function SearchGymList({ navigation, route }) {
 
   return (
     <View style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      {/* StatusBar Configuration */}
+      <StatusBar
+        barStyle="dark-content" // Use 'light-content' for white text on dark background
+        backgroundColor="#f5f5f5" // Ensure this matches the container's background
+        translucent={false} // Use translucent if you want to overlay content under the status bar
+      />
+
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <MaterialIcon name="arrow-back" size={24} color="#fff" />

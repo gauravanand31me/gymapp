@@ -10,6 +10,7 @@ import {
   FlatList,
   ScrollView,
   Modal,
+  StatusBar,
 } from 'react-native';
 import { ProgressBar } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
@@ -230,6 +231,12 @@ export default function ProfileScreen({ navigation, route }) {
   return (
     <View style={styles.safeArea}>
       <ScrollView style={styles.container}>
+        {/* StatusBar Configuration */}
+      <StatusBar
+        barStyle="dark-content" // Use 'light-content' for white text on dark background
+        backgroundColor="#f5f5f5" // Ensure this matches the container's background
+        translucent={false} // Use translucent if you want to overlay content under the status bar
+      />
         <View style={styles.profileSection}>
           <View style={styles.profileHeader}>
             <TouchableOpacity onPress={toggleImageOptions}>
@@ -398,16 +405,18 @@ export default function ProfileScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
-    paddingTop: 25,
+    //backgroundColor: '#f5f5f5',
+    paddingTop: 20,
   },
   container: {
     flex: 1,
     paddingTop: 20,
+    //backgroundColor: '#fff',
+
   },
   profileSection: {
     padding: 20,
-    backgroundColor: '#fff',
+    //backgroundColor: '#fff',
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
     shadowColor: "#000",
@@ -487,14 +496,14 @@ const styles = StyleSheet.create({
   statsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    backgroundColor: '#fff',
+    //backgroundColor: '#fff',
     padding: 15,
     marginTop: 20,
     borderRadius: 15,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    //shadowColor: "#000",
+    //shadowOffset: { width: 0, height: 1 },
+    //shadowOpacity: 0.1,
+    //shadowRadius: 2,
     elevation: 2,
   },
   statItem: {
@@ -571,15 +580,15 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   listContainer: {
-    backgroundColor: '#fff',
-    marginTop: 20,
-    borderRadius: 15,
+    //backgroundColor: '#fff',
+    //marginTop: 20,
+   // borderRadius: 15,
     padding: 15,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    //shadowOffset: { width: 0, height: 1 },
+    //shadowOpacity: 0.1,
+    //shadowRadius: 2,
+    //elevation: 2,
   },
   listItem: {
     flexDirection: 'row',

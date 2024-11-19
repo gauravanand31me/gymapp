@@ -11,6 +11,7 @@ import {
   Linking,
   SafeAreaView,
   ActivityIndicator,
+  StatusBar,
 } from 'react-native'
 import { fetchIndividualGymData } from '../api/apiService'
 import SlotSelectionScreen from './SlotSelectionScreen'
@@ -84,6 +85,12 @@ export default function GymDetailScreen({ navigation, route }) {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* StatusBar Configuration */}
+      <StatusBar
+        barStyle="dark-content" // Use 'light-content' for white text on dark background
+        backgroundColor="#f5f5f5" // Ensure this matches the container's background
+        translucent={false} // Use translucent if you want to overlay content under the status bar
+      />
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Icon name="chevron-left" size={24} color="#4CAF50" />

@@ -8,6 +8,7 @@ import {
   Alert,
   ActivityIndicator,
   SafeAreaView,
+  StatusBar,
 } from 'react-native'
 import { Calendar, Clock, DollarSign, ArrowLeft, CheckCircle } from 'lucide-react-native'
 import * as WebBrowser from 'expo-web-browser'
@@ -113,6 +114,12 @@ export default function PaymentScreen({ route, navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* StatusBar Configuration */}
+      <StatusBar
+        barStyle="dark-content" // Use 'light-content' for white text on dark background
+        backgroundColor="#f5f5f5" // Ensure this matches the container's background
+        translucent={false} // Use translucent if you want to overlay content under the status bar
+      />
       <LinearGradient
         colors={['#4CAF50', '#2E7D32']}
         style={styles.background}

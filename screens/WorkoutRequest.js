@@ -8,7 +8,8 @@ import {
   Animated, 
   Dimensions,
   ScrollView,
-  SafeAreaView
+  SafeAreaView,
+  StatusBar
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { acceptBuddyRequest } from '../api/apiService';
@@ -80,6 +81,12 @@ const WorkoutRequest = ({ route }) => {
       <SafeAreaView style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.scrollContainer}>
           <Animated.View style={[styles.container, { opacity: fadeAnim, transform: [{ translateX: slideAnim }] }]}>
+            {/* StatusBar Configuration */}
+      <StatusBar
+        barStyle="dark-content" // Use 'light-content' for white text on dark background
+        backgroundColor="#f5f5f5" // Ensure this matches the container's background
+        translucent={false} // Use translucent if you want to overlay content under the status bar
+      />
             <View style={styles.header}>
               <Ionicons name="checkmark-circle" size={60} color="#28A745" />
               <Text style={styles.title}>
