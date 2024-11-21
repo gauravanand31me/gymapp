@@ -134,15 +134,14 @@ export default function ProfileScreen({ navigation, route }) {
 
   const selectFromGallery = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (permissionResult.granted === false) {
-      Linking.openSettings().catch(() => {
-        Alert.alert("Error", "Unable to open app settings. Please try again.");
-      });
-      Alert.alert("Permission required", "Gallery access is required to select a photo.");
-      
-      return;
-    }
   
+    if (permissionResult.granted === false) {
+      Alert.alert(
+        "Permission Denied",
+        "Gallery access is required to select a photo. Please grant the permission from your device settings if you'd like to use this feature."
+      );
+      return; // Do nothing if permission is denied
+    }
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
