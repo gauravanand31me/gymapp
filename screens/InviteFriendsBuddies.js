@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet, Image, FlatList, Alert,
-  KeyboardAvoidingView, Platform, Keyboard, Dimensions, SafeAreaView
+  KeyboardAvoidingView, Platform, Keyboard, Dimensions, SafeAreaView,StatusBar
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -104,6 +104,12 @@ export default function Component({ navigation, route }) {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
+      {/* StatusBar Configuration */}
+      <StatusBar
+        barStyle="dark-content" // Use 'light-content' for white text on dark background
+        backgroundColor="#f5f5f5" // Ensure this matches the container's background
+        translucent={false} // Use translucent if you want to overlay content under the status bar
+      />
       <KeyboardAvoidingView
         style={styles.keyboardAvoidingView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}

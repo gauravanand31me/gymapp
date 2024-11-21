@@ -10,6 +10,7 @@ import {
   SafeAreaView,
   Alert,
   Animated,
+  StatusBar,
 } from 'react-native'
 import { acceptFriendRequest, fetchAllNotifications, markAllNotificationsAsRead, rejectFriendRequest, acceptBuddyRequest, fetchIndividualFriendRequest } from '../api/apiService'
 import Footer from '../components/Footer'
@@ -179,6 +180,12 @@ export default function NotificationListScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
+      {/* StatusBar Configuration */}
+      <StatusBar
+        barStyle="dark-content" // Use 'light-content' for white text on dark background
+        backgroundColor="#f5f5f5" // Ensure this matches the container's background
+        translucent={false} // Use translucent if you want to overlay content under the status bar
+      />
       <View style={styles.header}>
         <Bell size={24} color="#4CAF50" />
         <Text style={styles.headerText}>Notifications</Text>
@@ -227,8 +234,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 16,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
+    //backgroundColor: '#fff',
+    //borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
   },
   content: {

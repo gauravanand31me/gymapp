@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, TextInput, FlatList, TouchableOpacity, Text, StyleSheet, ActivityIndicator, Keyboard, Alert } from 'react-native';
+import { View, TextInput, FlatList, TouchableOpacity, Text, StyleSheet, ActivityIndicator, Keyboard, Alert, StatusBar} from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { fetchAllGyms } from '../api/apiService';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -75,7 +75,12 @@ export default function AutocompleteSearchComponent({ route }) {
 
   return (
     <View style={styles.container}>
-      {/* Back Button */}
+      {/* StatusBar Configuration */}
+      <StatusBar
+        barStyle="dark-content" // Use 'light-content' for white text on dark background
+        backgroundColor="#f5f5f5" // Ensure this matches the container's background
+        translucent={false} // Use translucent if you want to overlay content under the status bar
+      />
  
 
       <View style={styles.searchContainer}>

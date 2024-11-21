@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   ScrollView,
   SafeAreaView,
+  StatusBar,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { UserCircle, Users, Clock, Settings, UserPlus, UserCheck, UserMinus } from 'lucide-react-native';
@@ -137,6 +138,12 @@ export default function UserProfileScreen({ navigation, route }) {
 
   return (
     <View style={styles.container}>
+       {/* StatusBar Configuration */}
+       <StatusBar
+        barStyle="dark-content" // Use 'light-content' for white text on dark background
+        backgroundColor="#f5f5f5" // Ensure this matches the container's background
+        translucent={false} // Use translucent if you want to overlay content under the status bar
+      />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <LinearGradient
           colors={['#4CAF50', '#45a049']}

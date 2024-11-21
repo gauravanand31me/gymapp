@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, FlatList,
-  Image, Modal, SafeAreaView, ActivityIndicator
+  Image, Modal, SafeAreaView, ActivityIndicator,StatusBar
 } from 'react-native';
 import { fetchAllBookings, fetchBuddyInvites, rateBooking } from '../api/apiService';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -132,7 +132,13 @@ export default function BookingsScreen({ navigation }) {
 
   return (
     <View style={styles.safeArea}>
-      <View style={styles.container}>
+  <View style={styles.container}>
+      {/* StatusBar Configuration */}
+      <StatusBar
+        barStyle="dark-content" // Use 'light-content' for white text on dark background
+        backgroundColor="#f5f5f5" // Ensure this matches the container's background
+        translucent={false} // Use translucent if you want to overlay content under the status bar
+      />
         <Text style={styles.headerText}>My Bookings</Text>
 
         <View style={styles.tabContainer}>

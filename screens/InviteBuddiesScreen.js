@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, FlatList, KeyboardAvoidingView, Platform, Animated } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, FlatList, KeyboardAvoidingView, Platform, Animated,StatusBar } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Dumbbell, Search, UserPlus, UserCheck, UserClock, User } from 'lucide-react-native'
 import Footer from '../components/Footer';
@@ -96,6 +96,12 @@ const InviteBuddiesScreen = ({ navigation }) => {
 
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+      {/* StatusBar Configuration */}
+      <StatusBar
+        barStyle="dark-content" // Use 'light-content' for white text on dark background
+        backgroundColor="#f5f5f5" // Ensure this matches the container's background
+        translucent={false} // Use translucent if you want to overlay content under the status bar
+      />
       <AnimatedLinearGradient
         colors={['#4CAF50', '#2E7D32']}
         style={[styles.header, { opacity: headerOpacity }]}
