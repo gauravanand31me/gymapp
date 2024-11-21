@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { ScrollView, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Linking,StatusBar } from 'react-native';
+import { ScrollView, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Linking, StatusBar, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { LinearGradient } from 'expo-linear-gradient'; // Add expo-linear-gradient for gradient effects
 import { deleteUserAccount, updateName } from '../api/apiService';
 
 const SettingsScreen = ({ navigation, route }) => {
@@ -36,11 +37,11 @@ const SettingsScreen = ({ navigation, route }) => {
   };
 
   const handleUserDeleteAccount = async () => {
-     const resp = await deleteUserAccount();
-     if (resp) {
-        navigation.navigate("Login", {delete: true});
-     }
-  }
+    const resp = await deleteUserAccount();
+    if (resp) {
+      navigation.navigate("Login", { delete: true });
+    }
+  };
 
   const handleDeleteAccount = () => {
     Alert.alert(
@@ -55,58 +56,57 @@ const SettingsScreen = ({ navigation, route }) => {
 
   return (
     <ScrollView style={styles.container}>
-       {/* StatusBar Configuration */}
-       <StatusBar
-        barStyle="dark-content" // Use 'light-content' for white text on dark background
-        backgroundColor="#f5f5f5" // Ensure this matches the container's background
-        translucent={false} // Use translucent if you want to overlay content under the status bar
-      />
-      {/* Back Button */}
-      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-        <Text style={styles.backButtonText}>Back</Text>
-      </TouchableOpacity>
+      <StatusBar barStyle="dark-content" backgroundColor="#f5f5f5" translucent={false} />
+ 
 
-      {/* Title */}
-      <Text style={styles.title}>Settings</Text>
+      <TouchableOpacity style={[styles.backButton, styles.backButtonMoved]} onPress={() => navigation.goBack()}>
+    <Text style={styles.backButtonText}>← Back</Text>
+  </TouchableOpacity>
+  <Text style={styles.title}>Settings</Text>
 
-      {/* Update Name Section */}
-      <Text style={styles.sectionTitle}>Update Name</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter your new name"
-        placeholderTextColor="#aaa"
-        value={name}
-        onChangeText={setName}
-      />
-      <TouchableOpacity style={styles.button} onPress={handleUpdateName}>
-        <Text style={styles.buttonText}>Save Changes</Text>
-      </TouchableOpacity>
+      <View style={styles.card}>
+        <Text style={styles.sectionTitle}>Update Name</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter your new name"
+          placeholderTextColor="#aaa"
+          value={name}
+          onChangeText={setName}
+        />
+        <TouchableOpacity onPress={handleUpdateName}>
+          <LinearGradient colors={['#28a745', '#218838']} style={styles.button}>
+            <Text style={styles.buttonText}>Save Changes</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      </View>
 
-      {/* Links Section */}
-      <Text style={styles.sectionTitle}>Useful Links</Text>
-      <TouchableOpacity style={styles.linkButton} onPress={handlePrivacyPolicy}>
-        <Text style={styles.linkButtonText}>Privacy Policy</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.linkButton} onPress={handleTermsAndConditions}>
-        <Text style={styles.linkButtonText}>Terms and Conditions</Text>
-      </TouchableOpacity>
+      <View style={styles.card}>
+        <Text style={styles.sectionTitle}>Useful Links</Text>
+        <TouchableOpacity onPress={handlePrivacyPolicy}>
+          <LinearGradient colors={['#007bff', '#0056b3']} style={styles.button}>
+            <Text style={styles.buttonText}>Privacy Policy</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={handleTermsAndConditions}>
+          <LinearGradient colors={['#007bff', '#0056b3']} style={styles.button}>
+            <Text style={styles.buttonText}>Terms and Conditions</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      </View>
 
-      {/* Delete Account */}
       <TouchableOpacity style={styles.deleteButton} onPress={handleDeleteAccount}>
         <Text style={styles.deleteButtonText}>Delete My Account</Text>
       </TouchableOpacity>
 
-      {/* Logout Button */}
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
         <Text style={styles.logoutButtonText}>Logout</Text>
       </TouchableOpacity>
 
-      {/* Contact Information */}
-      <TouchableOpacity style={styles.contactContainer} onPress={handleContactPress}>
+      <View style={styles.contactContainer}>
         <Text style={styles.contactText}>
           For any disputes, contact us at <Text style={styles.linkText}>contact@yupluck.com</Text>
         </Text>
-      </TouchableOpacity>
+      </View>
     </ScrollView>
   );
 };
@@ -114,73 +114,73 @@ const SettingsScreen = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    paddingVertical: 40,
+    paddingVertical: 20,
     paddingHorizontal: 20,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#f0f0f5',
   },
   backButton: {
     alignSelf: 'flex-start',
+    marginBottom: 10,
+  },
+  backButtonMoved: {
+    marginTop: 30, // Adds spacing after the title
     marginBottom: 20,
   },
   backButtonText: {
     color: '#007bff',
     fontSize: 16,
+    fontWeight: '600',
+  
   },
   title: {
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: 'bold',
     textAlign: 'center',
     color: '#333',
-    marginBottom: 30,
+    marginBottom: 20,
+  },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 15,
+    padding: 20,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 5,
   },
   sectionTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '600',
     color: '#555',
-    marginBottom: 10,
+    marginBottom: 15,
   },
   input: {
-    width: '100%',
     borderColor: '#ddd',
     borderWidth: 1,
-    borderRadius: 10,
+    borderRadius: 25,
     padding: 15,
-    marginBottom: 20,
-    backgroundColor: '#fff',
+    marginBottom: 15,
+    backgroundColor: '#f9f9f9',
   },
   button: {
-    backgroundColor: '#28a745',
+    borderRadius: 25,
     padding: 15,
-    borderRadius: 10,
-    width: '100%',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 15,
   },
   buttonText: {
     color: '#fff',
     fontWeight: '600',
     fontSize: 16,
   },
-  linkButton: {
-    backgroundColor: '#007bff',
-    padding: 15,
-    borderRadius: 10,
-    width: '100%',
-    alignItems: 'center',
-    marginBottom: 15,
-  },
-  linkButtonText: {
-    color: '#fff',
-    fontWeight: '600',
-    fontSize: 16,
-  },
   deleteButton: {
     backgroundColor: '#dc3545',
+    borderRadius: 25,
     padding: 15,
-    borderRadius: 10,
     width: '100%',
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: 20,
   },
   deleteButtonText: {
     color: '#fff',
@@ -188,10 +188,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   logoutButton: {
-    padding: 15,
-    borderRadius: 10,
+    borderRadius: 25,
     backgroundColor: '#6c757d',
-    width: '100%',
+    padding: 15,
     alignItems: 'center',
     marginBottom: 20,
   },
