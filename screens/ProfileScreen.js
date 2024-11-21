@@ -16,6 +16,7 @@ import * as ImagePicker from 'expo-image-picker';
 import Footer from '../components/Footer';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import * as ImageManipulator from 'expo-image-manipulator';
+import { Linking } from 'react-native';
 
 import {
   userDetails,
@@ -49,7 +50,7 @@ const getProgress = (hours) => {
 };
 
 export default function ProfileScreen({ navigation, route }) {
-  const [profileImage, setProfileImage] = useState('https://via.placeholder.com/150');
+  const [profileImage, setProfileImage] = useState('https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png');
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [visitedGyms, setVisitedGyms] = useState([]);
@@ -64,7 +65,7 @@ export default function ProfileScreen({ navigation, route }) {
     try {
       const data = await userDetails();
       setUserData(data);
-      setProfileImage(data.profile_pic || 'https://via.placeholder.com/150');
+      setProfileImage(data.profile_pic || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png');
     } catch (error) {
       console.error('Error fetching user data:', error);
       Alert.alert('Error', 'Could not fetch user data. Please try again later.');
@@ -131,13 +132,23 @@ export default function ProfileScreen({ navigation, route }) {
   };
 
   const selectFromGallery = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (permissionResult.granted === false) {
+      Linking.openSettings().catch(() => {
+        Alert.alert("Error", "Unable to open app settings. Please try again.");
+      });
+      Alert.alert("Permission required", "Gallery access is required to select a photo.");
+      
+      return;
+    }
+  
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [4, 3],
       quality: 1,
     });
-
+  
     if (!result.canceled) {
       await processAndUploadImage(result.assets[0].uri);
     }

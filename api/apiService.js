@@ -662,3 +662,20 @@ export const deleteProfileImage = async () => {
 }
 
 
+
+export const deleteUserAccount = async () => {
+  try {
+    const userToken = await AsyncStorage.getItem('authToken'); // Fetch token if needed
+    const response = await axios.delete(`${BASE_URL}/users/deleteaccount`, {}, {
+      headers: {
+        Authorization: `Bearer ${userToken}`,  // Add the Bearer token here
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error deleteing user account:', error);
+    throw error;
+  }
+}
+
+
