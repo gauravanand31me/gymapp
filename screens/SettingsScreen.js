@@ -33,7 +33,7 @@ const SettingsScreen = ({ navigation, route }) => {
   };
 
   const handleTermsAndConditions = () => {
-    Linking.openURL('https://yupluck.com/privacy');
+    Linking.openURL('https://www.yupluck.com/privacy#terms-and-conditions');
   };
 
   const handleUserDeleteAccount = async () => {
