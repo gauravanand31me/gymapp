@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { CommonActions } from '@react-navigation/native';
 import indiaFlag from "../assets/india-flag.png";
 
+
 const LoginScreen = ({ navigation }) => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
@@ -91,10 +92,18 @@ const LoginScreen = ({ navigation }) => {
             <ActivityIndicator size="small" color="#fff" />
           ) : (
             <Text style={styles.buttonText}>Login</Text>
+            
           )}
+          
         </TouchableOpacity>
-
+        <View style={styles.policyContainer}>
+    
+          <TouchableOpacity onPress={() => Linking.openURL('https://yupluck.com/privacy')}>
+            <Text style={styles.policyLink}>By clicking in, I accept the terms service & privacy policy</Text>
+          </TouchableOpacity>
+        </View>
         <View style={styles.footer}>
+          
           <Text style={styles.footerText}>Don't have an account? </Text>
           <TouchableOpacity onPress={() => navigation.navigate('Register')}>
             <Text style={styles.linkText}>Register Now</Text>
@@ -141,6 +150,20 @@ const styles = StyleSheet.create({
     width: 200,
     height: 100,
     marginBottom: 20,
+  },
+  policyContainer: {
+    marginTop: 20,
+    marginBottom: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 10,
+  },
+  policyLink: {
+    color: '#0ED94A',
+    textDecorationLine: 'underline',
+    fontSize: 14,
+    textAlign: 'center',
+  
   },
   title: {
     fontSize: 28,
