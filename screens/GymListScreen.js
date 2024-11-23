@@ -217,7 +217,7 @@ export default function GymListScreen({ navigation }) {
           <MaterialIcons name="location-on" size={14} color="#757575" /> 
           {item.distance ? `${item.distance.toFixed(1)} km away` : 'N/A'}
         </Text>
-        <Text style={styles.gymPrice}>₹ {item.subscriptionPrices?.[0] || 'N/A'}/session</Text>
+        <Text style={styles.gymPrice}>₹ {item.subscriptionPrices?.[0] || 'N/A'}/hour</Text>
         <TouchableOpacity 
           style={styles.bookNowButton}
           onPress={() => navigation.navigate('GymDetails', { gym_id: item.gymId })}
