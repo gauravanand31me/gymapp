@@ -244,7 +244,7 @@ export default function ProfileScreen({ navigation, route }) {
         {/* StatusBar Configuration */}
       <StatusBar
         barStyle="dark-content" // Use 'light-content' for white text on dark background
-        backgroundColor="#f5f5f5" // Ensure this matches the container's background
+       
         translucent={false} // Use translucent if you want to overlay content under the status bar
       />
         <View style={styles.profileSection}>
@@ -429,12 +429,8 @@ const styles = StyleSheet.create({
     //backgroundColor: '#fff',
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
+  
   profileHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -450,7 +446,6 @@ const styles = StyleSheet.create({
     borderColor: '#4CAF50',
   },
   uploadingOverlay: {
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -514,7 +509,7 @@ const styles = StyleSheet.create({
     //shadowOffset: { width: 0, height: 1 },
     //shadowOpacity: 0.1,
     //shadowRadius: 2,
-    elevation: 2,
+  
   },
   statItem: {
     alignItems: 'center',
@@ -534,11 +529,7 @@ const styles = StyleSheet.create({
     padding: 15,
     backgroundColor: '#fff',
     borderRadius: 15,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    
   },
   sectionTitle: {
     fontSize: 18,
