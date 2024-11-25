@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "mobilegymapp",
-    "slug": "mobilegymapp",
+    "name": "yupluck",
+    "slug": "yupluck",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -17,6 +17,7 @@
     "android": {
       "versionCode": 1,
       "package": "com.yupluck.mepluck",
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#ffffff"
@@ -33,7 +34,7 @@
     },
     "extra": {
       "eas": {
-        "projectId": "f6d47946-efbe-4b9c-80f1-60a205cd4d1b"
+        "projectId": "de28077c-3982-44ff-8d62-6e1125668220"
       }
     }
   }
