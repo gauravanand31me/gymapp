@@ -4,7 +4,7 @@
     "slug": "yupluck",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": ".assets/ic_launcher.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash.png",
@@ -19,8 +19,8 @@
       "package": "com.yupluck.mepluck",
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": ".assets/ic_launcher_foreground.png",
+        "backgroundColor": "#0ED94A"
       },
       "permissions": ["NOTIFICATION", "VIBRATE", "RECEIVE_BOOT_COMPLETED"],
       "useNextNotificationsApi": true
