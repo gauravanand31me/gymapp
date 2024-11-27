@@ -244,7 +244,7 @@ export default function ProfileScreen({ navigation, route }) {
         {/* StatusBar Configuration */}
       <StatusBar
         barStyle="dark-content" // Use 'light-content' for white text on dark background
-       
+        backgroundColor="#f5f5f5" // Ensure this matches the container's background
         translucent={false} // Use translucent if you want to overlay content under the status bar
       />
         <View style={styles.profileSection}>

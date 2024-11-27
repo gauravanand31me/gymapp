@@ -7,17 +7,33 @@ import {
   StyleSheet,
   StatusBar,
   Platform,
+  Image,
 } from 'react-native';
 import { MaterialIcons, FontAwesome } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
+import { Keyboard } from 'react-native'; // Add this import
+
 
 export default function SearchHeader({ setPincode, fetchGymsByPincode, address, pincode, navigation, lat, long }) {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
+
+  useEffect(() => {
+    // Simulate fetching location
+    const timer = setTimeout(() => {
+      // This would be replaced with actual location fetching logic
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
+
   return (
     <View style={styles.headerContainer}>
-      <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
+      <StatusBar  backgroundColor ='#4CAF50' barStyle="light-content" />
+   
       <View style={styles.headerContent}>
         <View style={styles.topRow}>
+          
           <View style={styles.locationContainer}>
             <MaterialIcons name="location-on" size={24} color="#fff" />
             <Text style={styles.locationText} numberOfLines={1} ellipsizeMode="tail">
@@ -50,6 +66,7 @@ export default function SearchHeader({ setPincode, fetchGymsByPincode, address, 
           <Text style={styles.nearbyButtonText}>Search Gym by name</Text>
         </TouchableOpacity>
       </View>
+
     </View>
   );
 }
@@ -57,16 +74,21 @@ export default function SearchHeader({ setPincode, fetchGymsByPincode, address, 
 const styles = StyleSheet.create({
   headerContainer: {
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 50,
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#4CAF50', // Semi-transparent green
   },
   headerContent: {
     padding: 15,
+
   },
   topRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 15,
+  },
+  logo: {
+    width: 100,
+    height: 50,
   },
   locationContainer: {
     flexDirection: 'row',
