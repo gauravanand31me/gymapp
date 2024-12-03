@@ -311,7 +311,7 @@ const styles = StyleSheet.create({
   gymName: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: '#4F46E5',
     marginBottom: 8,
   },
   ratingContainer: {
