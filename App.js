@@ -1,11 +1,12 @@
 import * as React from 'react';
-import * as Notifications from 'expo-notifications';
-import { AppState, Alert } from 'react-native';
+import { AppState } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { initializeApp } from 'firebase/app'; // Firebase for non-messaging purposes
+import * as Notifications from 'expo-notifications';
+import { initializeApp as firebaseInitializeApp } from 'firebase/app';
 
+import SplashScreen from './components/SplashScreen';
 import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
 import GymListScreen from './screens/GymListScreen';
@@ -23,7 +24,6 @@ import PaymentScreen from './screens/PaymentConfirm';
 import ConfirmationScreen from './screens/ConfirmationScreen';
 import InviteFriendBuddiesScreen from './screens/InviteFriendsBuddies';
 import SettingsScreen from './screens/SettingsScreen';
-import SplashScreen from './components/SplashScreen';
 import VisitedGymScreen from './screens/VisitedGymScreen';
 import UserProfileScreen from './screens/UserProfileScreen';
 import SearchListScreen from './screens/SearchGymScreen';
@@ -34,84 +34,45 @@ import { NotificationProvider } from './context/NotificationContext';
 const Stack = createStackNavigator();
 
 export default function App() {
-  const [isSplashVisible, setSplashVisible] = React.useState(true); // Track splash screen visibility
-  const [notificationError, setNotificationError] = React.useState("");
-  const appState = React.useRef(AppState.currentState); // Track current app state
-  const [inactiveTimer, setInactiveTimer] = React.useState(null);
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [isAuthenticated, setIsAuthenticated] = React.useState(false);
+  const [isSplashVisible, setSplashVisible] = React.useState(true);
+  const appState = React.useRef(AppState.currentState);
 
-  React.useEffect(() => {
-    registerForPushNotificationsAsync();
-    initializeFirebase();
-  }, []);
-
-  React.useEffect(() => {
-    const timer = setTimeout(() => {
-      setSplashVisible(false); // Hide the splash screen after 3 seconds
-    }, 3000); // 3 seconds
-
-    return () => clearTimeout(timer); // Clear the timer on component unmount
-  }, []);
-
-  // App State Listener for Inactivity
-  React.useEffect(() => {
-    const subscription = AppState.addEventListener('change', handleAppStateChange);
-
-    return () => {
-      subscription.remove(); // Clean up listener
-      clearInactivityTimer(); // Clear timer on unmount
-    };
-  }, []);
-
-  const handleAppStateChange = (nextAppState) => {
-    if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
-      clearInactivityTimer();
-    } else if (nextAppState === 'background' || nextAppState === 'inactive') {
-      startInactivityTimer();
-    }
-    appState.current = nextAppState;
+  const firebaseConfig = {
+    apiKey: "AIzaSyBNB-AqGA4kAErWwpmtjfsxjCjZ2BWpNf4",
+    authDomain: "yupluck-b30f0.firebasestorage.app",
+    projectId: "yupluck-b30f0",
+    storageBucket: "yupluck-b30f0.firebasestorage.app",
+    messagingSenderId: "284884578210",
+    appId: "1:284884578210:android:871427ecf49fa13d6b8cfb"
   };
 
-  const startInactivityTimer = () => {
-    if (inactiveTimer) clearTimeout(inactiveTimer);
-
-    const timer = setTimeout(() => {
-      Alert.alert(
-        'Session Expired',
-        'You were inactive for 2 minutes. Restarting the app.',
-        [{ text: 'OK', onPress: () => restartApp() }]
-      );
-    }, 2 * 60 * 1000);
-
-    setInactiveTimer(timer);
-  };
-
-  const clearInactivityTimer = () => {
-    if (inactiveTimer) clearTimeout(inactiveTimer);
-    setInactiveTimer(null);
-  };
-
-  const restartApp = () => {
-    setSplashVisible(true);
-    setInactiveTimer(null);
-    appState.current = 'active';
-  };
-
-  const initializeFirebase = async () => {
+  const checkAuthentication = async () => {
     try {
-      const firebaseConfig = {
-        apiKey: "AIzaSyBNB-AqGA4kAErWwpmtjfsxjCjZ2BWpNf4",
-        authDomain: "yupluck-b30f0.firebasestorage.app",
-        projectId: "yupluck-b30f0",
-        storageBucket: "yupluck-b30f0.firebasestorage.app",
-        messagingSenderId: "284884578210",
-        appId: "1:284884578210:android:871427ecf49fa13d6b8cfb"
-      };
-
-      const app = initializeApp(firebaseConfig);
-      if (!app) throw new Error('Firebase initialization failed!');
-      console.log('Firebase initialized successfully!');
+      const token = await AsyncStorage.getItem('authToken');
+      return !!token;
     } catch (error) {
-      console.error('Error initializing Firebase:', error.message);
+      console.error('Error checking authentication:', error);
+      return false;
+    }
+  };
+
+  const initializeApplication = async () => {
+    try {
+      const app = firebaseInitializeApp(firebaseConfig);
+      if (app) {
+        console.log('Firebase initialized successfully!');
+        await registerForPushNotificationsAsync();
+      } else {
+        throw new Error('Firebase initialization failed!');
+      }
+      const authStatus = await checkAuthentication();
+      setIsAuthenticated(authStatus);
+    } catch (error) {
+      console.error('Error during app initialization:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -126,64 +87,111 @@ export default function App() {
       }
 
       if (finalStatus !== 'granted') {
-        setNotificationError('Push notification permission not granted.');
+        console.log('Push notification permission not granted.');
         return;
       }
 
       const { data: token } = await Notifications.getExpoPushTokenAsync({
-        projectId: "de28077c-3982-44ff-8d62-6e1125668220"
+        projectId: "5c0cf145-3b66-4a09-a5aa-0b76f76d6260"
       });
 
-      if (!token) {
-        setNotificationError('Failed to generate push notification token.');
-        return;
+      if (token) {
+        await AsyncStorage.setItem('expoPushToken', token);
+        console.log('Expo Push Token:', token);
+      } else {
+        console.log('Failed to generate push notification token.');
       }
-
-      await AsyncStorage.setItem('expoPushToken', token);
-      console.log('Expo Push Token:', token);
     } catch (error) {
-      setNotificationError(`Error during push notification setup: ${error.message}`);
+      console.error('Error during push notification setup:', error);
     }
   };
+
+  const handleAppStateChange = async (nextAppState) => {
+    if (appState.current === 'background' && nextAppState === 'active') {
+      const backgroundTime = await AsyncStorage.getItem('backgroundTime');
+      const isReturningFromBrowser = await AsyncStorage.getItem('isReturningFromBrowser');
+      
+      if (backgroundTime && isReturningFromBrowser !== 'true') {
+        const timeDiff = Date.now() - parseInt(backgroundTime);
+        if (timeDiff > 2 * 60 * 1000) { // More than 2 minutes
+          setSplashVisible(true);
+          setTimeout(async () => {
+            const authStatus = await checkAuthentication();
+            setIsAuthenticated(authStatus);
+            setSplashVisible(false);
+          }, 1000);
+        }
+      }
+      
+      await AsyncStorage.removeItem('backgroundTime');
+      await AsyncStorage.setItem('isReturningFromBrowser', 'false');
+    } else if (nextAppState === 'background') {
+      await AsyncStorage.setItem('backgroundTime', Date.now().toString());
+    }
+    
+    appState.current = nextAppState;
+  };
+
+  React.useEffect(() => {
+    initializeApplication();
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+
+    const splashTimer = setTimeout(() => {
+      setSplashVisible(false);
+    }, 3000);
+
+    return () => {
+      subscription.remove();
+      clearTimeout(splashTimer);
+    };
+  }, []);
+
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+    }),
+  });
+
+  if (isLoading || isSplashVisible) {
+    return <SplashScreen />;
+  }
 
   return (
     <NotificationProvider>
       <NavigationContainer>
         <Stack.Navigator
-          initialRouteName="Splash"
+          initialRouteName={isAuthenticated ? "GymList" : "Login"}
           screenOptions={{ headerShown: false }}
         >
-          {isSplashVisible ? (
-            <Stack.Screen name="Splash" component={SplashScreen} />
-          ) : (
-            <>
-              <Stack.Screen name="Login" component={LoginScreen} />
-              <Stack.Screen name="Register" component={RegisterScreen} />
-              <Stack.Screen name="GymList" component={GymListScreen} />
-              <Stack.Screen name="ConfirmationScreen" component={ConfirmationScreen} />
-              <Stack.Screen name="OTPVerification" component={OTPVerificationScreen} />
-              <Stack.Screen name="GymDetails" component={GymDetailScreen} />
-              <Stack.Screen name="Profile" component={ProfileScreen} />
-              <Stack.Screen name="InviteBuddy" component={InviteBuddiesScreen} />
-              <Stack.Screen name="AmenitiesListScreen" component={AmenitiesListScreen} />
-              <Stack.Screen name="NotificationListScreen" component={NotificationListScreen} />
-              <Stack.Screen name="WorkoutInvitation" component={WorkoutInvitation} />
-              <Stack.Screen name="WorkoutRequest" component={WorkoutRequest} />
-              <Stack.Screen name="MyBookings" component={MyBookings} />
-              <Stack.Screen name="SlotSelectionScreen" component={SlotSelectionScreen} />
-              <Stack.Screen name="PaymentScreen" component={PaymentScreen} />
-              <Stack.Screen name="InviteFriendBuddy" component={InviteFriendBuddiesScreen} />
-              <Stack.Screen name="Settings" component={SettingsScreen} />
-              <Stack.Screen name="UserProfile" component={UserProfileScreen} />
-              <Stack.Screen name="SearchGym" component={AutocompleteSearchComponent} />
-              <Stack.Screen name="SearchGymList" component={SearchListScreen} />
-              <Stack.Screen name="SlotSelection" component={SlotSelectionScreen} />
-              <Stack.Screen name="PaymentFailed" component={PaymentFailedScreen} />
-              <Stack.Screen name="VisitedGymScreen" component={VisitedGymScreen} options={{ title: 'Visited Gyms' }} />
-            </>
-          )}
+          <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="Register" component={RegisterScreen} />
+          <Stack.Screen name="GymList" component={GymListScreen} />
+          <Stack.Screen name="ConfirmationScreen" component={ConfirmationScreen} />
+          <Stack.Screen name="OTPVerification" component={OTPVerificationScreen} />
+          <Stack.Screen name="GymDetails" component={GymDetailScreen} />
+          <Stack.Screen name="Profile" component={ProfileScreen} />
+          <Stack.Screen name="InviteBuddy" component={InviteBuddiesScreen} />
+          <Stack.Screen name="AmenitiesListScreen" component={AmenitiesListScreen} />
+          <Stack.Screen name="NotificationListScreen" component={NotificationListScreen} />
+          <Stack.Screen name="WorkoutInvitation" component={WorkoutInvitation} />
+          <Stack.Screen name="WorkoutRequest" component={WorkoutRequest} />
+          <Stack.Screen name="MyBookings" component={MyBookings} />
+          <Stack.Screen name="SlotSelectionScreen" component={SlotSelectionScreen} />
+          <Stack.Screen name="PaymentScreen" component={PaymentScreen} />
+          <Stack.Screen name="InviteFriendBuddy" component={InviteFriendBuddiesScreen} />
+          <Stack.Screen name="Settings" component={SettingsScreen} />
+          <Stack.Screen name="UserProfile" component={UserProfileScreen} />
+          <Stack.Screen name="SearchGym" component={AutocompleteSearchComponent} />
+          <Stack.Screen name="SearchGymList" component={SearchListScreen} />
+          <Stack.Screen name="SlotSelection" component={SlotSelectionScreen} />
+          <Stack.Screen name="PaymentFailed" component={PaymentFailedScreen} />
+          <Stack.Screen name="VisitedGymScreen" component={VisitedGymScreen} options={{ title: 'Visited Gyms' }} />
         </Stack.Navigator>
       </NavigationContainer>
     </NotificationProvider>
   );
 }
+

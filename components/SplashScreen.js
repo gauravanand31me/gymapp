@@ -1,16 +1,7 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { View, Image, StyleSheet } from 'react-native';
 
-const SplashScreen = ({ navigation }) => {
-  useEffect(() => {
-    // Simulate loading time before moving to the next screen
-    const timer = setTimeout(() => {
-      navigation.replace('Login'); // Replace with the actual route name
-    }, 3000); // Show splash screen for 3 seconds
-
-    return () => clearTimeout(timer); // Clear timer on component unmount
-  }, [navigation]);
-
+const SplashScreen = () => {
   return (
     <View style={styles.container}>
       <Image
@@ -20,7 +11,6 @@ const SplashScreen = ({ navigation }) => {
     </View>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
