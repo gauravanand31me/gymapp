@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react'
+import React, { useState, useEffect, useContext } from 'react';
 import {
   View,
   Text,
@@ -9,12 +9,11 @@ import {
   ActivityIndicator,
   SafeAreaView,
   StatusBar,
-} from 'react-native'
-import { Calendar, Clock, DollarSign, ArrowLeft, CheckCircle } from 'lucide-react-native'
-import * as WebBrowser from 'expo-web-browser'
-import { acceptBuddyRequest, createBooking, createOrder } from '../api/apiService'
-
-import { LinearGradient } from 'expo-linear-gradient'
+} from 'react-native';
+import { Calendar, Clock, DollarSign, ArrowLeft, CheckCircle } from 'lucide-react-native';
+import * as WebBrowser from 'expo-web-browser';
+import { acceptBuddyRequest, createBooking, createOrder } from '../api/apiService';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function PaymentScreen({ route, navigation }) {
   const { slotDetails, requestId } = route.params
@@ -52,47 +51,50 @@ export default function PaymentScreen({ route, navigation }) {
 
   const handlePayment = async () => {
     try {
-      setLoading(true)
+      setLoading(true);
       if (requestId) {
-        slotDetails.requestId = requestId
+        slotDetails.requestId = requestId;
       }
-      const bookingResponse = await createBooking(slotDetails)
+      const bookingResponse = await createBooking(slotDetails);
 
       if (bookingResponse) {
         const orderResponse = await createOrder(
           slotDetails.price * (slotDetails.duration / 60) || slotDetails.subscriptionPrice,
           bookingResponse.bookingId,
           requestId
-        )
+        );
 
         if (orderResponse && orderResponse.orderId) {
-          const result = await WebBrowser.openBrowserAsync(orderResponse.paymentLink)
+          // Set the returning from browser flag before opening WebBrowser
+          global.isReturningFromBrowser = true;
+          const result = await WebBrowser.openBrowserAsync(orderResponse.paymentLink);
+          global.isReturningFromBrowser = false;
 
           if (result.type === 'dismiss') {
-            console.log('User dismissed the payment page')
+            console.log('User dismissed the payment page');
           } else if (result.type === 'opened') {
-            console.log('Payment page opened')
+            console.log('Payment page opened');
           }
 
           if (result.type === 'opened' || result.type === 'cancel') {
-            setConfirm(true)
-            pollPaymentStatus(bookingResponse.bookingId, bookingResponse)
+            setConfirm(true);
+            pollPaymentStatus(bookingResponse.bookingId, bookingResponse);
           } else {
-            Alert.alert('Payment was not completed.')
+            Alert.alert('Payment was not completed.');
           }
         } else {
-          Alert.alert('An error occurred while creating the payment order.')
+          Alert.alert('An error occurred while creating the payment order.');
         }
       } else {
-        Alert.alert("Slot or gym may not be available for booking")
+        Alert.alert("Slot or gym may not be available for booking");
       }
     } catch (error) {
-      console.log("error", error.response)
-      Alert.alert('Error: ' + error.message)
+      console.log("error", error.response);
+      Alert.alert('Error: ' + error.message);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const pollPaymentStatus = async (orderId, bookingResponse) => {
     const pollInterval = setInterval(async () => {
