@@ -272,7 +272,7 @@ export default function GymListScreen({ navigation }) {
         translucent={false} // Use translucent if you want to overlay content under the status bar
       />
 
-      <SearchHeader fetchGymsByPincode={fetchGymsByPincode} setPincode={setPincode} address={address} pincode={pincode} navigation={navigation}/>
+      <SearchHeader fetchGymsByPincode={fetchGymsByPincode} setPincode={setPincode} address={address} pincode={pincode} navigation={navigation} lat={lat} long={long}/>
 
       {loading ? (
        
