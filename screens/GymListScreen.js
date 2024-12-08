@@ -231,33 +231,39 @@ export default function GymListScreen({ navigation }) {
 
 
   const renderLoadingGym = () => (
-    <TouchableOpacity 
-      style={styles.gymCard}
-     
-    >
-      <Image 
-        source={ require("../assets/cultfit.jpg") } 
-        style={styles.gymImage} 
-      />
+    <TouchableOpacity style={styles.gymCard}>
+      {/* Skeleton Placeholder for Gym Image */}
+      <View style={styles.imageSkeleton}>
+        <ActivityIndicator size="large" color="#4CAF50" />
+      </View>
+  
       <View style={styles.gymInfo}>
+        {/* Gym Name & Rating Section */}
         <View style={styles.gymNameRating}>
-          <Text style={styles.gymName}>Loading your gym...</Text>
+          <View style={styles.textSkeleton} />
           <ActivityIndicator size="small" color="#4CAF50" style={styles.loader} />
         </View>
-        <Text style={styles.gymDistance}>
-          <MaterialIcons name="location-on" size={14} color="#757575" /> 
-          <ActivityIndicator size="small" color="#4CAF50" style={styles.loader} />
-        </Text>
-        <Text style={styles.gymPrice}>₹ <ActivityIndicator size="small" color="#4CAF50" style={styles.loader} /></Text>
-        <TouchableOpacity 
-          style={styles.bookNowButton}
-       
-        >
-          <Text style={styles.bookNowText}>Book Now</Text>
+  
+        {/* Distance Section */}
+        <View style={styles.gymDistance}>
+          <MaterialIcons name="location-on" size={14} color="#757575" />
+          <View style={styles.textSkeletonSmall} />
+        </View>
+  
+        {/* Price Section */}
+        <View style={styles.gymPrice}>
+          <Text style={{ fontSize: 16 }}>₹</Text>
+          <View style={styles.textSkeletonSmall} />
+        </View>
+  
+        {/* Book Now Button */}
+        <TouchableOpacity style={styles.bookNowButton}>
+          <ActivityIndicator size="small" color="#FFF" />
         </TouchableOpacity>
       </View>
     </TouchableOpacity>
   );
+
 
   return (
     <>
@@ -370,7 +376,8 @@ const styles = StyleSheet.create({
   gymImage: {
     width: '100%',
     height: 180,
-    resizeMode: 'cover',
+    
+   
   },
   gymInfo: {
     padding: 15,
@@ -441,5 +448,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
-  }
+  },
+  
 });
