@@ -5,8 +5,9 @@ import { createStackNavigator } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
 import { initializeApp as firebaseInitializeApp } from 'firebase/app';
+import * as SplashScreen from 'expo-splash-screen'; // Updated import name
 
-import SplashScreen from './components/SplashScreen';
+import CustomSplashScreen from './components/SplashScreen'; // Renamed to avoid confusion
 import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
 import GymListScreen from './screens/GymListScreen';
@@ -48,8 +49,29 @@ export default function App() {
     appId: "1:284884578210:android:871427ecf49fa13d6b8cfb"
   };
 
+  const isFirstInstall = async () => {
+    try {
+      const hasRunBefore = await AsyncStorage.getItem('hasRunBefore');
+      if (hasRunBefore === null) {
+        await AsyncStorage.setItem('hasRunBefore', 'true');
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Error checking first install:', error);
+      return false;
+    }
+  };
+
+
   const checkAuthentication = async () => {
     try {
+      const isNewInstall = await isFirstInstall();
+      if (isNewInstall) {
+        // If it's a new install, clear any existing auth token
+        await AsyncStorage.removeItem('authToken');
+        return false;
+      }
       const token = await AsyncStorage.getItem('authToken');
       return !!token;
     } catch (error) {
@@ -60,6 +82,7 @@ export default function App() {
 
   const initializeApplication = async () => {
     try {
+
       const app = firebaseInitializeApp(firebaseConfig);
       if (app) {
         console.log('Firebase initialized successfully!');
@@ -73,6 +96,13 @@ export default function App() {
       console.error('Error during app initialization:', error);
     } finally {
       setIsLoading(false);
+      // Hide the system splash screen
+      await SplashScreen.hideAsync();
+      // Show custom splash for exactly 2 seconds
+      setSplashVisible(true);
+      setTimeout(() => {
+        setSplashVisible(false);
+      }, 2000);
     }
   };
 
@@ -119,7 +149,7 @@ export default function App() {
             const authStatus = await checkAuthentication();
             setIsAuthenticated(authStatus);
             setSplashVisible(false);
-          }, 1000);
+          }, 2000); // Show splash for 2 seconds when returning from background
         }
       }
       
@@ -137,13 +167,8 @@ export default function App() {
 
     const subscription = AppState.addEventListener('change', handleAppStateChange);
 
-    const splashTimer = setTimeout(() => {
-      setSplashVisible(false);
-    }, 3000);
-
     return () => {
       subscription.remove();
-      clearTimeout(splashTimer);
     };
   }, []);
 
@@ -156,7 +181,7 @@ export default function App() {
   });
 
   if (isLoading || isSplashVisible) {
-    return <SplashScreen />;
+    return <CustomSplashScreen />;
   }
 
   return (
