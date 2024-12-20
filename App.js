@@ -102,7 +102,7 @@ export default function App() {
       setSplashVisible(true);
       setTimeout(() => {
         setSplashVisible(false);
-      }, 2000);
+      }, 1000);
     }
   };
 
@@ -149,7 +149,7 @@ export default function App() {
             const authStatus = await checkAuthentication();
             setIsAuthenticated(authStatus);
             setSplashVisible(false);
-          }, 2000); // Show splash for 2 seconds when returning from background
+          }, 1000); // Show splash for 2 seconds when returning from background
         }
       }
       
