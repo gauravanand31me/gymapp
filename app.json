@@ -7,12 +7,19 @@
     "icon": "./assets/ic_launcher.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "image": "./assets/exposplash.jpeg",
+      "resizeMode": "cover",
+      "backgroundColor": "#FFFFFF",
+      "android": {
+        "disable": true
+      },
+      "ios": {
+        "disable": true
+      }
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "y"
     },
     "android": {
       "versionCode": 1,
@@ -22,7 +29,11 @@
         "foregroundImage": "./assets/ic_launcher_foreground.png",
         "backgroundColor": "#0ED94A"
       },
-      "permissions": ["NOTIFICATION", "VIBRATE", "RECEIVE_BOOT_COMPLETED"],
+      "permissions": [
+        "NOTIFICATION",
+        "VIBRATE",
+        "RECEIVE_BOOT_COMPLETED"
+      ],
       "useNextNotificationsApi": true
     },
     "web": {

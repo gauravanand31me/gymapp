@@ -112,7 +112,7 @@ export default function OTPVerificationScreen({ route }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
+      <View
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardAvoidingView}
       >
@@ -164,7 +164,7 @@ export default function OTPVerificationScreen({ route }) {
             </TouchableOpacity>
           </View>
         </Animated.View>
-      </KeyboardAvoidingView>
+      </View>
     </SafeAreaView>
   );
 }
