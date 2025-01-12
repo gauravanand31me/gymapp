@@ -231,37 +231,7 @@ export default function GymListScreen({ navigation }) {
 
 
   const renderLoadingGym = () => (
-    <TouchableOpacity style={styles.gymCard}>
-      {/* Skeleton Placeholder for Gym Image */}
-      <View style={styles.imageSkeleton}>
-        <ActivityIndicator size="large" color="#4CAF50" />
-      </View>
-  
-      <View style={styles.gymInfo}>
-        {/* Gym Name & Rating Section */}
-        <View style={styles.gymNameRating}>
-          <View style={styles.textSkeleton} />
-          <ActivityIndicator size="small" color="#4CAF50" style={styles.loader} />
-        </View>
-  
-        {/* Distance Section */}
-        <View style={styles.gymDistance}>
-          <MaterialIcons name="location-on" size={14} color="#757575" />
-          <View style={styles.textSkeletonSmall} />
-        </View>
-  
-        {/* Price Section */}
-        <View style={styles.gymPrice}>
-          <Text style={{ fontSize: 16 }}>₹</Text>
-          <View style={styles.textSkeletonSmall} />
-        </View>
-  
-        {/* Book Now Button */}
-        <TouchableOpacity style={styles.bookNowButton}>
-          <ActivityIndicator size="small" color="#FFF" />
-        </TouchableOpacity>
-      </View>
-    </TouchableOpacity>
+    <ActivityIndicator size="large" color="#4CAF50" />
   );
 
 
@@ -273,9 +243,9 @@ export default function GymListScreen({ navigation }) {
        >
        {/* StatusBar Configuration */}
        <StatusBar
-        barStyle="dark-content" // Use 'light-content' for white text on dark background
-        backgroundColor="#f5f5f5" // Ensure this matches the container's background
-        translucent={false} // Use translucent if you want to overlay content under the status bar
+        barStyle="dark-content" 
+        backgroundColor="#f5f5f5" 
+        translucent={false} 
       />
 
       <SearchHeader fetchGymsByPincode={fetchGymsByPincode} setPincode={setPincode} address={address} pincode={pincode} navigation={navigation} lat={lat} long={long}/>
@@ -314,7 +284,7 @@ export default function GymListScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#f3f3f3',
   },
   header: {
     backgroundColor: '#4CAF50',

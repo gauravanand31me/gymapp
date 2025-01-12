@@ -385,25 +385,28 @@ export default function ProfileScreen({ navigation, route }) {
             onPress={() => setSelectedTab('Gym Buddies')}
           >
             <Text style={[styles.tabText, selectedTab === 'Gym Buddies' && styles.activeTabText]}>
-              Gym Buddies
+              Gym Buddies 
             </Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.listContainer}>
-          {selectedTab === 'Visited Gym' && visitedGyms.length === 0 ? (
-            <Text style={styles.noDataText}>No visited gyms yet</Text>
-          ) : selectedTab === 'Gym Buddies' && visitedBuddies.length === 0 ? (
-            <Text style={styles.noDataText}>No gym buddies yet</Text>
-          ) : (
-            <FlatList
-              data={selectedTab === 'Visited Gym' ? visitedGyms : visitedBuddies}
-              renderItem={renderListItem}
-              keyExtractor={(item) => (selectedTab === 'Visited Gym' ? item.gymId : item.userId)}
-              scrollEnabled={false}
-            />
-          )}
-        </View>
+        {selectedTab === 'Visited Gym' && visitedGyms.length === 0 ? (
+          <Text style={styles.noDataText}>No visited gyms yet</Text>
+        ) : selectedTab === 'Gym Buddies' && visitedBuddies.length === 0 ? (
+          <Text style={styles.noDataText}>No gym buddies yet</Text>
+        ) : (
+          <FlatList
+            data={selectedTab === 'Visited Gym' ? visitedGyms : visitedBuddies}
+            renderItem={renderListItem}
+            keyExtractor={(item) =>
+              selectedTab === 'Visited Gym' ? item.gymId : item.userId
+            }
+            contentContainerStyle={styles.listContent}
+          />
+        )}
+      </View>
+
       </ScrollView>
       <View style={styles.footerContainer}>
         <Footer navigation={navigation} />
@@ -504,12 +507,6 @@ const styles = StyleSheet.create({
     //backgroundColor: '#fff',
     padding: 15,
     marginTop: 20,
-    //borderRadius: 15,
-    //shadowColor: "#000",
-    //shadowOffset: { width: 0, height: 1 },
-    //shadowOpacity: 0.1,
-    //shadowRadius: 2,
-  
   },
   statItem: {
     alignItems: 'center',
@@ -532,7 +529,7 @@ const styles = StyleSheet.create({
     
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 12,
     fontWeight: 'bold',
     marginBottom: 10,
   },
@@ -573,7 +570,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#4CAF50',
   },
   tabText: {
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: '600',
     color: '#666',
   },
@@ -586,6 +583,9 @@ const styles = StyleSheet.create({
    // borderRadius: 15,
     padding: 15,
     shadowColor: "#000",
+    maxHeight: 300,
+    overflow: "auto"
+   
     //shadowOffset: { width: 0, height: 1 },
     //shadowOpacity: 0.1,
     //shadowRadius: 2,
@@ -607,7 +607,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   listItemText: {
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: '600',
     color: '#333',
   },
@@ -653,26 +653,19 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
   },
-  modalContainer: {
+  
+  listContainer: {
     flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    paddingHorizontal: 20,
+    paddingBottom: 60, // Add extra padding to prevent content from hiding behind Footer
   },
-  modalContent: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
+  noDataText: {
+    textAlign: 'center',
+    fontSize: 18,
+    color: '#6c757d', // Subtle text color for empty state
+    marginTop: 50, // Add spacing for better alignment
   },
-  modalOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  modalOptionText: {
-    fontSize: 16,
-    marginLeft: 15,
+  listContent: {
+    paddingBottom: 100, // Extra padding to accommodate Footer
   },
 });

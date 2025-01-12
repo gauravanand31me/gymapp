@@ -82,7 +82,7 @@ const RegisterScreen = () => {
             </View>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => Linking.openURL('https://yupluck.com/privacy')}>
-            <Text style={styles.policyLink}>By clicking in, I accept the terms service & privacy policy</Text>
+            <Text style={styles.linkText}>By clicking in, I accept the terms service & privacy policy</Text>
           </TouchableOpacity>
         </View>
 
