@@ -12,6 +12,7 @@ import {
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { Calendar, ChevronLeft } from 'lucide-react-native'
 import { LinearGradient } from 'expo-linear-gradient'
+import BookingUnavailable from '../components/BookingUnavailable'
 
 export default function Component({ navigation, route }) {
   const { gym } = route.params
@@ -21,7 +22,7 @@ export default function Component({ navigation, route }) {
   const [selectedSlot, setSelectedSlot] = useState(null)
 
   const durations = [60, 90, 120, 180]
-  const availableSlots = gym.slots.sort((a, b) => {
+  const availableSlots = gym?.slots?.sort((a, b) => {
     const timeA = new Date(`1970-01-01T${a.startTime}`)
     const timeB = new Date(`1970-01-01T${b.startTime}`)
     return timeA - timeB
@@ -83,6 +84,7 @@ export default function Component({ navigation, route }) {
         colors={['#4CAF50', '#2E7D32']}
         style={styles.background}
       >
+        
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <ChevronLeft color="#FFFFFF" size={24} />
@@ -91,7 +93,7 @@ export default function Component({ navigation, route }) {
 
           <Text style={styles.gymName}>{gym.name}</Text>
           <Text style={styles.title}>Select a Slot</Text>
-
+          
           <TouchableOpacity
             onPress={() => setShowDatePicker(true)}
             style={styles.dateButton}
@@ -111,8 +113,10 @@ export default function Component({ navigation, route }) {
           )}
 
           <Text style={styles.sectionTitle}>Available Time Slots:</Text>
+          {!availableSlots &&  <BookingUnavailable navigation={navigation} route={route} gym={gym} />}
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.timeSlotContainer}>
-            {availableSlots.map((slot) => {
+
+            {availableSlots?.map((slot) => {
               const pastSlot = isPastSlot(slot.startTime)
               return (
                 <TouchableOpacity
@@ -168,7 +172,7 @@ export default function Component({ navigation, route }) {
           <TouchableOpacity onPress={handleConfirm} style={styles.confirmButton}>
             <Text style={styles.confirmButtonText}>Confirm Slot</Text>
           </TouchableOpacity>
-        </ScrollView>
+        </ScrollView> 
       </LinearGradient>
     </SafeAreaView>
   )
