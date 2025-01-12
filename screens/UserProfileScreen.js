@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { UserCircle, Users, Clock, Settings, UserPlus, UserCheck, UserMinus } from 'lucide-react-native';
+import ImageViewing from 'react-native-image-viewing';
 import Footer from '../components/Footer';
 import {
   userDetails,
@@ -21,13 +22,14 @@ import {
   rejectFriendRequest,
   acceptFriendRequest,
 } from '../api/apiService';
+import { Modal } from 'react-native-paper';
 
 export default function UserProfileScreen({ navigation, route }) {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [friends, setFriends] = useState({ invited: { accepted: false, sent: false } });
   const [loadFriend, setLoadFriend] = useState(true);
-
+  const [isVisible, setIsVisible] = useState(false);
   const { userId } = route.params;
 
   useEffect(() => {
@@ -125,6 +127,12 @@ export default function UserProfileScreen({ navigation, route }) {
     return { image: require('../assets/bronzemedal.jpg'), label: 'Bronze' };
   };
 
+  const toggleModal = () => {
+    
+    setModalVisible(!isModalVisible);
+  };
+
+
   if (loading) {
     return (
       <View style={styles.loader}>
@@ -138,6 +146,7 @@ export default function UserProfileScreen({ navigation, route }) {
 
   return (
     <View style={styles.container}>
+       
        {/* StatusBar Configuration */}
        <StatusBar
         barStyle="dark-content" // Use 'light-content' for white text on dark background
@@ -150,7 +159,19 @@ export default function UserProfileScreen({ navigation, route }) {
           style={styles.header}
         >
 
-          <Image source={{ uri: userData?.profile_pic || 'https://via.placeholder.com/150' }} style={styles.profileImage} />
+      <TouchableOpacity onPress={() => setIsVisible(true)}>
+        <Image source={{ uri: userData?.profile_pic }} style={styles.profileImage} />
+      </TouchableOpacity>
+
+      <ImageViewing
+        images={[{ uri: userData?.profile_pic }]}
+        imageIndex={0}
+        visible={isVisible}
+        onRequestClose={() => setIsVisible(false)}
+      />
+
+         
+
           <Text style={styles.name}>{userData?.full_name || 'N/A'}</Text>
           <Text style={styles.username}>@{userData?.username || 'N/A'}</Text>
           <TouchableOpacity style={styles.friendButton} onPress={handleFriendAction} disabled={loadFriend}>
@@ -372,5 +393,21 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 16,
+  },
+  profileImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  fullScreenImage: {
+    width: '90%',
+    height: '90%',
+    resizeMode: 'contain',
   },
 });
