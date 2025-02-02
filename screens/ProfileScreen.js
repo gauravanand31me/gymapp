@@ -263,28 +263,7 @@ export default function ProfileScreen({ navigation, route }) {
               </View>
             </TouchableOpacity>
 
-            <Modal visible={isImageOptionsVisible} transparent={true} animationType="slide">
-              <View style={styles.modalContainer}>
-                <View style={styles.modalContent}>
-                  <TouchableOpacity style={styles.modalOption} onPress={takePhoto}>
-                    <Icon name="camera" size={24} color="#4CAF50" />
-                    <Text style={styles.modalOptionText}>Take Photo</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={styles.modalOption} onPress={selectFromGallery}>
-                    <Icon name="image" size={24} color="#4CAF50" />
-                    <Text style={styles.modalOptionText}>Choose from Gallery</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={styles.modalOption} onPress={handleDeleteImage}>
-                    <Icon name="delete" size={24} color="#FF0000" />
-                    <Text style={styles.modalOptionText}>Delete Photo</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={styles.modalOption} onPress={toggleImageOptions}>
-                    <Icon name="close" size={24} color="#000" />
-                    <Text style={styles.modalOptionText}>Cancel</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </Modal>
+            
 
             <Modal visible={isModalVisible} transparent={true} onRequestClose={toggleModal}>
               <View style={styles.modalContainer}>
@@ -411,6 +390,29 @@ export default function ProfileScreen({ navigation, route }) {
       <View style={styles.footerContainer}>
         <Footer navigation={navigation} />
       </View>
+
+      <Modal visible={isImageOptionsVisible} transparent={true} animationType="slide">
+              <View style={styles.modalContainer}>
+                <View style={styles.modalContent}>
+                  <TouchableOpacity style={styles.modalOption} onPress={takePhoto}>
+                    <Icon name="camera" size={24} color="#4CAF50" />
+                    <Text style={styles.modalOptionText}>Take Photo</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.modalOption} onPress={selectFromGallery}>
+                    <Icon name="image" size={24} color="#4CAF50" />
+                    <Text style={styles.modalOptionText}>Choose from Gallery</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.modalOption} onPress={handleDeleteImage}>
+                    <Icon name="delete" size={24} color="#FF0000" />
+                    <Text style={styles.modalOptionText}>Delete Photo</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.modalOption} onPress={toggleImageOptions}>
+                    <Icon name="close" size={24} color="#000" />
+                    <Text style={styles.modalOptionText}>Cancel</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </Modal>
     </View>
   );
 }
@@ -667,5 +669,30 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingBottom: 100, // Extra padding to accommodate Footer
+  },
+  modalContent: {
+    width: '80%',
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 20,
+    alignItems: 'flex-start',
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 5, // For Android shadow
+  },
+  modalOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+  },
+  modalOptionText: {
+    fontSize: 16,
+    marginLeft: 10,
+    color: '#333',
   },
 });

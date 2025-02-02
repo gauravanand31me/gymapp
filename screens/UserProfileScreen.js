@@ -23,6 +23,7 @@ import {
   acceptFriendRequest,
 } from '../api/apiService';
 import { Modal } from 'react-native-paper';
+import GymLoader from '../components/GymLoader';
 
 export default function UserProfileScreen({ navigation, route }) {
   const [userData, setUserData] = useState(null);
@@ -34,11 +35,15 @@ export default function UserProfileScreen({ navigation, route }) {
 
   useEffect(() => {
     fetchUserData();
+  }, [userId]);
+
+  useEffect(() => {
     const timer = setTimeout(() => getFriendShip(), 2000);
     return () => clearTimeout(timer);
   }, [userData?.username]);
 
   const fetchUserData = async () => {
+    setLoading(true);
     try {
       const data = await userDetails(userId);
       setUserData(data);
@@ -54,7 +59,7 @@ export default function UserProfileScreen({ navigation, route }) {
     setLoadFriend(true);
     try {
       const data = await fetchAllNearByUser(userData?.username);
-      console.log("Datya is", data);
+      
       setFriends(data[0]);
     } catch (error) {
       console.error('Error fetching friendship status:', error);
@@ -132,11 +137,11 @@ export default function UserProfileScreen({ navigation, route }) {
     setModalVisible(!isModalVisible);
   };
 
-
+  
   if (loading) {
     return (
       <View style={styles.loader}>
-        <ActivityIndicator size="large" color="#4CAF50" />
+          <GymLoader />
       </View>
     );
   }
