@@ -24,6 +24,8 @@ import Footer from '../components/Footer';
 import * as Linking from 'expo-linking';
 import SearchHeader from '../components/SearchComponent';
 import GymLoader from '../components/GymLoader';
+import LocationPermissionModal from "../components/LocationPermissionModal"; // Import modal
+
 
 
 const { width } = Dimensions.get('window');
@@ -45,12 +47,20 @@ export default function GymListScreen({ navigation }) {
   const [unfocused, setUnfocused] = useState(false);
   const [imageload, setImageLoading] = useState(false);
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+  const [showLocationModal, setShowLocationModal] = useState(true); // Show modal initially
+
+
 
 
   useEffect(() => {
     console.log("Initial useEffect running")
     getLocation()
   }, [])
+
+  useEffect(() => {
+    console.log("Initial useEffect running");
+    checkLocationPermission();
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -71,21 +81,23 @@ export default function GymListScreen({ navigation }) {
     };
   }, []);
 
+  const checkLocationPermission = async () => {
+    const { status } = await Location.getForegroundPermissionsAsync();
+    if (status === "granted") {
+      setShowLocationModal(false);
+      getLocation();
+    }
+  };
+  
+
   const getLocation = async () => {
-    console.log("Getting location")
     try {
-      const { status } = await Location.requestForegroundPermissionsAsync()
+      const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
-        Alert.alert(
-          "Location Permission Required",
-          "This app requires location permission to show gyms nearby. Please enable location permissions in settings.",
-          [
-            { text: "Cancel", style: "cancel" },
-            { text: "Go to Settings", onPress: () => Linking.openSettings() },
-          ],
-        )
-        return
+        setShowLocationModal(true); // Keep modal open if denied
+        return;
       }
+      setShowLocationModal(false);
       const location = await Location.getCurrentPositionAsync({})
       console.log("Location obtained:", location.coords)
       setLat(location.coords.latitude)
@@ -218,6 +230,13 @@ export default function GymListScreen({ navigation }) {
   const renderLoadingGym = () => <GymLoader />
   return (
     <>
+      <LocationPermissionModal
+  isVisible={showLocationModal}
+  onPermissionGranted={() => {
+    setShowLocationModal(false);
+    getLocation();
+  }}
+/>
     <KeyboardAvoidingView 
       style={styles.container} 
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
