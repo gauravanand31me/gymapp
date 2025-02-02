@@ -18,6 +18,9 @@ import SlotSelectionScreen from './SlotSelectionScreen'
 import AmenitiesListPopup from '../components/AmenitiesListPopup'
 import Icon from 'react-native-vector-icons/FontAwesome'
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
+import GymLoader from '../components/GymLoader';
+
+
 
 const screenWidth = Dimensions.get('window').width
 
@@ -76,7 +79,7 @@ export default function GymDetailScreen({ navigation, route }) {
   if (!gymData) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#4CAF50" />
+        <GymLoader />
       </View>
     )
   }
