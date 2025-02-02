@@ -11,17 +11,22 @@ import {
 } from "react-native";
 import * as Location from "expo-location";
 
-const LocationPermissionModal = ({ isVisible, onPermissionGranted }) => {
-    const handleContinue = async () => {
-      const { status } = await Location.requestForegroundPermissionsAsync();
+export default function LocationPermissionModal({ isVisible, onPermissionGranted }) {
+    const [modalVisible, setModalVisible] = useState(isVisible);
+  
+    const requestLocationPermission = async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+  
       if (status === "granted") {
-        onPermissionGranted(); // Fetch location & close modal
+        setModalVisible(false); // Close modal after permission is granted
+        onPermissionGranted(); // Callback function to continue the app flow
+      } else {
+        setModalVisible(true); // Keep the modal open if permission is denied
       }
     };
   
-
-  return (
-    <Modal transparent visible={isVisible} animationType="slide">
+    return (
+      <Modal transparent visible={modalVisible} animationType="slide">
       <View style={styles.modalContainer}>
         <View style={styles.modalContent}>
           <LottieView
@@ -40,7 +45,7 @@ const LocationPermissionModal = ({ isVisible, onPermissionGranted }) => {
           </Text>
 
           {/* Continue Button */}
-          <TouchableOpacity style={styles.button} onPress={handleContinue}>
+          <TouchableOpacity style={styles.button} onPress={requestLocationPermission}>
             <Text style={styles.buttonText}>Continue</Text>
           </TouchableOpacity>
         </View>
@@ -102,4 +107,3 @@ const styles = StyleSheet.create({
   },
 });
 
-export default LocationPermissionModal;
