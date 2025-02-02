@@ -23,6 +23,7 @@ import { fetchAllGyms, storePushToken } from '../api/apiService';
 import Footer from '../components/Footer';
 import * as Linking from 'expo-linking';
 import SearchHeader from '../components/SearchComponent';
+import GymLoader from '../components/GymLoader';
 
 
 const { width } = Dimensions.get('window');
@@ -46,28 +47,20 @@ export default function GymListScreen({ navigation }) {
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
 
 
+  useEffect(() => {
+    console.log("Initial useEffect running")
+    getLocation()
+  }, [])
+
   useFocusEffect(
     useCallback(() => {
-      setPincode('');
-      setGyms([]);
-      setPage(1);
-      setHasMoreGyms(true);
-
-      return () => {
-        setUnfocused(true);
-        console.log('Screen is unfocused!');
-      };
-    }, [currentRouteName])
-  );
-
-  useEffect(() => {
-    if (lat && long) {
-      fetchGyms(lat, long);
-    } else {
-      getLocation();
-    }
-  }, [unfocused, page, lat, long]);
-
+      console.log("Screen focused")
+      if (lat && long && gyms.length === 0) {
+        console.log("Fetching gyms on focus")
+        fetchGyms(lat, long)
+      }
+    }, [lat, long, gyms.length]),
+  )
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
     const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
@@ -79,110 +72,109 @@ export default function GymListScreen({ navigation }) {
   }, []);
 
   const getLocation = async () => {
+    console.log("Getting location")
     try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
+      const { status } = await Location.requestForegroundPermissionsAsync()
+      if (status !== "granted") {
         Alert.alert(
-          'Location Permission Required',
-          'This app requires location permission to show gyms nearby. Please enable location permissions in settings.',
+          "Location Permission Required",
+          "This app requires location permission to show gyms nearby. Please enable location permissions in settings.",
           [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'Go to Settings', onPress: () => Linking.openSettings() },
-          ]
-        );
-        return;
+            { text: "Cancel", style: "cancel" },
+            { text: "Go to Settings", onPress: () => Linking.openSettings() },
+          ],
+        )
+        return
       }
-      const location = await Location.getCurrentPositionAsync({});
-      setLat(location.coords.latitude);
-      setLong(location.coords.longitude);
-      fetchAddress(location.coords.latitude, location.coords.longitude);
+      const location = await Location.getCurrentPositionAsync({})
+      console.log("Location obtained:", location.coords)
+      setLat(location.coords.latitude)
+      setLong(location.coords.longitude)
+      fetchAddress(location.coords.latitude, location.coords.longitude)
     } catch (error) {
-      console.error('Error getting location:', error);
-      Alert.alert('Error', 'Could not retrieve location. Please try again later.');
+      console.error("Error getting location:", error)
+      Alert.alert("Error", "Could not retrieve location. Please try again later.")
     }
-  };
+  }
 
-  const fetchGyms = async (lat, long) => {
+  const fetchGyms = async (latitude, longitude) => {
+    console.log("Fetching gyms", { latitude, longitude, page })
     if (page === 1) {
-      setLoading(true);
-      await storePushToken();
+      setLoading(true)
+      await storePushToken()
     } else {
-      setLoadingMore(true);
+      setLoadingMore(true)
     }
     try {
-      const response = await fetchAllGyms(lat, long, '', limit, page);
+      const response = await fetchAllGyms(latitude, longitude, "", limit, page)
+      console.log("Gyms fetched:", response?.length)
       if (response?.length > 0) {
-        setHasMoreGyms(true);
-        setGyms(prevGyms => page === 1 ? response : [...prevGyms, ...response]);
+        setHasMoreGyms(true)
+        setGyms((prevGyms) => (page === 1 ? response : [...prevGyms, ...response]))
       } else {
-        setHasMoreGyms(false);
+        setHasMoreGyms(false)
       }
     } catch (error) {
-      console.error('Error fetching gyms:', error);
-      Alert.alert('Error', 'Failed to load gyms. Please try again later.');
+      console.error("Error fetching gyms:", error)
+      Alert.alert("Error", "Failed to load gyms. Please try again later.")
     } finally {
-      setLoading(false);
-      setLoadingMore(false);
+      setLoading(false)
+      setLoadingMore(false)
     }
-  };
+  }
 
-  const fetchAddress = async (lat, long) => {
+  const fetchAddress = async (latitude, longitude) => {
     try {
-      const response = await axios.get(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${long}&localityLanguage=en`);
+      const response = await axios.get(
+        `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`,
+      )
       if (response.data) {
-        setAddress(response.data.city || 'Unknown location');
+        setAddress(response.data.city || "Unknown location")
       }
     } catch (error) {
-      console.error('Error fetching address:', error);
-      setAddress('Location not available');
+      console.error("Error fetching address:", error)
+      setAddress("Location not available")
     }
-  };
+  }
 
   const fetchGymsByPincode = async () => {
     if (!pincode.trim()) {
-      Alert.alert('Error', 'Please enter a valid pincode.');
-      return;
+      Alert.alert("Error", "Please enter a valid pincode.")
+      return
     }
-    setLoading(true);
-    setGyms([]);
-    setPage(1);
+    setLoading(true)
+    setGyms([])
+    setPage(1)
     try {
-      const response = await axios.get(`https://maps.googleapis.com/maps/api/geocode/json?address=${pincode}&key=${GOOGLE_MAPS_API_KEY}`);
-      const location = response.data.results[0].geometry.location;
-      const addressComponents = response.data.results[0].address_components;
-      const cityComponent = addressComponents.find(component =>
-        component.types.includes("locality") || component.types.includes("administrative_area_level_2")
-      );
-      const city = cityComponent ? cityComponent.long_name : null;
-     
-      
-      navigation.navigate("SearchGymList", {query: "", lat: location.lat, long: location.lng, city})
-    
+      const response = await axios.get(
+        `https://maps.googleapis.com/maps/api/geocode/json?address=${pincode}&key=${GOOGLE_MAPS_API_KEY}`,
+      )
+      const location = response.data.results[0].geometry.location
+      const addressComponents = response.data.results[0].address_components
+      const cityComponent = addressComponents.find(
+        (component) => component.types.includes("locality") || component.types.includes("administrative_area_level_2"),
+      )
+      const city = cityComponent ? cityComponent.long_name : null
+      navigation.navigate("SearchGymList", { query: "", lat: location.lat, long: location.lng, city })
     } catch (error) {
-      console.error('Error fetching location from pincode:', error);
-      Alert.alert('Error', 'Could not retrieve location for the entered pincode.');
+      console.error("Error fetching location from pincode:", error)
+      Alert.alert("Error", "Could not retrieve location for the entered pincode.")
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const loadMoreGyms = () => {
-
-    if (hasMoreGyms && !loadingMore && !unfocused) {
-      setPage(prevPage => prevPage + 1);
-    } else {
-      if (unfocused) {
-        setPage(1);
-        setUnfocused(false);
-      }
-      
+    if (hasMoreGyms && !loadingMore) {
+      setPage((prevPage) => prevPage + 1)
+      fetchGyms(lat, long)
     }
-  };
+  }
 
   const renderStars = (rating) => {
-    const fullStars = Math.floor(rating);
-    const halfStar = rating % 1 >= 0.5;
-    const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
+    const fullStars = Math.floor(rating)
+    const halfStar = rating % 1 >= 0.5
+    const emptyStars = 5 - fullStars - (halfStar ? 1 : 0)
 
     return (
       <View style={styles.starContainer}>
@@ -194,19 +186,14 @@ export default function GymListScreen({ navigation }) {
           <FontAwesome key={`empty_${i}`} name="star-o" size={16} color="#FFD700" />
         ))}
       </View>
-    );
-  };
+    )
+  }
 
   const renderGym = ({ item }) => (
-    <TouchableOpacity 
-      style={styles.gymCard}
-      onPress={() => navigation.navigate('GymDetails', { gym_id: item.gymId })}
-    >
-      
-     <Image 
-        source={{ uri: item.images?.[0]?.imageUrl || 'https://example.com/default-gym.png' }} 
-        style={styles.gymImage} 
-     
+    <TouchableOpacity style={styles.gymCard} onPress={() => navigation.navigate("GymDetails", { gym_id: item.gymId })}>
+      <Image
+        source={{ uri: item.images?.[0]?.imageUrl || "https://example.com/default-gym.png" }}
+        style={styles.gymImage}
       />
       <View style={styles.gymInfo}>
         <View style={styles.gymNameRating}>
@@ -214,27 +201,21 @@ export default function GymListScreen({ navigation }) {
           {renderStars(item.gymRating)}
         </View>
         <Text style={styles.gymDistance}>
-          <MaterialIcons name="location-on" size={14} color="#757575" /> 
-          {item.distance ? `${item.distance.toFixed(1)} km away` : 'N/A'}
+          <MaterialIcons name="location-on" size={14} color="#757575" />
+          {item.distance ? `${item.distance.toFixed(1)} km away` : "N/A"}
         </Text>
-        <Text style={styles.gymPrice}>₹ {item.subscriptionPrices?.[0] || 'N/A'}/hour</Text>
-        <TouchableOpacity 
+        <Text style={styles.gymPrice}>₹ {item.subscriptionPrices?.[0] || "N/A"}/hour</Text>
+        <TouchableOpacity
           style={styles.bookNowButton}
-          onPress={() => navigation.navigate('GymDetails', { gym_id: item.gymId })}
+          onPress={() => navigation.navigate("GymDetails", { gym_id: item.gymId })}
         >
           <Text style={styles.bookNowText}>Book Now</Text>
         </TouchableOpacity>
       </View>
     </TouchableOpacity>
-  );
+  )
 
-
-
-  const renderLoadingGym = () => (
-    <ActivityIndicator size="large" color="#4CAF50" />
-  );
-
-
+  const renderLoadingGym = () => <GymLoader />
   return (
     <>
     <KeyboardAvoidingView 
@@ -251,12 +232,9 @@ export default function GymListScreen({ navigation }) {
       <SearchHeader fetchGymsByPincode={fetchGymsByPincode} setPincode={setPincode} address={address} pincode={pincode} navigation={navigation} lat={lat} long={long}/>
 
       {loading ? (
-       
-          <FlatList
-          data={[gyms]}
-          renderItem={renderLoadingGym}
-          />
-   
+       <><GymLoader /><><FlatList
+            data={[gyms]}
+             /></></>
       ) : (
         <FlatList
           data={gyms}
@@ -266,9 +244,7 @@ export default function GymListScreen({ navigation }) {
           onEndReached={loadMoreGyms}
           onEndReachedThreshold={0.1}
           ListFooterComponent={
-            loadingMore ? (
-              <ActivityIndicator size="small" color="#4CAF50" style={styles.loadingMore} />
-            ) : !hasMoreGyms ? (
+            !hasMoreGyms ? (
               <Text style={styles.noMoreText}>No more gyms to load</Text>
             ) : null
           }
@@ -280,11 +256,12 @@ export default function GymListScreen({ navigation }) {
   </>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f3f3f3',
+    justifyContent: 'center', // Ensures centering when loading
+
   },
   header: {
     backgroundColor: '#4CAF50',
