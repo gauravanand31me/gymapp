@@ -117,7 +117,7 @@ export default function GymDetailScreen({ navigation, route }) {
           >
             {(gymData.images || []).map((image, index) => (
               <TouchableOpacity key={index} onPress={() => openModal(image)}>
-                {imageLoading && <GymLoader />}
+                {imageLoading}
                 <Image
                   source={{ uri: image }}
                   style={[styles.image, imageLoading ? styles.hidden : null]}
