@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,90 +10,93 @@ import {
   Dimensions,
   Linking,
   SafeAreaView,
-  ActivityIndicator,
   StatusBar,
-} from 'react-native'
-import { fetchIndividualGymData } from '../api/apiService'
-import SlotSelectionScreen from './SlotSelectionScreen'
-import AmenitiesListPopup from '../components/AmenitiesListPopup'
-import Icon from 'react-native-vector-icons/FontAwesome'
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
+} from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import { fetchIndividualGymData } from '../api/apiService';
+import SlotSelectionScreen from './SlotSelectionScreen';
+import AmenitiesListPopup from '../components/AmenitiesListPopup';
+import Icon from 'react-native-vector-icons/FontAwesome';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import GymLoader from '../components/GymLoader';
 
-
-
-const screenWidth = Dimensions.get('window').width
+const screenWidth = Dimensions.get('window').width;
 
 export default function GymDetailScreen({ navigation, route }) {
-  const [gymData, setGymData] = useState(null)
-  const [currentIndex, setCurrentIndex] = useState(0)
-  const [isModalVisible, setModalVisible] = useState(false)
-  const [selectedImage, setSelectedImage] = useState(null)
-  const [showAmenitiesPopup, setShowAmenitiesPopup] = useState(false)
-  const [isDescriptionExpanded, setDescriptionExpanded] = useState(false)
-  const [loading, setLoading] = useState(false);
-  const { gym_id } = route.params
+  const [gymData, setGymData] = useState(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isModalVisible, setModalVisible] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [showAmenitiesPopup, setShowAmenitiesPopup] = useState(false);
+  const [isDescriptionExpanded, setDescriptionExpanded] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const { gym_id } = route.params;
+  const [imageLoading, setImageLoading] = useState(true);
 
   useEffect(() => {
-    fetchGymData()
-  }, [])
+    fetchGymData();
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchGymData();
+    }, [gym_id])
+  );
 
   const fetchGymData = async () => {
     try {
-      const data = await fetchIndividualGymData(gym_id)
-      setGymData(data)
+      const data = await fetchIndividualGymData(gym_id);
+      setGymData(data);
     } catch (error) {
-      console.error('Error fetching gyms:', error)
+      console.error('Error fetching gym details:', error);
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
   const handleScroll = (event) => {
-    const contentOffsetX = event.nativeEvent.contentOffset.x
-    const index = Math.floor(contentOffsetX / screenWidth)
-    setCurrentIndex(index)
-  }
+    const contentOffsetX = event.nativeEvent.contentOffset.x;
+    const index = Math.floor(contentOffsetX / screenWidth);
+    setCurrentIndex(index);
+  };
 
   const openModal = (image) => {
-    setSelectedImage(image)
-    setModalVisible(true)
-  }
+    setSelectedImage(image);
+    setModalVisible(true);
+  };
 
   const closeModal = () => {
-    setModalVisible(false)
-    setSelectedImage(null)
-  }
+    setModalVisible(false);
+    setSelectedImage(null);
+  };
 
   const openSlotSelection = () => {
-    navigation.navigate("SlotSelection", { gym: gymData })
-  }
+    navigation.navigate("SlotSelection", { gym: gymData });
+  };
 
   const toggleAmenitiesPopup = () => {
-    setShowAmenitiesPopup(!showAmenitiesPopup)
-  }
+    setShowAmenitiesPopup(!showAmenitiesPopup);
+  };
 
   const openGoogleMaps = (latitude, longitude) => {
-    const url = `https://www.google.com/maps?q=${latitude},${longitude}`
-    Linking.openURL(url).catch((err) => console.error('Error opening Google Maps:', err))
-  }
+    const url = `https://www.google.com/maps?q=${latitude},${longitude}`;
+    Linking.openURL(url).catch((err) => console.error('Error opening Google Maps:', err));
+  };
 
-  if (!gymData) {
+  if (loading) {
     return (
       <View style={styles.loadingContainer}>
         <GymLoader />
       </View>
-    )
+    );
   }
 
-  const truncatedDescription = gymData.description.split(' ').slice(0, 50).join(' ')
+  const truncatedDescription = gymData?.description?.split(' ').slice(0, 50).join(' ');
 
   return (
     <SafeAreaView style={styles.container}>
       {/* StatusBar Configuration */}
-      <StatusBar
-        barStyle="dark-content" // Use 'light-content' for white text on dark background
-        backgroundColor="#f5f5f5" // Ensure this matches the container's background
-        translucent={false} // Use translucent if you want to overlay content under the status bar
-      />
+      <StatusBar barStyle="dark-content" backgroundColor="#f5f5f5" translucent={false} />
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Icon name="chevron-left" size={24} color="#4CAF50" />
@@ -101,11 +104,7 @@ export default function GymDetailScreen({ navigation, route }) {
         <Text style={styles.headerTitle}>Gym Details</Text>
       </View>
 
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.imageContainer}>
           <ScrollView
             horizontal
@@ -118,20 +117,14 @@ export default function GymDetailScreen({ navigation, route }) {
           >
             {(gymData.images || []).map((image, index) => (
               <TouchableOpacity key={index} onPress={() => openModal(image)}>
-            {loading && (
-              <Image
-                //source={require("../assets/icon.png")}
-                style={styles.image}
-                resizeMode="cover"
-              />
-            )}
-            <Image
-              source={{ uri: image }}
-              style={[styles.image, loading ? styles.hidden : null]}
-              resizeMode="cover"
-              onLoadStart={() => setLoading(true)}
-              onLoadEnd={() => setLoading(false)}
-            />
+                {imageLoading && <GymLoader />}
+                <Image
+                  source={{ uri: image }}
+                  style={[styles.image, imageLoading ? styles.hidden : null]}
+                  resizeMode="cover"
+                  onLoadStart={() => setImageLoading(true)}
+                  onLoadEnd={() => setImageLoading(false)}
+                />
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -153,18 +146,13 @@ export default function GymDetailScreen({ navigation, route }) {
             {isDescriptionExpanded ? gymData.description : `${truncatedDescription}...`}
           </Text>
           <TouchableOpacity onPress={() => setDescriptionExpanded(!isDescriptionExpanded)}>
-            <Text style={styles.showMoreText}>
-              {isDescriptionExpanded ? 'Show Less' : 'Show More'}
-            </Text>
+            <Text style={styles.showMoreText}>{isDescriptionExpanded ? 'Show Less' : 'Show More'}</Text>
           </TouchableOpacity>
 
           <View style={styles.locationContainer}>
             <MaterialIcons name="location-on" size={24} color="#4CAF50" />
             <Text style={styles.locationText}>{gymData.addressLine1}, {gymData.city}</Text>
-            <TouchableOpacity
-              style={styles.mapButton}
-              onPress={() => openGoogleMaps(gymData.latitude, gymData.longitude)}
-            >
+            <TouchableOpacity style={styles.mapButton} onPress={() => openGoogleMaps(gymData.latitude, gymData.longitude)}>
               <Text style={styles.mapButtonText}>Open in Maps</Text>
             </TouchableOpacity>
           </View>
@@ -199,13 +187,10 @@ export default function GymDetailScreen({ navigation, route }) {
         </View>
       </Modal>
 
-      {showAmenitiesPopup && (
-        <AmenitiesListPopup gymId={gym_id} onClose={toggleAmenitiesPopup} />
-      )}
+      {showAmenitiesPopup && <AmenitiesListPopup gymId={gym_id} onClose={toggleAmenitiesPopup} />}
     </SafeAreaView>
-  )
+  );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
