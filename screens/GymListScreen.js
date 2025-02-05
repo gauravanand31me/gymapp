@@ -237,30 +237,32 @@ export default function GymListScreen({ navigation }) {
   return (
     <>
       <LocationPermissionModal
-        isVisible={showLocationModal}
-        onPermissionGranted={() => {
-          setShowLocationModal(false)
-          getLocation()
-        }}
+  isVisible={showLocationModal}
+  onPermissionGranted={() => {
+    setShowLocationModal(false);
+    getLocation();
+  }}
+/>
+    <KeyboardAvoidingView 
+      style={styles.container} 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+       >
+       {/* StatusBar Configuration */}
+       <StatusBar
+        barStyle="dark-content" 
+        backgroundColor="#f5f5f5" 
+        translucent={false} 
       />
-      <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : "height"}>
-        <StatusBar barStyle="dark-content" backgroundColor="#f5f5f5" translucent={false} />
 
-        <SearchHeader
-          fetchGymsByPincode={fetchGymsByPincode}
-          setPincode={setPincode}
-          address={address}
-          pincode={pincode}
-          navigation={navigation}
-          lat={lat}
-          long={long}
-        />
+      <SearchHeader fetchGymsByPincode={fetchGymsByPincode} setPincode={setPincode} address={address} pincode={pincode} navigation={navigation} lat={lat} long={long}/>
 
-        {loading ? (
-          <GymLoader />
-        ) : (
-          <FlatList
-            data={gyms}
+      {loading ? (
+       <><GymLoader /><><FlatList
+            data={[gyms]}
+             /></></>
+      ) : (
+        <FlatList
+          data={gyms}
           renderItem={renderGym}
           keyExtractor={(item) => item.gymId.toString()}
           contentContainerStyle={styles.gymList}
