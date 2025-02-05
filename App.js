@@ -49,36 +49,18 @@ export default function App() {
     appId: "1:284884578210:android:871427ecf49fa13d6b8cfb"
   };
 
-  const isFirstInstall = async () => {
-    try {
-      const hasRunBefore = await AsyncStorage.getItem('hasRunBefore');
-      if (hasRunBefore === null) {
-        await AsyncStorage.setItem('hasRunBefore', 'true');
-        return true;
-      }
-      return false;
-    } catch (error) {
-      console.error('Error checking first install:', error);
-      return false;
-    }
-  };
 
 
-  const checkAuthentication = async () => {
-    try {
-      const isNewInstall = await isFirstInstall();
-      if (isNewInstall) {
-        // If it's a new install, clear any existing auth token
-        await AsyncStorage.removeItem('authToken');
-        return false;
-      }
-      const token = await AsyncStorage.getItem('authToken');
-      return !!token;
-    } catch (error) {
-      console.error('Error checking authentication:', error);
-      return false;
-    }
-  };
+const checkAuthentication = async () => {
+  try {
+    // Always remove any existing auth token to force authentication
+    await AsyncStorage.removeItem('authToken');
+    return false; // Always require authentication
+  } catch (error) {
+    console.error('Error checking authentication:', error);
+    return false;
+  }
+};
 
   const initializeApplication = async () => {
     try {
@@ -95,9 +77,10 @@ export default function App() {
     } catch (error) {
       console.error('Error during app initialization:', error);
     } finally {
-      setIsLoading(false);
       // Hide the system splash screen
       await SplashScreen.hideAsync();
+      setIsLoading(false);
+
       // Show custom splash for exactly 2 seconds
       setSplashVisible(true);
       setTimeout(() => {
@@ -145,10 +128,8 @@ export default function App() {
         const timeDiff = Date.now() - parseInt(backgroundTime);
         if (timeDiff > 2 * 60 * 1000) { // More than 2 minutes
           setSplashVisible(true);
-          setTimeout(async () => {
-            const authStatus = await checkAuthentication();
-            setIsAuthenticated(authStatus);
-            setSplashVisible(false);
+          setTimeout(() => {
+            setSplashVisible(false); // Just hide the splash, no login check
           }, 1000); // Show splash for 2 seconds when returning from background
         }
       }
