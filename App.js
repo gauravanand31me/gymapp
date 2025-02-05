@@ -63,6 +63,7 @@ export default function App() {
     }
   };
 
+
   const checkAuthentication = async () => {
     try {
       const isNewInstall = await isFirstInstall();
