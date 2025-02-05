@@ -145,11 +145,11 @@ export default function App() {
         const timeDiff = Date.now() - parseInt(backgroundTime);
         if (timeDiff > 2 * 60 * 1000) { // More than 2 minutes
           setSplashVisible(true);
-          setTimeout(async () => {
-            const authStatus = await checkAuthentication();
-            setIsAuthenticated(authStatus);
-            setSplashVisible(false);
-          }, 1000); // Show splash for 2 seconds when returning from background
+          
+          const authStatus = await checkAuthentication();
+          setIsAuthenticated(authStatus);
+          setSplashVisible(false);
+          // Show splash for 2 seconds when returning from background
         }
       }
       
@@ -219,4 +219,3 @@ export default function App() {
     </NotificationProvider>
   );
 }
-

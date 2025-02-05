@@ -48,10 +48,7 @@ export default function GymListScreen({ navigation }) {
   const [imageload, setImageLoading] = useState(false);
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
   const [showLocationModal, setShowLocationModal] = useState(true); // Show modal initially
-
-
-
-
+  
   useEffect(() => {
     console.log("Initial useEffect running")
     getLocation()
@@ -81,14 +78,17 @@ export default function GymListScreen({ navigation }) {
     };
   }, []);
 
+
   const checkLocationPermission = async () => {
+    setLoading(true) // Show GymLoader while checking permission
+    setShowLocationModal(false) // Initially hide the modal
+
     const { status } = await Location.getForegroundPermissionsAsync();
     if (status === "granted") {
       setShowLocationModal(false);
       getLocation();
     }
   };
-  
 
   const getLocation = async () => {
     try {
