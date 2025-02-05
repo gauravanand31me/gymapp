@@ -48,15 +48,16 @@ export default function GymListScreen({ navigation }) {
   const [imageload, setImageLoading] = useState(false);
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
   const [showLocationModal, setShowLocationModal] = useState(true); // Show modal initially
+  
   useEffect(() => {
     console.log("Initial useEffect running")
     getLocation()
   }, [])
 
   useEffect(() => {
-    console.log("Initial useEffect running")
-    checkLocationPermission()
-  }, [])
+    console.log("Initial useEffect running");
+    checkLocationPermission();
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -68,14 +69,15 @@ export default function GymListScreen({ navigation }) {
     }, [lat, long, gyms.length]),
   )
   useEffect(() => {
-    const keyboardDidShowListener = Keyboard.addListener("keyboardDidShow", () => setKeyboardVisible(true))
-    const keyboardDidHideListener = Keyboard.addListener("keyboardDidHide", () => setKeyboardVisible(false))
+    const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
+    const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
 
     return () => {
-      keyboardDidHideListener.remove()
-      keyboardDidShowListener.remove()
-    }
-  }, [])
+      keyboardDidHideListener.remove();
+      keyboardDidShowListener.remove();
+    };
+  }, []);
+
 
   const checkLocationPermission = async () => {
     setLoading(true) // Show GymLoader while checking permission
