@@ -51,16 +51,19 @@ export default function App() {
 
 
 
-const checkAuthentication = async () => {
-  try {
-    // Always remove any existing auth token to force authentication
-    await AsyncStorage.removeItem('authToken');
-    return false; // Always require authentication
-  } catch (error) {
-    console.error('Error checking authentication:', error);
-    return false;
-  }
-};
+  const checkAuthentication = async () => {
+    try {
+      setSplashVisible(true);  // Show splash screen while checking authentication
+      // Always remove any existing auth token to force authentication
+      await AsyncStorage.removeItem('authToken');
+      return false; // Always require authentication
+    } catch (error) {
+      console.error('Error checking authentication:', error);
+      return false;
+    } finally {
+      setSplashVisible(false);  // Hide splash screen after authentication check
+    }
+  };
 
   const initializeApplication = async () => {
     try {
@@ -77,10 +80,9 @@ const checkAuthentication = async () => {
     } catch (error) {
       console.error('Error during app initialization:', error);
     } finally {
+      setIsLoading(false);
       // Hide the system splash screen
       await SplashScreen.hideAsync();
-      setIsLoading(false);
-
       // Show custom splash for exactly 2 seconds
       setSplashVisible(true);
       setTimeout(() => {
@@ -128,9 +130,11 @@ const checkAuthentication = async () => {
         const timeDiff = Date.now() - parseInt(backgroundTime);
         if (timeDiff > 2 * 60 * 1000) { // More than 2 minutes
           setSplashVisible(true);
-          setTimeout(() => {
-            setSplashVisible(false); // Just hide the splash, no login check
-          }, 1000); // Show splash for 2 seconds when returning from background
+          
+            const authStatus = await checkAuthentication();
+            setIsAuthenticated(authStatus);
+            setSplashVisible(false);
+          // Show splash for 2 seconds when returning from background
         }
       }
       
@@ -200,4 +204,3 @@ const checkAuthentication = async () => {
     </NotificationProvider>
   );
 }
-
