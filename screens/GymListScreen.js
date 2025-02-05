@@ -81,29 +81,21 @@ export default function GymListScreen({ navigation }) {
     setLoading(true) // Show GymLoader while checking permission
     setShowLocationModal(false) // Initially hide the modal
 
-    try {
-      const { status } = await Location.getForegroundPermissionsAsync()
-      if (status === "granted") {
-        await getLocation() // Get location if permission is granted
-      } else {
-        setShowLocationModal(true) // Only show modal if permission is not granted
-      }
-    } catch (error) {
-      console.error("Error checking permission:", error)
-      setShowLocationModal(true) // Show modal on error
-    } finally {
-      setLoading(false) // Hide loader after everything is done
+    const { status } = await Location.getForegroundPermissionsAsync();
+    if (status === "granted") {
+      setShowLocationModal(false);
+      getLocation();
     }
-  }
+  };
 
   const getLocation = async () => {
     try {
-      const { status } = await Location.requestForegroundPermissionsAsync()
+      const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
-        setShowLocationModal(true) // Keep modal open if denied
-        return
+        setShowLocationModal(true); // Keep modal open if denied
+        return;
       }
-      setShowLocationModal(false)
+      setShowLocationModal(false);
       const location = await Location.getCurrentPositionAsync({})
       console.log("Location obtained:", location.coords)
       setLat(location.coords.latitude)
