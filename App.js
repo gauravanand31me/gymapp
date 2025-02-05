@@ -49,19 +49,33 @@ export default function App() {
     appId: "1:284884578210:android:871427ecf49fa13d6b8cfb"
   };
 
-
+  const isFirstInstall = async () => {
+    try {
+      const hasRunBefore = await AsyncStorage.getItem('hasRunBefore');
+      if (hasRunBefore === null) {
+        await AsyncStorage.setItem('hasRunBefore', 'true');
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Error checking first install:', error);
+      return false;
+    }
+  };
 
   const checkAuthentication = async () => {
     try {
-      setSplashVisible(true);  // Show splash screen while checking authentication
-      // Always remove any existing auth token to force authentication
-      await AsyncStorage.removeItem('authToken');
-      return false; // Always require authentication
+      const isNewInstall = await isFirstInstall();
+      if (isNewInstall) {
+        // If it's a new install, clear any existing auth token
+        await AsyncStorage.removeItem('authToken');
+        return false;
+      }
+      const token = await AsyncStorage.getItem('authToken');
+      return !!token;
     } catch (error) {
       console.error('Error checking authentication:', error);
       return false;
-    } finally {
-      setSplashVisible(false);  // Hide splash screen after authentication check
     }
   };
 
@@ -131,9 +145,9 @@ export default function App() {
         if (timeDiff > 2 * 60 * 1000) { // More than 2 minutes
           setSplashVisible(true);
           
-            const authStatus = await checkAuthentication();
-            setIsAuthenticated(authStatus);
-            setSplashVisible(false);
+          const authStatus = await checkAuthentication();
+          setIsAuthenticated(authStatus);
+          setSplashVisible(false);
           // Show splash for 2 seconds when returning from background
         }
       }

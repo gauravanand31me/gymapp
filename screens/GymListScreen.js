@@ -48,19 +48,15 @@ export default function GymListScreen({ navigation }) {
   const [imageload, setImageLoading] = useState(false);
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
   const [showLocationModal, setShowLocationModal] = useState(true); // Show modal initially
-
-
-
-
   useEffect(() => {
     console.log("Initial useEffect running")
     getLocation()
   }, [])
 
   useEffect(() => {
-    console.log("Initial useEffect running");
-    checkLocationPermission();
-  }, []);
+    console.log("Initial useEffect running")
+    checkLocationPermission()
+  }, [])
 
   useFocusEffect(
     useCallback(() => {
@@ -72,32 +68,42 @@ export default function GymListScreen({ navigation }) {
     }, [lat, long, gyms.length]),
   )
   useEffect(() => {
-    const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
-    const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
+    const keyboardDidShowListener = Keyboard.addListener("keyboardDidShow", () => setKeyboardVisible(true))
+    const keyboardDidHideListener = Keyboard.addListener("keyboardDidHide", () => setKeyboardVisible(false))
 
     return () => {
-      keyboardDidHideListener.remove();
-      keyboardDidShowListener.remove();
-    };
-  }, []);
+      keyboardDidHideListener.remove()
+      keyboardDidShowListener.remove()
+    }
+  }, [])
 
   const checkLocationPermission = async () => {
-    const { status } = await Location.getForegroundPermissionsAsync();
-    if (status === "granted") {
-      setShowLocationModal(false);
-      getLocation();
+    setLoading(true) // Show GymLoader while checking permission
+    setShowLocationModal(false) // Initially hide the modal
+
+    try {
+      const { status } = await Location.getForegroundPermissionsAsync()
+      if (status === "granted") {
+        await getLocation() // Get location if permission is granted
+      } else {
+        setShowLocationModal(true) // Only show modal if permission is not granted
+      }
+    } catch (error) {
+      console.error("Error checking permission:", error)
+      setShowLocationModal(true) // Show modal on error
+    } finally {
+      setLoading(false) // Hide loader after everything is done
     }
-  };
-  
+  }
 
   const getLocation = async () => {
     try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
+      const { status } = await Location.requestForegroundPermissionsAsync()
       if (status !== "granted") {
-        setShowLocationModal(true); // Keep modal open if denied
-        return;
+        setShowLocationModal(true) // Keep modal open if denied
+        return
       }
-      setShowLocationModal(false);
+      setShowLocationModal(false)
       const location = await Location.getCurrentPositionAsync({})
       console.log("Location obtained:", location.coords)
       setLat(location.coords.latitude)
@@ -231,32 +237,30 @@ export default function GymListScreen({ navigation }) {
   return (
     <>
       <LocationPermissionModal
-  isVisible={showLocationModal}
-  onPermissionGranted={() => {
-    setShowLocationModal(false);
-    getLocation();
-  }}
-/>
-    <KeyboardAvoidingView 
-      style={styles.container} 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-       >
-       {/* StatusBar Configuration */}
-       <StatusBar
-        barStyle="dark-content" 
-        backgroundColor="#f5f5f5" 
-        translucent={false} 
+        isVisible={showLocationModal}
+        onPermissionGranted={() => {
+          setShowLocationModal(false)
+          getLocation()
+        }}
       />
+      <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+        <StatusBar barStyle="dark-content" backgroundColor="#f5f5f5" translucent={false} />
 
-      <SearchHeader fetchGymsByPincode={fetchGymsByPincode} setPincode={setPincode} address={address} pincode={pincode} navigation={navigation} lat={lat} long={long}/>
+        <SearchHeader
+          fetchGymsByPincode={fetchGymsByPincode}
+          setPincode={setPincode}
+          address={address}
+          pincode={pincode}
+          navigation={navigation}
+          lat={lat}
+          long={long}
+        />
 
-      {loading ? (
-       <><GymLoader /><><FlatList
-            data={[gyms]}
-             /></></>
-      ) : (
-        <FlatList
-          data={gyms}
+        {loading ? (
+          <GymLoader />
+        ) : (
+          <FlatList
+            data={gyms}
           renderItem={renderGym}
           keyExtractor={(item) => item.gymId.toString()}
           contentContainerStyle={styles.gymList}
