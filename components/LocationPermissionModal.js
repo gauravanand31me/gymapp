@@ -13,6 +13,10 @@ import * as Location from "expo-location";
 
 export default function LocationPermissionModal({ isVisible, onPermissionGranted }) {
     const [modalVisible, setModalVisible] = useState(isVisible);
+    
+    useEffect(() => {
+      setModalVisible(isVisible);
+    }, [isVisible]);
   
     const requestLocationPermission = async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
