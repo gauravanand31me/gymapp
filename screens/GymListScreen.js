@@ -24,7 +24,6 @@ import Footer from '../components/Footer';
 import * as Linking from 'expo-linking';
 import SearchHeader from '../components/SearchComponent';
 import GymLoader from '../components/GymLoader';
-import LocationPermissionModal from "../components/LocationPermissionModal"; // Import modal
 
 
 
@@ -47,8 +46,7 @@ export default function GymListScreen({ navigation }) {
   const [unfocused, setUnfocused] = useState(false);
   const [imageload, setImageLoading] = useState(false);
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
-  const [showLocationModal, setShowLocationModal] = useState(false); // Show modal initially
-
+  const [locationPermissionGranted, setLocationPermissionGranted] = useState(false);
 
 
 
@@ -89,25 +87,34 @@ export default function GymListScreen({ navigation }) {
     }
   };
   
-
   const getLocation = async () => {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
-        setShowLocationModal(true); // Keep modal open if denied
+        console.log("Location permission denied, using default location.");
+        setLocationPermissionGranted(false);
+        setLat(12.9124);
+        setLong(77.6416);
+        fetchGyms(12.9124, 77.6416); // Fetch gyms for default location
+        fetchAddress(12.9124, 77.6416); // Fetch address for default location
         return;
       }
-      setShowLocationModal(false);
-      const location = await Location.getCurrentPositionAsync({})
-      console.log("Location obtained:", location.coords)
-      setLat(location.coords.latitude)
-      setLong(location.coords.longitude)
-      fetchAddress(location.coords.latitude, location.coords.longitude)
+      setLocationPermissionGranted(true);
+      const location = await Location.getCurrentPositionAsync({});
+      console.log("Location obtained:", location.coords);
+      setLat(location.coords.latitude);
+      setLong(location.coords.longitude);
+      fetchGyms(location.coords.latitude, location.coords.longitude);
+      fetchAddress(location.coords.latitude, location.coords.longitude);
     } catch (error) {
-      console.error("Error getting location:", error)
-      Alert.alert("Error", "Could not retrieve location. Please try again later.")
+      console.error("Error getting location:", error);
+      Alert.alert("Error", "Could not retrieve location. Using default location.");
+      setLat(12.9124);
+      setLong(77.6416);
+      fetchGyms(12.9124, 77.6416);
+      fetchAddress(12.9124, 77.6416);
     }
-  }
+  };
 
   const fetchGyms = async (latitude, longitude) => {
     console.log("Fetching gyms", { latitude, longitude, page })
@@ -214,7 +221,7 @@ export default function GymListScreen({ navigation }) {
         </View>
         <Text style={styles.gymDistance}>
           <MaterialIcons name="location-on" size={14} color="#757575" />
-          {item.distance ? `${item.distance.toFixed(1)} km away` : "N/A"}
+          {locationPermissionGranted && item.distance ? `${item.distance.toFixed(1)} km away` : "N/A"}
         </Text>
         <Text style={styles.gymPrice}>₹ {item.subscriptionPrices?.[0] || "N/A"}/hour</Text>
         <TouchableOpacity
@@ -225,18 +232,12 @@ export default function GymListScreen({ navigation }) {
         </TouchableOpacity>
       </View>
     </TouchableOpacity>
-  )
+  );
+  
 
   const renderLoadingGym = () => <GymLoader />
   return (
     <>
-      <LocationPermissionModal
-  isVisible={showLocationModal}
-  onPermissionGranted={() => {
-    setShowLocationModal(false);
-    getLocation();
-  }}
-/>
     <KeyboardAvoidingView 
       style={styles.container} 
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
