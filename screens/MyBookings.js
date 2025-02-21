@@ -24,6 +24,7 @@ export default function BookingsScreen({ navigation }) {
       setIsLoading(true);
       setIsChanged(false);
       const allBookings = await fetchAllBookings(selectedTab);
+      
       if (allBookings) {
         const sortedBookings = allBookings.sort((a, b) => new Date(b.create) - new Date(a.create));
         setBookings(sortedBookings);
@@ -73,7 +74,8 @@ export default function BookingsScreen({ navigation }) {
           </View>
 
           <Text style={styles.bookingInfoText}>Booking ID: {item.bookingId}</Text>
-          <Text style={styles.bookingInfoText}>Slot time: {item.time}</Text>
+          <Text style={styles.bookingInfoText}>Subscription type: {item.type}</Text>
+          {item.type === "Daily" && <Text style={styles.bookingInfoText}>Slot time: {item.time}</Text>}
           <Text style={styles.bookingInfoText}>Duration: {item.duration} minutes</Text>
           <Text style={styles.priceText}>Price: ₹ {item.price}</Text>
 

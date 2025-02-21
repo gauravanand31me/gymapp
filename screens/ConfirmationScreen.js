@@ -48,17 +48,19 @@ const ConfirmationScreen = ({ route, navigation }) => {
               <Feather name="map-pin" size={20} color="#34495E" />
               <Text style={styles.detailText}>{slotDetails.gymName}</Text>
             </View>
-            <View style={styles.detailRow}>
-              <Feather name="map" size={20} color="#34495E" />
-              <Text style={styles.detailText}>{slotDetails.location}</Text>
-            </View>
+            
             <View style={styles.detailRow}>
               <Feather name="calendar" size={20} color="#34495E" />
               <Text style={styles.detailText}>{slotDetails.date || slotDetails.bookingDate}</Text>
             </View>
-            <View style={styles.detailRow}>
+            {slotDetails.type === "Daily" && <View style={styles.detailRow}>
               <Feather name="clock" size={20} color="#34495E" />
               <Text style={styles.detailText}>{slotDetails.time || slotDetails.slotStartTime}</Text>
+            </View>}
+
+            <View style={styles.detailRow}>
+              <Feather name="clock" size={20} color="#34495E" />
+              <Text style={styles.detailText}>{slotDetails.type}</Text>
             </View>
           </View>
 

@@ -64,7 +64,7 @@ export default function Component({ navigation, route }) {
       gymName: gym.name,
       gymId: gym.id,
       price: gym?.subscriptions[0][selectedSubscription.toLowerCase()],
-      slotId: selectedSlot?.id,
+      slotId: selectedSlot?.id || availableSlots[availableSlots.length - 1]?.id,
       pricePerSlot: gym?.subscriptions[0][selectedSubscription.toLowerCase()],
       subscriptionId: gym?.subscriptions[0]?.id,
       type: selectedSubscription
