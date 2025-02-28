@@ -53,6 +53,20 @@ export default function Component({ navigation, route }) {
     return slotDateTime < currentDate
   }
 
+
+  function toCamelCase(str) {
+ 
+    return str
+        .toLowerCase() // Ensure the whole string is lowercase
+        .split(' ')    // Split by spaces
+        .map((word, index) => 
+            index === 0 
+                ? word // first word remains lowercase
+                : word.charAt(0).toUpperCase() + word.slice(1) // Capitalize next words
+        )
+        .join('');
+}
+
   const handleConfirm = () => {
     if (!selectedSlot && selectedSubscription == "Daily") {
       Alert.alert("Please select a time slot.")
@@ -64,9 +78,9 @@ export default function Component({ navigation, route }) {
       duration: selectedDuration,
       gymName: gym.name,
       gymId: gym.id,
-      price: gym?.subscriptions[0][selectedSubscription.toLowerCase()],
+      price: gym?.subscriptions[0][toCamelCase(selectedSubscription)],
       slotId: selectedSlot?.id || availableSlots[availableSlots.length - 1]?.id,
-      pricePerSlot: gym?.subscriptions[0][selectedSubscription.toLowerCase()],
+      pricePerSlot: gym?.subscriptions[0][toCamelCase(selectedSubscription)],
       subscriptionId: gym?.subscriptions[0]?.id,
       type: selectedSubscription
     }
@@ -189,7 +203,7 @@ export default function Component({ navigation, route }) {
             </View> </>}
 
           <TouchableOpacity onPress={handleConfirm} style={styles.confirmButton}>
-            <Text style={styles.confirmButtonText}>Confirm Slot</Text>
+            <Text style={styles.confirmButtonText}>Confirm Slot (₹) {gym?.subscriptions[0][toCamelCase(selectedSubscription)]} </Text>
           </TouchableOpacity>
         </ScrollView>
       </LinearGradient>

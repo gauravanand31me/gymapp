@@ -244,7 +244,7 @@ export const verifyOtp = async (mobileNumber, otp) => {
         slotId: slotDetails.slotId || slotDetails.bookingSlotId, // slot ID
         gymId: slotDetails.gymId,   // gym ID
         bookingDate: bookingDate, // current date
-        subscriptionType: slotDetails.type, // subscription type
+        subscriptionType: slotDetails.type.replace(/\s+/g, ''), // subscription type
         subscriptionId: slotDetails.subscriptionId || slotDetails.bookingSubscriptionId,         // subscription ID
         paymentId: slotDetails?.paymentId || Date.now.toString(),              // razorpay payment ID
         duration: slotDetails?.duration || slotDetails.bookingDuration,
