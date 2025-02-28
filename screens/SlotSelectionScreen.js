@@ -13,6 +13,7 @@ import DateTimePicker from '@react-native-community/datetimepicker'
 import { Calendar, ChevronLeft } from 'lucide-react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import BookingUnavailable from '../components/BookingUnavailable'
+import { Picker } from '@react-native-picker/picker'
 
 export default function Component({ navigation, route }) {
   const { gym } = route.params
@@ -21,7 +22,7 @@ export default function Component({ navigation, route }) {
   const [showDatePicker, setShowDatePicker] = useState(false)
   const [selectedDuration, setSelectedDuration] = useState(60)
   const [selectedSlot, setSelectedSlot] = useState(null)
-  const subscriptions = ['Daily', 'Monthly', 'Yearly']
+  const subscriptions = ['Daily', 'Monthly', 'Quarterly', 'Half Yearly', 'Yearly']
   const [selectedSubscription, setSelectedSubscription] = useState('Daily')
 
   const durations = [60, 90, 120, 180]
@@ -53,7 +54,7 @@ export default function Component({ navigation, route }) {
   }
 
   const handleConfirm = () => {
-    if (!selectedSlot && selectedSubscription== "Daily") {
+    if (!selectedSlot && selectedSubscription == "Daily") {
       Alert.alert("Please select a time slot.")
       return
     }
@@ -118,18 +119,16 @@ export default function Component({ navigation, route }) {
 
 
           <Text style={styles.sectionTitle}>Subscription Type:</Text>
-          <View style={styles.subscriptionContainer}>
-            {subscriptions.map((sub) => (
-              <TouchableOpacity
-                key={sub}
-                onPress={() => setSelectedSubscription(sub)}
-                style={[styles.subscriptionButton, selectedSubscription === sub && styles.selectedSubscriptionButton]}
-              >
-                <Text style={[styles.subscriptionButtonText, selectedSubscription === sub && styles.selectedSubscriptionButtonText]}>
-                  {sub}
-                </Text>
-              </TouchableOpacity>
-            ))}
+          <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={selectedSubscription}
+              onValueChange={(itemValue) => setSelectedSubscription(itemValue)}
+              style={styles.picker}
+            >
+              {subscriptions.map((sub) => (
+                <Picker.Item key={sub} label={sub.charAt(0).toUpperCase() + sub.slice(1)} value={sub} />
+              ))}
+            </Picker>
           </View>
 
           {selectedSubscription == "Daily" && <><Text style={styles.sectionTitle}>Available Time Slots:</Text>
@@ -322,6 +321,35 @@ const styles = StyleSheet.create({
     color: '#4CAF50',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  dropdownWrapper: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 10,
+    overflow: 'hidden',
+    backgroundColor: '#f9f9f9',
+    paddingHorizontal: 8,
+    justifyContent: 'center',
+  },
+  picker: {
+    height: 50,
+    width: '100%',
+    color: '#333',
+  },
+  label: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 10,
+    color: '#333',
+  },
+  selectedText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#555',
+  },
+  selectedValue: {
+    fontWeight: 'bold',
+    color: '#007BFF',
   },
   subscriptionContainer: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 },
   subscriptionButton: { padding: 12, borderRadius: 12, backgroundColor: '#FFFFFF', alignItems: 'center', width: '30%' },
