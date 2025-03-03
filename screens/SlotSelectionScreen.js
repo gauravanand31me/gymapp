@@ -13,7 +13,6 @@ import DateTimePicker from '@react-native-community/datetimepicker'
 import { Calendar, ChevronLeft } from 'lucide-react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import BookingUnavailable from '../components/BookingUnavailable'
-import { Picker } from '@react-native-picker/picker'
 
 export default function Component({ navigation, route }) {
   const { gym } = route.params
@@ -133,22 +132,43 @@ export default function Component({ navigation, route }) {
 
 
           <Text style={styles.sectionTitle}>Subscription Type:</Text>
-          <View style={styles.pickerContainer}>
-            <Picker
-              selectedValue={selectedSubscription}
-              onValueChange={(itemValue) => setSelectedSubscription(itemValue)}
-              style={styles.picker}
-            >
-              {subscriptions.map((sub) => (
-                <Picker.Item key={sub} label={sub.charAt(0).toUpperCase() + sub.slice(1)} value={sub} />
-              ))}
-            </Picker>
-          </View>
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false} 
+            contentContainerStyle={styles.subscriptionContainerContent}
+          >
+            {subscriptions.map((subscription) => (
+              <TouchableOpacity
+                key={subscription}
+                onPress={() => setSelectedSubscription(subscription)}
+                style={[
+                  styles.subscriptionBox,
+                  selectedSubscription === subscription && styles.selectedSubscriptionBox
+                ]}
+              >
+                <Text style={[
+                  styles.subscriptionText,
+                  selectedSubscription === subscription && styles.selectedSubscriptionText
+                ]}>
+                  {subscription}
+                </Text>
+                <Text style={[
+                  styles.subscriptionPriceText,
+                  selectedSubscription === subscription && styles.selectedSubscriptionText
+                ]}>
+                  ₹{gym?.subscriptions[0][toCamelCase(subscription)]}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
 
           {selectedSubscription == "Daily" && <><Text style={styles.sectionTitle}>Available Time Slots:</Text>
             {!availableSlots && <BookingUnavailable navigation={navigation} route={route} gym={gym} />}
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.timeSlotContainer}>
-
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false} 
+              contentContainerStyle={styles.timeSlotContainerContent}
+            >
               {availableSlots?.map((slot) => {
                 const pastSlot = isPastSlot(slot.startTime)
                 return (
@@ -263,10 +283,43 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     marginBottom: 16,
   },
-  timeSlotContainer: {
+  // Subscription styles with proper contentContainerStyle
+  subscriptionContainerContent: {
     flexDirection: 'row',
-    marginBottom: 20,
     paddingVertical: 4,
+    paddingBottom: 16,
+  },
+  subscriptionBox: {
+    backgroundColor: '#FFFFFF',
+    padding: 12,
+    borderRadius: 8,
+    marginRight: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 100,
+    height: 80,
+  },
+  selectedSubscriptionBox: {
+    backgroundColor: '#2E7D32',
+  },
+  subscriptionText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#4CAF50',
+    marginBottom: 4,
+  },
+  subscriptionPriceText: {
+    fontSize: 14,
+    color: '#4CAF50',
+  },
+  selectedSubscriptionText: {
+    color: '#FFFFFF',
+  },
+  // Time slot styles with proper contentContainerStyle
+  timeSlotContainerContent: {
+    flexDirection: 'row',
+    paddingVertical: 4,
+    paddingBottom: 16,
   },
   timeSlot: {
     backgroundColor: '#FFFFFF',
@@ -336,38 +389,4 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
-  dropdownWrapper: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 10,
-    overflow: 'hidden',
-    backgroundColor: '#f9f9f9',
-    paddingHorizontal: 8,
-    justifyContent: 'center',
-  },
-  picker: {
-    height: 50,
-    width: '100%',
-    color: '#333',
-  },
-  label: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 10,
-    color: '#333',
-  },
-  selectedText: {
-    marginTop: 12,
-    fontSize: 16,
-    color: '#555',
-  },
-  selectedValue: {
-    fontWeight: 'bold',
-    color: '#007BFF',
-  },
-  subscriptionContainer: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 },
-  subscriptionButton: { padding: 12, borderRadius: 12, backgroundColor: '#FFFFFF', alignItems: 'center', width: '30%' },
-  selectedSubscriptionButton: { backgroundColor: '#2E7D32' },
-  subscriptionButtonText: { fontSize: 16, fontWeight: '600', color: '#4CAF50' },
-  selectedSubscriptionButtonText: { color: '#FFFFFF' },
 })
