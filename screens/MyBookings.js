@@ -48,6 +48,35 @@ export default function BookingsScreen({ navigation }) {
     setSelectedTab("Completed");
   };
 
+
+
+// Function to calculate "Valid Till" using plain JS Date
+const calculateValidTill = (date, type) => {
+  const bookingDate = new Date(date);
+
+  switch (type) {
+    case 'daily':
+      bookingDate.setDate(bookingDate.getDate() + 1);
+      break;
+    case 'monthly':
+      bookingDate.setMonth(bookingDate.getMonth() + 1);
+      break;
+    case 'quarterly':
+      bookingDate.setMonth(bookingDate.getMonth() + 3);
+      break;
+    case 'halfyearly':
+      bookingDate.setMonth(bookingDate.getMonth() + 6);
+      break;
+    case 'yearly':
+      bookingDate.setFullYear(bookingDate.getFullYear() + 1);
+      break;
+    default:
+      return '-';
+  }
+
+  return bookingDate.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+};
+
   const renderBooking = ({ item }) => (
     <View style={styles.bookingCard}>
       <View style={styles.cardHeader}>
@@ -75,6 +104,9 @@ export default function BookingsScreen({ navigation }) {
 
           <Text style={styles.bookingInfoText}>Booking ID: {item.bookingId}</Text>
           <Text style={styles.bookingInfoText}>Subscription type: {item.type}</Text>
+          <Text style={styles.validTillText}>
+            Valid Till: {calculateValidTill(item.date, item.type)}
+          </Text>
           {item.type === "Daily" && <Text style={styles.bookingInfoText}>Slot time: {item.time}</Text>}
           <Text style={styles.bookingInfoText}>Duration: {item.duration} minutes</Text>
           <Text style={styles.priceText}>Price: ₹ {item.price}</Text>
@@ -519,5 +551,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
-  }
+  },
+  validTillText: {
+    fontSize: 14,
+    color: 'green',
+    marginTop: 4,
+    fontWeight: "bold"
+  },
 });
