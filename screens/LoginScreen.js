@@ -44,7 +44,7 @@ const LoginScreen = ({ navigation }) => {
         navigation.navigate('OTPVerification', { mobileNumber: phoneNumber, got_otp: data.data.otp});
       } else {
         if (data.message === "User not found") {
-          const fullName = "random";
+          const fullName = "user";
           const response = await registerUser(fullName, phoneNumber);
           await AsyncStorage.setItem('userToken', phoneNumber);
           navigation.navigate('OTPVerification', { mobileNumber: phoneNumber, got_otp: response.otp});
