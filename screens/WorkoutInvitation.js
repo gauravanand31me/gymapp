@@ -18,6 +18,7 @@ export default function WorkoutInvitation({ route }) {
     const handleActionRequest = async (requestId) => {
       try {
         const data = await acceptBuddyRequest(requestId);
+        
         setBooking(data.booking);
         checkExpiration(data.booking);
       } catch (error) {
@@ -61,6 +62,27 @@ export default function WorkoutInvitation({ route }) {
     }
   };
 
+
+  const renderType = (type) => {
+    switch (type) {
+      case "daily":
+        return "1 Day";
+        break;
+      case "monthly":
+        return "1 month";
+        break;
+      case "quarterly":
+        return "3 months";
+        break;
+      case "halfyearly":
+        return "6 months"
+        break;
+      case "yearly":
+        return "12 months";
+        break;
+    }
+  }
+
   const {
     bookingDate,
     bookingDuration,
@@ -68,6 +90,7 @@ export default function WorkoutInvitation({ route }) {
     slotStartTime,
     subscriptionPrice,
     gymRating,
+    bookingType,
   } = booking;
 
   const formattedDate = bookingDate ? new Date(bookingDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : '';
@@ -117,6 +140,7 @@ export default function WorkoutInvitation({ route }) {
               {renderDetailItem("business", "Gym", gymName || 'Loading...')}
               {renderDetailItem("calendar", "Date", formattedDate || 'Loading...')}
               {renderDetailItem("time", "Time", formattedTime || 'Loading...')}
+              {renderDetailItem("timer", "Booking Type", `${renderType(bookingType) || '...'}`)}
               {renderDetailItem("timer", "Duration", `${bookingDuration || '...'} minutes`)}
               {renderDetailItem("cash", "Price", `₹${subscriptionPrice || '...'}`)}
               {renderDetailItem("star", "Rating", `${gymRating || '...'} / 5`)}

@@ -140,7 +140,7 @@ export default function PaymentScreen({ route, navigation }) {
               </View>
               <View style={styles.detailRow}>
                 <CalendarClock size={24} color="#4CAF50" />
-                <Text style={styles.detail}>Subscription Type: {slotDetails.type}</Text>
+                <Text style={styles.detail}>Subscription Type: {slotDetails.type || slotDetails.bookingType}</Text>
               </View>
 
               {slotDetails.type === "Daily" && <View style={styles.detailRow}>
