@@ -21,7 +21,7 @@ export default function PaymentScreen({ route, navigation }) {
   const [isExpired, setIsExpired] = useState(false)
   const [confirm, setConfirm] = useState(false)
 
-
+  
   
 
   useEffect(() => {
@@ -134,6 +134,12 @@ export default function PaymentScreen({ route, navigation }) {
             </Text>
 
             <View style={styles.detailsContainer}>
+              <TouchableOpacity onPress={() => navigation.navigate("GymDetails", { gym_id: slotDetails?.gymId })}>
+                <Text style={styles.changeText}>Change Date & Time</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.detailsContainer}>
               <View style={styles.detailRow}>
                 <Calendar size={24} color="#4CAF50" />
                 <Text style={styles.detail}>Date: {slotDetails.date || slotDetails.bookingDate}</Text>
@@ -157,7 +163,7 @@ export default function PaymentScreen({ route, navigation }) {
                 </Text>
               </View>
             </View>
-
+              
             {isExpired ? (
               <Text style={styles.expiredText}>This booking time has expired.</Text>
             ) : !confirm ? (
@@ -174,6 +180,8 @@ export default function PaymentScreen({ route, navigation }) {
                 <Text style={styles.statusText}>Verifying Payment Status...</Text>
               </View>
             )}
+
+            
 
             <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
               <ArrowLeft size={24} color="#4CAF50" />
@@ -287,4 +295,9 @@ const styles = StyleSheet.create({
     marginTop: 12,
     fontWeight: 'bold',
   },
+  changeText: {
+    color: '#4CAF50',
+    fontWeight: 'bold',
+    textDecorationLine: 'underline',
+  }
 })

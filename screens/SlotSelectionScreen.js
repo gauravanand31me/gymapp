@@ -16,7 +16,6 @@ import BookingUnavailable from '../components/BookingUnavailable'
 
 export default function Component({ navigation, route }) {
   const { gym } = route.params
-  console.log("GYm Details is", gym);
   const [date, setDate] = useState(new Date())
   const [showDatePicker, setShowDatePicker] = useState(false)
   const [selectedDuration, setSelectedDuration] = useState(60)

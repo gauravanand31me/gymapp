@@ -214,11 +214,13 @@ export default function GymListScreen({ navigation }) {
         source={{ uri: item.images?.[0]?.imageUrl || "https://example.com/default-gym.png" }}
         style={styles.gymImage}
       />
+      
       <View style={styles.gymInfo}>
         <View style={styles.gymNameRating}>
           <Text style={styles.gymName}>{item.gymName}</Text>
           {renderStars(item.gymRating)}
         </View>
+        
         <Text style={styles.gymDistance}>
           <MaterialIcons name="location-on" size={14} color="#757575" />
           {item.distance && isLocation ? `${item.distance.toFixed(1)} km away` : "N/A"}
@@ -230,6 +232,12 @@ export default function GymListScreen({ navigation }) {
         >
           <Text style={styles.bookNowText}>Book Now</Text>
         </TouchableOpacity>
+        
+        <Text style={styles.smallText}>Other subscription options are also available.</Text>
+        <View style={styles.verifiedContainer}>
+          <MaterialIcons name="check-circle" size={16} color="#4CAF50" />
+          <Text style={styles.verifiedText}>Verified by Yupluck</Text>
+        </View>
       </View>
     </TouchableOpacity>
   )
@@ -336,37 +344,42 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     fontWeight: '600',
   },
-  gymList: {
-    padding: 15,
-  },
   gymCard: {
+    flexDirection: 'row',
+    padding: 10,
     backgroundColor: '#fff',
-    borderRadius: 15,
-    marginBottom: 20,
-    overflow: 'hidden',
-    elevation: 3,
+    marginBottom: 10,
   },
   gymImage: {
-    width: '100%',
-    height: 180,
-    
-   
+    width: 120,
+    height: 120,
+    borderRadius: 10,
   },
   gymInfo: {
-    padding: 15,
-    fontSize: 10,
-  },
-  gymNameRating: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
+    marginLeft: 10,
+    flex: 1,
   },
   gymName: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#333',
-    flex: 1,
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: "#0aad11",
+  },
+  gymPrice: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#4CAF50',
+  },
+  bookNowButton: {
+    backgroundColor: '#4CAF50',
+    paddingVertical: 5,
+    paddingHorizontal: 15,
+    borderRadius: 5,
+    alignSelf: 'flex-end',
+    marginTop: -15,
+  },
+  bookNowText: {
+    color: '#fff',
+    fontWeight: 'bold',
   },
   starContainer: {
     flexDirection: 'row',
@@ -422,5 +435,20 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
   },
+  smallText: {
+    fontSize: 11,
+    color: '#757575',
+    marginTop: 5
+  },
+  verifiedContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 5
+  },
+  verifiedText: {
+    fontSize: 12,
+    color: '#4CAF50',
+    marginLeft: 5
+  }
   
-});
+});,l.;
