@@ -219,7 +219,8 @@ export default function Component({ navigation, route }) {
                   </Text>
                 </TouchableOpacity>
               ))}
-            </View> </>}
+            </View> 
+            </>}
 
           <TouchableOpacity onPress={handleConfirm} style={styles.confirmButton}>
             <Text style={styles.confirmButtonText}>Confirm Slot (₹) {gym?.subscriptions[0][toCamelCase(selectedSubscription)]} </Text>

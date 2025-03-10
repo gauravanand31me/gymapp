@@ -145,7 +145,7 @@ export default function GymDetailScreen({ navigation, route }) {
       <StatusBar barStyle="dark-content" backgroundColor="#f5f5f5" translucent={false} />
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Icon name="chevron-left" size={24} color="#4CAF50" />
+          <Text><Icon name="chevron-left" size={24} color="#4CAF50" /></Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Gym Details</Text>
       </View>

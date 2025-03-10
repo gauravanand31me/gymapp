@@ -104,11 +104,11 @@ const calculateValidTill = (date, type) => {
 
           <Text style={styles.bookingInfoText}>Booking ID: {item.bookingId}</Text>
           <Text style={styles.bookingInfoText}>Subscription type: {item.type}</Text>
-          <Text style={styles.validTillText}>
+          {item.type !== "daily" && <Text style={styles.validTillText}>
             Valid Till: {calculateValidTill(item.date, item.type)}
-          </Text>
-          {item.type === "Daily" && <Text style={styles.bookingInfoText}>Slot time: {item.time}</Text>}
-          <Text style={styles.bookingInfoText}>Duration: {item.duration} minutes</Text>
+          </Text>}
+          {item.type === "daily" && <Text style={styles.bookingInfoText}>Slot time: {item.time}</Text>}
+          {item.type === "daily"  && <Text style={styles.bookingInfoText}>Duration: {item.duration} minutes</Text>}
           <Text style={styles.priceText}>Price: ₹ {item.price}</Text>
 
                       <View style={styles.inviteAddMoreContainer}>
