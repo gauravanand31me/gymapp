@@ -51,6 +51,27 @@ const WorkoutRequest = ({ route }) => {
     ]).start();
   }, [relatedId, fadeAnim, slideAnim]);
 
+
+  const renderType = (type) => {
+    switch (type) {
+      case "daily":
+        return "1 Day";
+        break;
+      case "monthly":
+        return "1 month";
+        break;
+      case "quarterly":
+        return "3 months";
+        break;
+      case "halfyearly":
+        return "6 months"
+        break;
+      case "yearly":
+        return "12 months";
+        break;
+    }
+  }
+
   const {
     bookingDate,
     bookingDuration,
@@ -58,6 +79,7 @@ const WorkoutRequest = ({ route }) => {
     slotStartTime,
     subscriptionPrice,
     gymRating,
+    bookingType
   } = booking;
 
   const formattedDate = bookingDate ? new Date(bookingDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'Loading...';
@@ -98,8 +120,9 @@ const WorkoutRequest = ({ route }) => {
               <Text style={styles.cardTitle}>Invitation Details</Text>
               {renderDetailItem("business", "Gym", gymName || 'Loading...')}
               {renderDetailItem("calendar", "Date", formattedDate)}
-              {renderDetailItem("time", "Time", formattedTime)}
-              {renderDetailItem("timer", "Duration", `${bookingDuration || '...'} minutes`)}
+              {renderDetailItem("timer", "Booking Durations", `${renderType(bookingType) || '...'}`)}
+              {bookingType === "daily" && renderDetailItem("time", "Time", formattedTime)}
+              {bookingType === "daily" && renderDetailItem("timer", "Duration", `${bookingDuration || '...'} minutes`)}
               {renderDetailItem("cash", "Price", `₹${subscriptionPrice || '...'}`)}
               {renderDetailItem("star", "Rating", `${gymRating || '...'} / 5`)}
               <Text style={styles.message}>{message}</Text>

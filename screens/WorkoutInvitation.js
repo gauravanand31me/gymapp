@@ -47,7 +47,7 @@ export default function WorkoutInvitation({ route }) {
     if (bookingData.bookingDate && bookingData.slotStartTime) {
       const bookingDateTime = new Date(`${bookingData.bookingDate}T${bookingData.slotStartTime}`);
       const now = new Date();
-      setIsExpired(bookingDateTime < now);
+      //setIsExpired(bookingDateTime < now);
     }
   };
 
@@ -139,9 +139,9 @@ export default function WorkoutInvitation({ route }) {
               <Text style={styles.cardTitle}>Invitation Details</Text>
               {renderDetailItem("business", "Gym", gymName || 'Loading...')}
               {renderDetailItem("calendar", "Date", formattedDate || 'Loading...')}
-              {renderDetailItem("time", "Time", formattedTime || 'Loading...')}
-              {renderDetailItem("timer", "Booking Type", `${renderType(bookingType) || '...'}`)}
-              {renderDetailItem("timer", "Duration", `${bookingDuration || '...'} minutes`)}
+              {bookingType === "daily" &&  renderDetailItem("time", "Time", formattedTime || 'Loading...')}
+              {renderDetailItem("timer", "Booking Durations", `${renderType(bookingType) || '...'}`)}
+              {bookingType === "daily" && renderDetailItem("timer", "Duration", `${bookingDuration || '...'} minutes`)}
               {renderDetailItem("cash", "Price", `₹${subscriptionPrice || '...'}`)}
               {renderDetailItem("star", "Rating", `${gymRating || '...'} / 5`)}
             </View>
