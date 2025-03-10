@@ -188,13 +188,7 @@ export default function Component({ navigation, route }) {
                     ]}>
                       {formatTime(slot.startTime)}
                     </Text>
-                    <Text style={[
-                      styles.priceText,
-                      pastSlot && styles.disabledText,
-                      selectedSlot?.id === slot.id && styles.selectedTimeSlotText
-                    ]}>
-                      ₹{slot.price}
-                    </Text>
+                    
                   </TouchableOpacity>
                 )
               })}
