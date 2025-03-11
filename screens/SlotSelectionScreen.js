@@ -20,6 +20,8 @@ export default function Component({ navigation, route }) {
   const [showDatePicker, setShowDatePicker] = useState(false)
   const [selectedDuration, setSelectedDuration] = useState(60)
   const [selectedSlot, setSelectedSlot] = useState(null)
+  const subscriptions = ['Daily', 'Monthly', 'Quarterly', 'Half Yearly', 'Yearly']
+  const [selectedSubscription, setSelectedSubscription] = useState('Daily')
 
   const durations = [60, 90, 120, 180]
   const availableSlots = gym?.slots?.sort((a, b) => {
@@ -49,21 +51,36 @@ export default function Component({ navigation, route }) {
     return slotDateTime < currentDate
   }
 
+
+  function toCamelCase(str) {
+
+    return str
+      .toLowerCase() // Ensure the whole string is lowercase
+      .split(' ')    // Split by spaces
+      .map((word, index) =>
+        index === 0
+          ? word // first word remains lowercase
+          : word.charAt(0).toUpperCase() + word.slice(1) // Capitalize next words
+      )
+      .join('');
+  }
+
   const handleConfirm = () => {
-    if (!selectedSlot) {
+    if (!selectedSlot && selectedSubscription == "Daily") {
       Alert.alert("Please select a time slot.")
       return
     }
     const slotDetails = {
       date: formatDate(date),
-      time: selectedSlot.startTime,
+      time: selectedSlot?.startTime,
       duration: selectedDuration,
       gymName: gym.name,
       gymId: gym.id,
-      price: selectedSlot.price,
-      slotId: selectedSlot.id,
-      pricePerSlot: selectedSlot.price,
+      price: gym?.subscriptions[0][toCamelCase(selectedSubscription)],
+      slotId: selectedSlot?.id || availableSlots[availableSlots.length - 1]?.id,
+      pricePerSlot: gym?.subscriptions[0][toCamelCase(selectedSubscription)],
       subscriptionId: gym?.subscriptions[0]?.id,
+      type: selectedSubscription
     }
     navigation.navigate('PaymentScreen', { slotDetails })
   }
@@ -84,16 +101,18 @@ export default function Component({ navigation, route }) {
         colors={['#4CAF50', '#2E7D32']}
         style={styles.background}
       >
-        
+
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <ChevronLeft color="#FFFFFF" size={24} />
             <Text style={styles.backButtonText}>Back</Text>
           </TouchableOpacity>
 
-          <Text style={styles.gymName}>{gym.name}</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('GymDetails', { gym_id: gym.id })}>
+            <Text style={styles.gymName}>{gym.name}</Text>
+          </TouchableOpacity>
           <Text style={styles.title}>Select a Slot</Text>
-          
+
           <TouchableOpacity
             onPress={() => setShowDatePicker(true)}
             style={styles.dateButton}
@@ -112,67 +131,105 @@ export default function Component({ navigation, route }) {
             />
           )}
 
-          <Text style={styles.sectionTitle}>Available Time Slots:</Text>
-          {!availableSlots &&  <BookingUnavailable navigation={navigation} route={route} gym={gym} />}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.timeSlotContainer}>
 
-            {availableSlots?.map((slot) => {
-              const pastSlot = isPastSlot(slot.startTime)
+          <Text style={styles.sectionTitle}>Subscription Type:</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.subscriptionContainerContent}
+          >
+            {subscriptions.map((subscription) => {
+              const price = gym?.subscriptions[0][toCamelCase(subscription)];
+
+              // Only render if price is greater than 0 and not null or undefined
+              if (!price || price === 0) return null;
+
               return (
                 <TouchableOpacity
-                  key={slot.id}
-                  onPress={() => !pastSlot && setSelectedSlot(slot)}
+                  key={subscription}
+                  onPress={() => setSelectedSubscription(subscription)}
                   style={[
-                    styles.timeSlot,
-                    pastSlot && styles.disabledTimeSlot,
-                    selectedSlot?.id === slot.id && styles.selectedTimeSlot
+                    styles.subscriptionBox,
+                    selectedSubscription === subscription && styles.selectedSubscriptionBox
                   ]}
-                  disabled={pastSlot}
                 >
                   <Text style={[
-                    styles.timeSlotText,
-                    pastSlot && styles.disabledText,
-                    selectedSlot?.id === slot.id && styles.selectedTimeSlotText
+                    styles.subscriptionText,
+                    selectedSubscription === subscription && styles.selectedSubscriptionText
                   ]}>
-                    {formatTime(slot.startTime)}
+                    {subscription}
                   </Text>
                   <Text style={[
-                    styles.priceText,
-                    pastSlot && styles.disabledText,
-                    selectedSlot?.id === slot.id && styles.selectedTimeSlotText
+                    styles.subscriptionPriceText,
+                    selectedSubscription === subscription && styles.selectedSubscriptionText
                   ]}>
-                    ₹{slot.price}
+                    ₹{price}
                   </Text>
                 </TouchableOpacity>
-              )
+              );
             })}
           </ScrollView>
 
-          <Text style={styles.sectionTitle}>Select Duration:</Text>
-          <View style={styles.durationContainer}>
-            {durations.map((duration) => (
-              <TouchableOpacity
-                key={duration}
-                onPress={() => setSelectedDuration(duration)}
-                style={[
-                  styles.durationButton,
-                  selectedDuration === duration && styles.selectedDurationButton
-                ]}
-              >
-                <Text style={[
-                  styles.durationButtonText,
-                  selectedDuration === duration && styles.selectedDurationButtonText
-                ]}>
-                  {duration} min
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+
+          {selectedSubscription == "Daily" && <><Text style={styles.sectionTitle}>Available Time Slots:</Text>
+            {!availableSlots && <BookingUnavailable navigation={navigation} route={route} gym={gym} />}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.timeSlotContainerContent}
+            >
+              {availableSlots?.map((slot) => {
+                const pastSlot = isPastSlot(slot.startTime)
+                return (
+                  <TouchableOpacity
+                    key={slot.id}
+                    onPress={() => !pastSlot && setSelectedSlot(slot)}
+                    style={[
+                      styles.timeSlot,
+                      pastSlot && styles.disabledTimeSlot,
+                      selectedSlot?.id === slot.id && styles.selectedTimeSlot
+                    ]}
+                    disabled={pastSlot}
+                  >
+                    <Text style={[
+                      styles.timeSlotText,
+                      pastSlot && styles.disabledText,
+                      selectedSlot?.id === slot.id && styles.selectedTimeSlotText
+                    ]}>
+                      {formatTime(slot.startTime)}
+                    </Text>
+
+                  </TouchableOpacity>
+                )
+              })}
+            </ScrollView>
+
+            <Text style={styles.sectionTitle}>Select Duration:</Text>
+            <View style={styles.durationContainer}>
+              {durations.map((duration) => (
+                <TouchableOpacity
+                  key={duration}
+                  onPress={() => setSelectedDuration(duration)}
+                  style={[
+                    styles.durationButton,
+                    selectedDuration === duration && styles.selectedDurationButton
+                  ]}
+                >
+                  <Text style={[
+                    styles.durationButtonText,
+                    selectedDuration === duration && styles.selectedDurationButtonText
+                  ]}>
+                    {duration} min
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </>}
 
           <TouchableOpacity onPress={handleConfirm} style={styles.confirmButton}>
-            <Text style={styles.confirmButtonText}>Confirm Slot</Text>
+            <Text style={styles.confirmButtonText}>Confirm Slot (₹) {gym?.subscriptions[0][toCamelCase(selectedSubscription)]} </Text>
           </TouchableOpacity>
-        </ScrollView> 
+        </ScrollView>
       </LinearGradient>
     </SafeAreaView>
   )
@@ -230,10 +287,43 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     marginBottom: 16,
   },
-  timeSlotContainer: {
+  // Subscription styles with proper contentContainerStyle
+  subscriptionContainerContent: {
     flexDirection: 'row',
-    marginBottom: 20,
     paddingVertical: 4,
+    paddingBottom: 16,
+  },
+  subscriptionBox: {
+    backgroundColor: '#FFFFFF',
+    padding: 12,
+    borderRadius: 8,
+    marginRight: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 100,
+    height: 80,
+  },
+  selectedSubscriptionBox: {
+    backgroundColor: '#2E7D32',
+  },
+  subscriptionText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#4CAF50',
+    marginBottom: 4,
+  },
+  subscriptionPriceText: {
+    fontSize: 14,
+    color: '#4CAF50',
+  },
+  selectedSubscriptionText: {
+    color: '#FFFFFF',
+  },
+  // Time slot styles with proper contentContainerStyle
+  timeSlotContainerContent: {
+    flexDirection: 'row',
+    paddingVertical: 4,
+    paddingBottom: 16,
   },
   timeSlot: {
     backgroundColor: '#FFFFFF',
@@ -298,6 +388,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
   },
+
   confirmButtonText: {
     color: '#4CAF50',
     fontSize: 18,

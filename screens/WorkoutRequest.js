@@ -51,6 +51,27 @@ const WorkoutRequest = ({ route }) => {
     ]).start();
   }, [relatedId, fadeAnim, slideAnim]);
 
+
+  const renderType = (type) => {
+    switch (type) {
+      case "daily":
+        return "1 Day";
+        break;
+      case "monthly":
+        return "1 month";
+        break;
+      case "quarterly":
+        return "3 months";
+        break;
+      case "halfyearly":
+        return "6 months"
+        break;
+      case "yearly":
+        return "12 months";
+        break;
+    }
+  }
+
   const {
     bookingDate,
     bookingDuration,
@@ -58,20 +79,31 @@ const WorkoutRequest = ({ route }) => {
     slotStartTime,
     subscriptionPrice,
     gymRating,
+    bookingType,
+    gymId
   } = booking;
 
   const formattedDate = bookingDate ? new Date(bookingDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'Loading...';
   const formattedTime = slotStartTime || 'Loading...';
+
 
   const renderDetailItem = (icon, label, value) => (
     <View style={styles.detailItem}>
       <Ionicons name={icon} size={24} color="#28A745" style={styles.icon} />
       <View>
         <Text style={styles.detailLabel}>{label}</Text>
-        <Text style={styles.detailValue}>{value}</Text>
+        {label === 'Gym' ? (
+          <TouchableOpacity onPress={() => navigation.navigate("GymDetails", {gym_id: gymId})} style={styles.linkContainer}>
+            <Text style={styles.linkText}>{value}</Text>
+          </TouchableOpacity>
+        ) : (
+          <Text style={styles.detailValue}>{value}</Text>
+        )}
       </View>
     </View>
   );
+
+  
 
   return (
     <ImageBackground 
@@ -98,8 +130,9 @@ const WorkoutRequest = ({ route }) => {
               <Text style={styles.cardTitle}>Invitation Details</Text>
               {renderDetailItem("business", "Gym", gymName || 'Loading...')}
               {renderDetailItem("calendar", "Date", formattedDate)}
-              {renderDetailItem("time", "Time", formattedTime)}
-              {renderDetailItem("timer", "Duration", `${bookingDuration || '...'} minutes`)}
+              {renderDetailItem("timer", "Booking Durations", `${renderType(bookingType) || '...'}`)}
+              {bookingType === "daily" && renderDetailItem("time", "Time", formattedTime)}
+              {bookingType === "daily" && renderDetailItem("timer", "Duration", `${bookingDuration || '...'} minutes`)}
               {renderDetailItem("cash", "Price", `₹${subscriptionPrice || '...'}`)}
               {renderDetailItem("star", "Rating", `${gymRating || '...'} / 5`)}
               <Text style={styles.message}>{message}</Text>
@@ -186,6 +219,20 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#2C3E50',
+  },
+  
+  linkContainer: {
+    borderBottomWidth: 1.5,
+    borderColor: '#007bff',
+    paddingBottom: 2,
+    width: 'auto',
+    alignSelf: 'flex-start',
+  },
+  linkText: {
+    fontSize: 16,
+    color: '#007bff',
+    fontWeight: 'bold',
+    textDecorationLine: 'underline',
   },
   message: {
     fontSize: 16,

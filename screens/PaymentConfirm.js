@@ -10,9 +10,9 @@ import {
   SafeAreaView,
   StatusBar,
 } from 'react-native';
-import { Calendar, Clock, DollarSign, ArrowLeft, CheckCircle } from 'lucide-react-native';
+import { Calendar, Clock, DollarSign, ArrowLeft, CheckCircle, CalendarClock} from 'lucide-react-native';
 import * as WebBrowser from 'expo-web-browser';
-import { acceptBuddyRequest, createBooking, createOrder } from '../api/apiService';
+import { acceptBuddyRequest, createBooking, createOrder, fetchIndividualGymData } from '../api/apiService';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function PaymentScreen({ route, navigation }) {
@@ -20,8 +20,8 @@ export default function PaymentScreen({ route, navigation }) {
   const [loading, setLoading] = useState(false)
   const [isExpired, setIsExpired] = useState(false)
   const [confirm, setConfirm] = useState(false)
-
-
+  const [gymData, setGymData] = useState(null);
+  
   
 
   useEffect(() => {
@@ -46,8 +46,22 @@ export default function PaymentScreen({ route, navigation }) {
       }
     }
 
-    checkExpiration()
+    checkExpiration();
+    fetchGymData();
   }, [slotDetails.date, slotDetails.time])
+
+
+  const fetchGymData = async () => {
+    try {
+      
+      const data = await fetchIndividualGymData(slotDetails?.gymId);
+      setGymData(data);
+    } catch (error) {
+      console.error('Error fetching gym details:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handlePayment = async () => {
     try {
@@ -134,25 +148,36 @@ export default function PaymentScreen({ route, navigation }) {
             </Text>
 
             <View style={styles.detailsContainer}>
+              <TouchableOpacity onPress={() => navigation.navigate("SlotSelection", { gym: gymData })}>
+                <Text style={styles.changeText}>Change subscription</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.detailsContainer}>
               <View style={styles.detailRow}>
                 <Calendar size={24} color="#4CAF50" />
                 <Text style={styles.detail}>Date: {slotDetails.date || slotDetails.bookingDate}</Text>
               </View>
               <View style={styles.detailRow}>
+                <CalendarClock size={24} color="#4CAF50" />
+                <Text style={styles.detail}>Subscription Type: {slotDetails.type || slotDetails.bookingType}</Text>
+              </View>
+
+              {slotDetails.type === "Daily" && <View style={styles.detailRow}>
                 <Clock size={24} color="#4CAF50" />
                 <Text style={styles.detail}>Time: {slotDetails.time || slotDetails.slotStartTime}</Text>
-              </View>
-              <View style={styles.detailRow}>
+              </View>}
+              {slotDetails.type === "Daily" && <View style={styles.detailRow}>
                 <Clock size={24} color="#4CAF50" />
                 <Text style={styles.detail}>Duration: {slotDetails.duration || slotDetails.bookingDuration} min</Text>
-              </View>
+              </View>}
               <View style={styles.detailRow}>
                 
                 <Text style={styles.price}>₹  Price: INR {slotDetails.price * (slotDetails.duration / 60) || slotDetails.subscriptionPrice}
                 </Text>
               </View>
             </View>
-
+              
             {isExpired ? (
               <Text style={styles.expiredText}>This booking time has expired.</Text>
             ) : !confirm ? (
@@ -169,6 +194,8 @@ export default function PaymentScreen({ route, navigation }) {
                 <Text style={styles.statusText}>Verifying Payment Status...</Text>
               </View>
             )}
+
+            
 
             <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
               <ArrowLeft size={24} color="#4CAF50" />
@@ -282,4 +309,9 @@ const styles = StyleSheet.create({
     marginTop: 12,
     fontWeight: 'bold',
   },
+  changeText: {
+    color: '#4CAF50',
+    fontWeight: 'bold',
+    textDecorationLine: 'underline',
+  }
 })

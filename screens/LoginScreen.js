@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, Alert, Modal, ActivityIndicator, SafeAreaView, KeyboardAvoidingView, Platform, TextInput,Linking } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { loginUser, userDetails } from '../api/apiService';
+import { loginUser, registerUser, userDetails } from '../api/apiService';
 import { Ionicons } from '@expo/vector-icons';
 import { CommonActions } from '@react-navigation/native';
 import indiaFlag from "../assets/india-flag.png";
@@ -35,7 +35,7 @@ const LoginScreen = ({ navigation }) => {
       setErrorVisible(true);
       return;
     }
-    console.log("Phone number is", phoneNumber);
+    
     setIsLoading(true);
     try {
       const data = await loginUser(phoneNumber);
@@ -43,10 +43,15 @@ const LoginScreen = ({ navigation }) => {
         await AsyncStorage.setItem('userToken', phoneNumber);
         navigation.navigate('OTPVerification', { mobileNumber: phoneNumber, got_otp: data.data.otp});
       } else {
-        setErrorMessage(data.message);
-        setErrorVisible(true);
+        if (data.message === "User not found") {
+          const fullName = "user";
+          const response = await registerUser(fullName, phoneNumber);
+          await AsyncStorage.setItem('userToken', phoneNumber);
+          navigation.navigate('OTPVerification', { mobileNumber: phoneNumber, got_otp: response.otp});
+        }
       }
     } catch (error) {
+      
       setErrorMessage(error.response?.data?.message || 'Login Failed');
       setErrorVisible(true);
     } finally {
@@ -91,7 +96,7 @@ const LoginScreen = ({ navigation }) => {
           {isLoading ? (
             <ActivityIndicator size="small" color="#fff" />
           ) : (
-            <Text style={styles.buttonText}>Login</Text>
+            <Text style={styles.buttonText}>Continue</Text>
             
           )}
           
@@ -102,13 +107,13 @@ const LoginScreen = ({ navigation }) => {
             <Text style={styles.linkText}>By clicking in, I accept the terms service & privacy policy</Text>
           </TouchableOpacity>
         </View>
-        <View style={styles.footer}>
+        {/* <View style={styles.footer}>
           
           <Text style={styles.footerText}>Don't have an account? </Text>
           <TouchableOpacity onPress={() => navigation.navigate('Register')}>
             <Text style={styles.linkText}>Register Now</Text>
           </TouchableOpacity>
-        </View>
+        </View> */}
 
         <Modal
           animationType="fade"

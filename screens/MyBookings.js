@@ -24,6 +24,7 @@ export default function BookingsScreen({ navigation }) {
       setIsLoading(true);
       setIsChanged(false);
       const allBookings = await fetchAllBookings(selectedTab);
+      
       if (allBookings) {
         const sortedBookings = allBookings.sort((a, b) => new Date(b.create) - new Date(a.create));
         setBookings(sortedBookings);
@@ -46,6 +47,35 @@ export default function BookingsScreen({ navigation }) {
     setIsChanged(true);
     setSelectedTab("Completed");
   };
+
+
+
+// Function to calculate "Valid Till" using plain JS Date
+const calculateValidTill = (date, type) => {
+  const bookingDate = new Date(date);
+
+  switch (type) {
+    case 'daily':
+      bookingDate.setDate(bookingDate.getDate() + 1);
+      break;
+    case 'monthly':
+      bookingDate.setMonth(bookingDate.getMonth() + 1);
+      break;
+    case 'quarterly':
+      bookingDate.setMonth(bookingDate.getMonth() + 3);
+      break;
+    case 'halfyearly':
+      bookingDate.setMonth(bookingDate.getMonth() + 6);
+      break;
+    case 'yearly':
+      bookingDate.setFullYear(bookingDate.getFullYear() + 1);
+      break;
+    default:
+      return '-';
+  }
+
+  return bookingDate.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+};
 
   const renderBooking = ({ item }) => (
     <View style={styles.bookingCard}>
@@ -73,8 +103,12 @@ export default function BookingsScreen({ navigation }) {
           </View>
 
           <Text style={styles.bookingInfoText}>Booking ID: {item.bookingId}</Text>
-          <Text style={styles.bookingInfoText}>Slot time: {item.time}</Text>
-          <Text style={styles.bookingInfoText}>Duration: {item.duration} minutes</Text>
+          <Text style={styles.bookingInfoText}>Subscription type: {item.type}</Text>
+          {item.type !== "daily" && <Text style={styles.validTillText}>
+            Valid Till: {calculateValidTill(item.date, item.type)}
+          </Text>}
+          {item.type === "daily" && <Text style={styles.bookingInfoText}>Slot time: {item.time}</Text>}
+          {item.type === "daily"  && <Text style={styles.bookingInfoText}>Duration: {item.duration} minutes</Text>}
           <Text style={styles.priceText}>Price: ₹ {item.price}</Text>
 
                       <View style={styles.inviteAddMoreContainer}>
@@ -517,5 +551,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
-  }
+  },
+  validTillText: {
+    fontSize: 14,
+    color: 'green',
+    marginTop: 4,
+    fontWeight: "bold"
+  },
 });

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+
 import {
   View,
   Text,
@@ -11,8 +12,12 @@ import {
   Linking,
   SafeAreaView,
   StatusBar,
+  Share,
+  Platform 
 } from 'react-native';
+import * as Sharing from "expo-sharing";
 import { useFocusEffect } from '@react-navigation/native';
+import * as FileSystem from "expo-file-system";
 import { fetchIndividualGymData } from '../api/apiService';
 import SlotSelectionScreen from './SlotSelectionScreen';
 import AmenitiesListPopup from '../components/AmenitiesListPopup';
@@ -65,6 +70,47 @@ export default function GymDetailScreen({ navigation, route }) {
     setModalVisible(true);
   };
 
+
+  const shareGym = async (gymId, gymName, gymLocation, gymImages) => {
+    try {
+      const appDeepLink = `yupluck://GymDetails/${gymId}`;
+      const webFallbackLink = `https://yupluck.com/appgym?id=${gymId}`; // Replace with actual link
+  
+      const message = `🔥 *Discover ${gymName}!* 🔥\n\n🏋️ *A Perfect Gym for Your Fitness!*  
+  📍 *Location:* ${gymLocation}  
+  📱 *Open in App:* ${appDeepLink}  
+  🌐 *Book Online:* ${webFallbackLink}\n\n  
+  🖼️ *Check Out These Images:*\n${gymImages.join("\n")}`;
+  
+      // Download images locally
+      let downloadedImages = [];
+      for (let imageUrl of gymImages) {
+        const fileUri = `${FileSystem.cacheDirectory}${imageUrl.split("/").pop()}`;
+        const downloadResumable = FileSystem.createDownloadResumable(imageUrl, fileUri);
+        const { uri } = await downloadResumable.downloadAsync();
+        downloadedImages.push(uri);
+      }
+  
+      // Share multiple images (Only works on Telegram, Instagram, iMessage, AirDrop)
+      if (Platform.OS === "ios") {
+        await Share.share({ message, urls: downloadedImages }); // iOS supports multiple images in Share API
+      } else if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(downloadedImages[0], {
+          mimeType: "image/jpeg",
+          dialogTitle: `Share ${gymName}`,
+          UTI: "image/jpeg",
+        });
+  
+        // Share text separately for platforms that don't support multiple images
+        await Share.share({ message });
+      } else {
+        await Share.share({ message });
+      }
+    } catch (error) {
+      console.error("Error sharing:", error);
+    }
+  };
+
   const closeModal = () => {
     setModalVisible(false);
     setSelectedImage(null);
@@ -99,7 +145,7 @@ export default function GymDetailScreen({ navigation, route }) {
       <StatusBar barStyle="dark-content" backgroundColor="#f5f5f5" translucent={false} />
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Icon name="chevron-left" size={24} color="#4CAF50" />
+          <Text><Icon name="chevron-left" size={24} color="#4CAF50" /></Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Gym Details</Text>
       </View>
@@ -136,8 +182,15 @@ export default function GymDetailScreen({ navigation, route }) {
           </View>
         </View>
 
+
+
         <View style={styles.infoContainer}>
           <Text style={styles.gymName}>{gymData.name}</Text>
+
+          <TouchableOpacity onPress={() => shareGym(gym_id, gymData.name, gymData.city, gymData.images)} style={styles.shareButton}>
+            <Icon name="share-alt" size={20} color="#000" />
+          </TouchableOpacity>
+
           <View style={styles.ratingContainer}>
             <Icon name="star" size={16} color="#FFD700" />
             <Text style={styles.ratingText}>{gymData.rating} ({gymData.reviews} reviews)</Text>
@@ -364,5 +417,11 @@ const styles = StyleSheet.create({
     top: 40,
     right: 20,
     zIndex: 1,
+  },
+  shareButton: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    padding: 8,
   },
 })

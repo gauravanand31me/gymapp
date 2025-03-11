@@ -18,6 +18,7 @@ export default function WorkoutInvitation({ route }) {
     const handleActionRequest = async (requestId) => {
       try {
         const data = await acceptBuddyRequest(requestId);
+        
         setBooking(data.booking);
         checkExpiration(data.booking);
       } catch (error) {
@@ -61,6 +62,27 @@ export default function WorkoutInvitation({ route }) {
     }
   };
 
+
+  const renderType = (type) => {
+    switch (type) {
+      case "daily":
+        return "1 Day";
+        break;
+      case "monthly":
+        return "1 month";
+        break;
+      case "quarterly":
+        return "3 months";
+        break;
+      case "halfyearly":
+        return "6 months"
+        break;
+      case "yearly":
+        return "12 months";
+        break;
+    }
+  }
+
   const {
     bookingDate,
     bookingDuration,
@@ -68,17 +90,28 @@ export default function WorkoutInvitation({ route }) {
     slotStartTime,
     subscriptionPrice,
     gymRating,
+    bookingType,
+    gymId
   } = booking;
+  
 
   const formattedDate = bookingDate ? new Date(bookingDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : '';
   const formattedTime = slotStartTime || '';
 
-  const renderDetailItem = (icon, label, value) => (
+  const renderDetailItem = (icon, label, value, onPressLink) => (
     <View style={styles.detailItem}>
       <Ionicons name={icon} size={24} color="#28A745" style={styles.icon} />
       <View>
         <Text style={styles.detailLabel}>{label}</Text>
-        <Text style={styles.detailValue}>{value}</Text>
+        {label === 'Gym' ? (
+          <TouchableOpacity onPress={() => navigation.navigate("GymDetails", {gym_id: gymId})}>
+            <Text style={[styles.detailValue, { color: '#007bff', textDecorationLine: 'underline' }]}>
+              {value}
+            </Text>
+          </TouchableOpacity>
+        ) : (
+          <Text style={styles.detailValue}>{value}</Text>
+        )}
       </View>
     </View>
   );
@@ -116,8 +149,9 @@ export default function WorkoutInvitation({ route }) {
               <Text style={styles.cardTitle}>Invitation Details</Text>
               {renderDetailItem("business", "Gym", gymName || 'Loading...')}
               {renderDetailItem("calendar", "Date", formattedDate || 'Loading...')}
-              {renderDetailItem("time", "Time", formattedTime || 'Loading...')}
-              {renderDetailItem("timer", "Duration", `${bookingDuration || '...'} minutes`)}
+              {bookingType === "daily" &&  renderDetailItem("time", "Time", formattedTime || 'Loading...')}
+              {renderDetailItem("timer", "Booking Durations", `${renderType(bookingType) || '...'}`)}
+              {bookingType === "daily" && renderDetailItem("timer", "Duration", `${bookingDuration || '...'} minutes`)}
               {renderDetailItem("cash", "Price", `₹${subscriptionPrice || '...'}`)}
               {renderDetailItem("star", "Rating", `${gymRating || '...'} / 5`)}
             </View>

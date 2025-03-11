@@ -224,7 +224,7 @@ export const verifyOtp = async (mobileNumber, otp) => {
 
   export const createBooking = async (slotDetails) => {
 
-    console.log("slotDetails", slotDetails);
+    
    
     try {
       let year, month, day;
@@ -244,7 +244,7 @@ export const verifyOtp = async (mobileNumber, otp) => {
         slotId: slotDetails.slotId || slotDetails.bookingSlotId, // slot ID
         gymId: slotDetails.gymId,   // gym ID
         bookingDate: bookingDate, // current date
-        subscriptionType: "daily", // subscription type
+        subscriptionType: slotDetails?.type?.replace(/\s+/g, '') || slotDetails?.bookingType?.replace(/\s+/g, ''), // subscription type
         subscriptionId: slotDetails.subscriptionId || slotDetails.bookingSubscriptionId,         // subscription ID
         paymentId: slotDetails?.paymentId || Date.now.toString(),              // razorpay payment ID
         duration: slotDetails?.duration || slotDetails.bookingDuration,
@@ -302,7 +302,8 @@ export const verifyOtp = async (mobileNumber, otp) => {
         gymId: booking.gymId,
         paymentStatus: booking.isPaid == true ? "Paid" : "Not Paid",
         duration: booking.duration,
-        bookingRating: booking.rating
+        bookingRating: booking.rating,
+        type: booking.type
       }));
     } catch (error) {
       console.error("Error fetching bookings:", error);
