@@ -44,12 +44,40 @@ export default function WorkoutInvitation({ route }) {
   }, [relatedId, fadeAnim, slideAnim]);
 
   const checkExpiration = (bookingData) => {
-    if (bookingData.bookingDate && bookingData.slotStartTime) {
+    if (bookingData.bookingDate && bookingData.slotStartTime && bookingData.bookingType) {
       const bookingDateTime = new Date(`${bookingData.bookingDate}T${bookingData.slotStartTime}`);
       const now = new Date();
-      setIsExpired(bookingDateTime < now);
+  
+      let expirationDate = new Date(bookingDateTime);
+  
+      switch (bookingData.bookingType) {
+        case "daily":
+          // Expire on the same day after the slot time
+          setIsExpired(bookingDateTime < now);
+          break;
+        case "monthly":
+          expirationDate.setMonth(expirationDate.getMonth() + 1);
+          setIsExpired(expirationDate < now);
+          break;
+        case "quarterly":
+          expirationDate.setMonth(expirationDate.getMonth() + 3);
+          setIsExpired(expirationDate < now);
+          break;
+        case "halfyearly":
+          expirationDate.setMonth(expirationDate.getMonth() + 6);
+          setIsExpired(expirationDate < now);
+          break;
+        case "yearly":
+          expirationDate.setFullYear(expirationDate.getFullYear() + 1);
+          setIsExpired(expirationDate < now);
+          break;
+        default:
+          setIsExpired(false);
+          break;
+      }
     }
   };
+  
 
   const handleDecline = async () => {
     try {
