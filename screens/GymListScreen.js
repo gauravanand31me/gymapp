@@ -24,7 +24,6 @@ import Footer from '../components/Footer';
 import * as Linking from 'expo-linking';
 import SearchHeader from '../components/SearchComponent';
 import GymLoader from '../components/GymLoader';
-import LocationPermissionModal from "../components/LocationPermissionModal"; // Import modal
 
 
 
@@ -87,12 +86,16 @@ export default function GymListScreen({ navigation }) {
     }
   };
   
-
   const getLocation = async () => {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
-        setShowLocationModal(true); // Keep modal open if denied
+        console.log("Location permission denied, using default location.");
+        setLocationPermissionGranted(false);
+        setLat(12.9124);
+        setLong(77.6416);
+        fetchGyms(12.9124, 77.6416); // Fetch gyms for default location
+        fetchAddress(12.9124, 77.6416); // Fetch address for default location
         return;
       }
       setShowLocationModal(false);
@@ -113,7 +116,7 @@ export default function GymListScreen({ navigation }) {
       setIsLocation(false);
       //Alert.alert("Error", "Could not retrieve location. Please try again later.")
     }
-  }
+  };
 
   const fetchGyms = async (latitude, longitude) => {
     console.log("Fetching gyms", { latitude, longitude, page })
@@ -240,18 +243,12 @@ export default function GymListScreen({ navigation }) {
         </View>
       </View>
     </TouchableOpacity>
-  )
+  );
+  
 
   const renderLoadingGym = () => <GymLoader />
   return (
     <>
-      <LocationPermissionModal
-  isVisible={showLocationModal}
-  onPermissionGranted={() => {
-    setShowLocationModal(false);
-    getLocation();
-  }}
-/>
     <KeyboardAvoidingView 
       style={styles.container} 
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
