@@ -47,7 +47,7 @@ export default function WorkoutInvitation({ route }) {
     if (bookingData.bookingDate && bookingData.slotStartTime) {
       const bookingDateTime = new Date(`${bookingData.bookingDate}T${bookingData.slotStartTime}`);
       const now = new Date();
-      //setIsExpired(bookingDateTime < now);
+      setIsExpired(bookingDateTime < now);
     }
   };
 
@@ -91,17 +91,27 @@ export default function WorkoutInvitation({ route }) {
     subscriptionPrice,
     gymRating,
     bookingType,
+    gymId
   } = booking;
+  
 
   const formattedDate = bookingDate ? new Date(bookingDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : '';
   const formattedTime = slotStartTime || '';
 
-  const renderDetailItem = (icon, label, value) => (
+  const renderDetailItem = (icon, label, value, onPressLink) => (
     <View style={styles.detailItem}>
       <Ionicons name={icon} size={24} color="#28A745" style={styles.icon} />
       <View>
         <Text style={styles.detailLabel}>{label}</Text>
-        <Text style={styles.detailValue}>{value}</Text>
+        {label === 'Gym' ? (
+          <TouchableOpacity onPress={() => navigation.navigate("GymDetails", {gym_id: gymId})}>
+            <Text style={[styles.detailValue, { color: '#007bff', textDecorationLine: 'underline' }]}>
+              {value}
+            </Text>
+          </TouchableOpacity>
+        ) : (
+          <Text style={styles.detailValue}>{value}</Text>
+        )}
       </View>
     </View>
   );

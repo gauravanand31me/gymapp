@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { Calendar, Clock, DollarSign, ArrowLeft, CheckCircle, CalendarClock} from 'lucide-react-native';
 import * as WebBrowser from 'expo-web-browser';
-import { acceptBuddyRequest, createBooking, createOrder } from '../api/apiService';
+import { acceptBuddyRequest, createBooking, createOrder, fetchIndividualGymData } from '../api/apiService';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function PaymentScreen({ route, navigation }) {
@@ -20,7 +20,7 @@ export default function PaymentScreen({ route, navigation }) {
   const [loading, setLoading] = useState(false)
   const [isExpired, setIsExpired] = useState(false)
   const [confirm, setConfirm] = useState(false)
-
+  const [gymData, setGymData] = useState(null);
   
   
 
@@ -46,8 +46,22 @@ export default function PaymentScreen({ route, navigation }) {
       }
     }
 
-    checkExpiration()
+    checkExpiration();
+    fetchGymData();
   }, [slotDetails.date, slotDetails.time])
+
+
+  const fetchGymData = async () => {
+    try {
+      
+      const data = await fetchIndividualGymData(slotDetails?.gymId);
+      setGymData(data);
+    } catch (error) {
+      console.error('Error fetching gym details:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handlePayment = async () => {
     try {
@@ -134,7 +148,7 @@ export default function PaymentScreen({ route, navigation }) {
             </Text>
 
             <View style={styles.detailsContainer}>
-              <TouchableOpacity onPress={() => navigation.navigate("GymDetails", { gym_id: slotDetails?.gymId })}>
+              <TouchableOpacity onPress={() => navigation.navigate("SlotSelection", { gym: gymData })}>
                 <Text style={styles.changeText}>Change subscription</Text>
               </TouchableOpacity>
             </View>

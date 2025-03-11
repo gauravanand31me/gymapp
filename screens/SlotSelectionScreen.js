@@ -53,17 +53,17 @@ export default function Component({ navigation, route }) {
 
 
   function toCamelCase(str) {
- 
+
     return str
-        .toLowerCase() // Ensure the whole string is lowercase
-        .split(' ')    // Split by spaces
-        .map((word, index) => 
-            index === 0 
-                ? word // first word remains lowercase
-                : word.charAt(0).toUpperCase() + word.slice(1) // Capitalize next words
-        )
-        .join('');
-}
+      .toLowerCase() // Ensure the whole string is lowercase
+      .split(' ')    // Split by spaces
+      .map((word, index) =>
+        index === 0
+          ? word // first word remains lowercase
+          : word.charAt(0).toUpperCase() + word.slice(1) // Capitalize next words
+      )
+      .join('');
+  }
 
   const handleConfirm = () => {
     if (!selectedSlot && selectedSubscription == "Daily") {
@@ -108,7 +108,9 @@ export default function Component({ navigation, route }) {
             <Text style={styles.backButtonText}>Back</Text>
           </TouchableOpacity>
 
-          <Text style={styles.gymName}>{gym.name}</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('GymDetails', { gym_id: gym.id })}>
+            <Text style={styles.gymName}>{gym.name}</Text>
+          </TouchableOpacity>
           <Text style={styles.title}>Select a Slot</Text>
 
           <TouchableOpacity
@@ -131,41 +133,49 @@ export default function Component({ navigation, route }) {
 
 
           <Text style={styles.sectionTitle}>Subscription Type:</Text>
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false} 
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.subscriptionContainerContent}
           >
-            {subscriptions.map((subscription) => (
-              <TouchableOpacity
-                key={subscription}
-                onPress={() => setSelectedSubscription(subscription)}
-                style={[
-                  styles.subscriptionBox,
-                  selectedSubscription === subscription && styles.selectedSubscriptionBox
-                ]}
-              >
-                <Text style={[
-                  styles.subscriptionText,
-                  selectedSubscription === subscription && styles.selectedSubscriptionText
-                ]}>
-                  {subscription}
-                </Text>
-                <Text style={[
-                  styles.subscriptionPriceText,
-                  selectedSubscription === subscription && styles.selectedSubscriptionText
-                ]}>
-                  ₹{gym?.subscriptions[0][toCamelCase(subscription)]}
-                </Text>
-              </TouchableOpacity>
-            ))}
+            {subscriptions.map((subscription) => {
+              const price = gym?.subscriptions[0][toCamelCase(subscription)];
+
+              // Only render if price is greater than 0 and not null or undefined
+              if (!price || price === 0) return null;
+
+              return (
+                <TouchableOpacity
+                  key={subscription}
+                  onPress={() => setSelectedSubscription(subscription)}
+                  style={[
+                    styles.subscriptionBox,
+                    selectedSubscription === subscription && styles.selectedSubscriptionBox
+                  ]}
+                >
+                  <Text style={[
+                    styles.subscriptionText,
+                    selectedSubscription === subscription && styles.selectedSubscriptionText
+                  ]}>
+                    {subscription}
+                  </Text>
+                  <Text style={[
+                    styles.subscriptionPriceText,
+                    selectedSubscription === subscription && styles.selectedSubscriptionText
+                  ]}>
+                    ₹{price}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </ScrollView>
+
 
           {selectedSubscription == "Daily" && <><Text style={styles.sectionTitle}>Available Time Slots:</Text>
             {!availableSlots && <BookingUnavailable navigation={navigation} route={route} gym={gym} />}
-            <ScrollView 
-              horizontal 
-              showsHorizontalScrollIndicator={false} 
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.timeSlotContainerContent}
             >
               {availableSlots?.map((slot) => {
@@ -188,7 +198,7 @@ export default function Component({ navigation, route }) {
                     ]}>
                       {formatTime(slot.startTime)}
                     </Text>
-                    
+
                   </TouchableOpacity>
                 )
               })}
@@ -213,8 +223,8 @@ export default function Component({ navigation, route }) {
                   </Text>
                 </TouchableOpacity>
               ))}
-            </View> 
-            </>}
+            </View>
+          </>}
 
           <TouchableOpacity onPress={handleConfirm} style={styles.confirmButton}>
             <Text style={styles.confirmButtonText}>Confirm Slot (₹) {gym?.subscriptions[0][toCamelCase(selectedSubscription)]} </Text>
@@ -378,7 +388,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
   },
-  
+
   confirmButtonText: {
     color: '#4CAF50',
     fontSize: 18,

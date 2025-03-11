@@ -79,21 +79,31 @@ const WorkoutRequest = ({ route }) => {
     slotStartTime,
     subscriptionPrice,
     gymRating,
-    bookingType
+    bookingType,
+    gymId
   } = booking;
 
   const formattedDate = bookingDate ? new Date(bookingDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'Loading...';
   const formattedTime = slotStartTime || 'Loading...';
+
 
   const renderDetailItem = (icon, label, value) => (
     <View style={styles.detailItem}>
       <Ionicons name={icon} size={24} color="#28A745" style={styles.icon} />
       <View>
         <Text style={styles.detailLabel}>{label}</Text>
-        <Text style={styles.detailValue}>{value}</Text>
+        {label === 'Gym' ? (
+          <TouchableOpacity onPress={() => navigation.navigate("GymDetails", {gym_id: gymId})} style={styles.linkContainer}>
+            <Text style={styles.linkText}>{value}</Text>
+          </TouchableOpacity>
+        ) : (
+          <Text style={styles.detailValue}>{value}</Text>
+        )}
       </View>
     </View>
   );
+
+  
 
   return (
     <ImageBackground 
@@ -209,6 +219,20 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#2C3E50',
+  },
+  
+  linkContainer: {
+    borderBottomWidth: 1.5,
+    borderColor: '#007bff',
+    paddingBottom: 2,
+    width: 'auto',
+    alignSelf: 'flex-start',
+  },
+  linkText: {
+    fontSize: 16,
+    color: '#007bff',
+    fontWeight: 'bold',
+    textDecorationLine: 'underline',
   },
   message: {
     fontSize: 16,
