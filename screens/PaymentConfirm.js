@@ -148,7 +148,7 @@ export default function PaymentScreen({ route, navigation }) {
             </Text>
 
             <View style={styles.detailsContainer}>
-              <TouchableOpacity onPress={() => navigation.navigate("SlotSelection", { gym: gymData })}>
+              <TouchableOpacity onPress={() => navigation.navigate("SlotSelection", { gym: gymData, requestId: requestId })}>
                 <Text style={styles.changeText}>Change subscription</Text>
               </TouchableOpacity>
             </View>

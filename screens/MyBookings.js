@@ -74,17 +74,14 @@ const calculateValidTill = (date, type) => {
       return '-';
   }
 
-  return bookingDate.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+  return bookingDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 };
 
   const renderBooking = ({ item }) => (
     <View style={styles.bookingCard}>
       <View style={styles.cardHeader}>
-        <Text style={styles.bookingDate}>{item.date}</Text>
-        <View style={styles.locationContainer}>
-          <MaterialIcon name="location-on" size={16} color="#6B7280" />
-          <Text style={styles.locationText}>{item.location}</Text>
-        </View>
+        <Text style={styles.bookingDate}>Booked on : {new Date(item.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</Text>
+        
       </View>
 
       <View style={styles.cardBody}>

@@ -15,7 +15,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import BookingUnavailable from '../components/BookingUnavailable'
 
 export default function Component({ navigation, route }) {
-  const { gym } = route.params
+  const { gym, requestId} = route.params
   const [date, setDate] = useState(new Date())
   const [showDatePicker, setShowDatePicker] = useState(false)
   const [selectedDuration, setSelectedDuration] = useState(60)
@@ -82,7 +82,7 @@ export default function Component({ navigation, route }) {
       subscriptionId: gym?.subscriptions[0]?.id,
       type: selectedSubscription
     }
-    navigation.navigate('PaymentScreen', { slotDetails })
+    navigation.navigate('PaymentScreen', { slotDetails, requestId })
   }
 
   const formatTime = (timeString) => {
