@@ -47,6 +47,7 @@ const LoginScreen = ({ navigation }) => {
       } else {
         if (data.message === "User not found") {
           setIsRegistered(false);
+          setFullName("")
 
         }
       }
