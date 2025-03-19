@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, Alert, Modal, ActivityIndicator, SafeAreaView, KeyboardAvoidingView, Platform, TextInput,Linking } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image, Alert, Modal, ActivityIndicator, SafeAreaView, KeyboardAvoidingView, Platform, TextInput, Linking } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { loginUser, registerUser, userDetails } from '../api/apiService';
 import { Ionicons } from '@expo/vector-icons';
 import { CommonActions } from '@react-navigation/native';
 import indiaFlag from "../assets/india-flag.png";
-
+import Feather from "react-native-vector-icons/Feather"; 
 
 const LoginScreen = ({ navigation }) => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [errorVisible, setErrorVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [fullName, setFullName] = useState('');
+  const [isRegistered, setIsRegistered] = useState(true);
 
   useEffect(() => {
     const checkLoginStatus = async () => {
@@ -25,7 +27,7 @@ const LoginScreen = ({ navigation }) => {
         );
       }
     };
-  
+
     checkLoginStatus();
   }, []);
 
@@ -35,23 +37,22 @@ const LoginScreen = ({ navigation }) => {
       setErrorVisible(true);
       return;
     }
-    
+
     setIsLoading(true);
     try {
       const data = await loginUser(phoneNumber);
       if (data.status) {
         await AsyncStorage.setItem('userToken', phoneNumber);
-        navigation.navigate('OTPVerification', { mobileNumber: phoneNumber, got_otp: data.data.otp});
+        navigation.navigate('OTPVerification', { mobileNumber: phoneNumber, got_otp: data.data.otp });
       } else {
         if (data.message === "User not found") {
-          const fullName = "user";
-          const response = await registerUser(fullName, phoneNumber);
-          await AsyncStorage.setItem('userToken', phoneNumber);
-          navigation.navigate('OTPVerification', { mobileNumber: phoneNumber, got_otp: response.otp});
+          setIsRegistered(false);
+          setFullName("")
+
         }
       }
     } catch (error) {
-      
+
       setErrorMessage(error.response?.data?.message || 'Login Failed');
       setErrorVisible(true);
     } finally {
@@ -59,13 +60,25 @@ const LoginScreen = ({ navigation }) => {
     }
   };
 
+
+  const handleRegister = async () => {
+    if (!fullName) {
+      setErrorMessage('Full name is required');
+      setErrorVisible(true);
+      return;
+    }
+    const response = await registerUser(fullName, phoneNumber);
+    await AsyncStorage.setItem('userToken', phoneNumber);
+    navigation.navigate('OTPVerification', { mobileNumber: phoneNumber, got_otp: response.otp });
+  }
+
   return (
     <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView 
+      <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardAvoidingView}
       >
-  
+
 
         <Text style={styles.title}>Welcome to YUPLUCK</Text>
         <Text style={styles.subtitle}>Your instant GYM booking platform!</Text>
@@ -85,10 +98,30 @@ const LoginScreen = ({ navigation }) => {
             value={phoneNumber}
             onChangeText={setPhoneNumber}
             maxLength={10}
+            editable={isRegistered}
           />
+
+{!isRegistered && (
+            <TouchableOpacity onPress={() => setIsRegistered(true)}>
+              <Text style={styles.changeNumberText}><Feather name="edit" size={16} color="#007BFF" style={styles.editIcon} /></Text>
+            </TouchableOpacity>
+          )}
+
         </View>
 
-        <TouchableOpacity
+        
+
+        
+
+        {!isRegistered && <TextInput
+          style={styles.input}
+          placeholder="Full Name"
+          placeholderTextColor='#808080'
+          value={fullName}
+          onChangeText={setFullName}
+        />}
+
+        {isRegistered && <TouchableOpacity
           style={[styles.button, isLoading && styles.disabledButton]}
           onPress={handleLogin}
           disabled={isLoading}
@@ -97,12 +130,30 @@ const LoginScreen = ({ navigation }) => {
             <ActivityIndicator size="small" color="#fff" />
           ) : (
             <Text style={styles.buttonText}>Continue</Text>
-            
+
           )}
-          
-        </TouchableOpacity>
+
+        </TouchableOpacity>}
+
+
+        {!isRegistered && <TouchableOpacity
+          style={[styles.button, isLoading && styles.disabledButton]}
+          onPress={handleRegister}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}>Register</Text>
+
+          )}
+
+        </TouchableOpacity>}
+
+
+
         <View style={styles.policyContainer}>
-    
+
           <TouchableOpacity onPress={() => Linking.openURL('https://yupluck.com/privacy')}>
             <Text style={styles.linkText}>By clicking in, I accept the terms service & privacy policy</Text>
           </TouchableOpacity>
@@ -168,7 +219,7 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
     fontSize: 14,
     textAlign: 'center',
-  
+
   },
   title: {
     fontSize: 28,
@@ -188,6 +239,17 @@ const styles = StyleSheet.create({
     width: '100%',
     marginBottom: 20,
     flexDirection: 'row',
+  },
+  input: {
+    width: '100%',
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 5,
+    padding: 15,
+    backgroundColor: '#F0F0F0',
+    color: '#333',
+    marginBottom: 20,
+    fontSize: 16,
   },
   flagContainer: {
     flexDirection: 'row',
@@ -272,6 +334,12 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 16,
+  },
+  changeNumberText: {
+    color: "blue",
+    textDecorationLine: "underline",
+    fontSize: 12,
+    marginTop: 5,
   },
 });
 

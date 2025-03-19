@@ -87,6 +87,19 @@ export default function NotificationListScreen({ navigation }) {
     //navigation.navigate("UserProfile", { userId: item.relatedId });
   }
 
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleString("en-GB", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      hour: "numeric",
+      minute: "numeric",
+      hour12: true,
+    });
+  };
+
   const renderItem = ({ item }) => (
     <Animated.View
       style={[
@@ -124,7 +137,7 @@ export default function NotificationListScreen({ navigation }) {
         <Text style={styles.notificationText}>
           {item.others ? `, ${item.others}` : ''} {item.message || 'No message available.'}
         </Text>
-        <Text style={styles.time}>{item.createdAt || 'Time not available.'}</Text>
+        <Text style={styles.time}>{item.createdAt ? formatDate(item.createdAt) : "Time not available."}</Text>
       </View>
       <View style={styles.actionButtons}>
         {item.type === 'buddyInvite' && (
