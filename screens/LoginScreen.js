@@ -61,6 +61,11 @@ const LoginScreen = ({ navigation }) => {
 
 
   const handleRegister = async () => {
+    if (!fullName) {
+      setErrorMessage('Full name is required');
+      setErrorVisible(true);
+      return;
+    }
     const response = await registerUser(fullName, phoneNumber);
     await AsyncStorage.setItem('userToken', phoneNumber);
     navigation.navigate('OTPVerification', { mobileNumber: phoneNumber, got_otp: response.otp });
