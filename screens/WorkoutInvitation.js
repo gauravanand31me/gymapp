@@ -16,14 +16,7 @@ export default function WorkoutInvitation({ route }) {
 
 
 
-  useEffect(() => {
-    if (booking.bookingType && booking.bookingType !== "daily") {
-      setBooking(prevBooking => ({
-        ...prevBooking,
-        bookingDate: new Date().toISOString().split('T')[0] // Set to current date
-      }));
-    }
-  }, [booking.bookingType]); // Runs only when bookingType changes
+  
 
   useEffect(() => {
     const handleActionRequest = async (requestId) => {
@@ -31,6 +24,12 @@ export default function WorkoutInvitation({ route }) {
         const data = await acceptBuddyRequest(requestId);
         
         setBooking(data.booking);
+        if (booking.bookingType && booking.bookingType !== "daily") {
+          setBooking(prevBooking => ({
+            ...prevBooking,
+            bookingDate: new Date().toLocaleDateString('en-CA') // Ensures YYYY-MM-DD format in local timezone
+          }));
+        }
         checkExpiration(data.booking);
       } catch (error) {
         console.error("Error fetching booking details:", error);
@@ -121,6 +120,19 @@ export default function WorkoutInvitation({ route }) {
         break;
     }
   }
+
+
+  const getFormattedDate = (bookingDate, bookingType) => {
+    // If bookingType is not "daily", set bookingDate to the current date
+    const dateToFormat = bookingType !== "daily" ? new Date() : new Date(bookingDate);
+  
+    return dateToFormat.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
   
 
   const {
@@ -134,8 +146,8 @@ export default function WorkoutInvitation({ route }) {
     gymId
   } = booking;
   
-  console.log("Booking Information", booking);
-  const formattedDate = bookingDate ? new Date(bookingDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : '';
+  
+  const formattedDate = bookingDate ? getFormattedDate(bookingDate, bookingType) : '';
   const formattedTime = slotStartTime || '';
 
   const renderDetailItem = (icon, label, value, onPressLink) => (
