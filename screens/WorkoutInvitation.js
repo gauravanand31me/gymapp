@@ -14,6 +14,17 @@ export default function WorkoutInvitation({ route }) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(width)).current;
 
+
+
+  useEffect(() => {
+    if (booking.bookingType && booking.bookingType !== "daily") {
+      setBooking(prevBooking => ({
+        ...prevBooking,
+        bookingDate: new Date().toISOString().split('T')[0] // Set to current date
+      }));
+    }
+  }, [booking.bookingType]); // Runs only when bookingType changes
+
   useEffect(() => {
     const handleActionRequest = async (requestId) => {
       try {
@@ -110,6 +121,7 @@ export default function WorkoutInvitation({ route }) {
         break;
     }
   }
+  
 
   const {
     bookingDate,
@@ -122,7 +134,7 @@ export default function WorkoutInvitation({ route }) {
     gymId
   } = booking;
   
-
+  console.log("Booking Information", booking);
   const formattedDate = bookingDate ? new Date(bookingDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : '';
   const formattedTime = slotStartTime || '';
 
