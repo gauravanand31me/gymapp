@@ -128,6 +128,13 @@ export default function PaymentScreen({ route, navigation }) {
     }, 3000)
   }
 
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "";
+    const [year, month, day] = dateString.split("-");
+    return `${day}/${month}/${year}`;
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       {/* StatusBar Configuration */}
@@ -156,7 +163,9 @@ export default function PaymentScreen({ route, navigation }) {
             <View style={styles.detailsContainer}>
               <View style={styles.detailRow}>
                 <Calendar size={24} color="#4CAF50" />
-                <Text style={styles.detail}>Date: {slotDetails.date || slotDetails.bookingDate}</Text>
+                <Text style={styles.detail}>
+                        Date: {slotDetails.date ? slotDetails.date : formatDate(slotDetails.bookingDate)}
+                </Text>
               </View>
               <View style={styles.detailRow}>
                 <CalendarClock size={24} color="#4CAF50" />
