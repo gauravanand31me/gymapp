@@ -30,6 +30,13 @@ const WorkoutRequest = ({ route }) => {
       try {
         const data = await acceptBuddyRequest(requestId);
         setBooking(data.booking);
+        if (booking.bookingType && booking.bookingType !== "daily") {
+          setBooking(prevBooking => ({
+            ...prevBooking,
+            bookingDate: new Date().toLocaleDateString('en-CA') // Ensures YYYY-MM-DD format in local timezone
+          }));
+        }
+
       } catch (error) {
         console.error("Error fetching booking details:", error);
       }

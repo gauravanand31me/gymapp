@@ -12,7 +12,7 @@ const BookingQRCode = ({ booking_id, booking_date, booking_time, type  }) => {
   return (
     <View style={{ alignItems: 'center', marginTop: 20 }}>
       <Text>Your Booking QR Code:</Text>
-      <QRCode value={qrCodeValue} size={200} />
+      <QRCode value={qrCodeValue} size={100} />
     </View>
   );
 };
