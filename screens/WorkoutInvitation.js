@@ -24,12 +24,15 @@ export default function WorkoutInvitation({ route }) {
         const data = await acceptBuddyRequest(requestId);
         
         setBooking(data.booking);
-        if (booking.bookingType && booking.bookingType !== "daily") {
-          setBooking(prevBooking => ({
-            ...prevBooking,
-            bookingDate: new Date().toLocaleDateString('en-CA') // Ensures YYYY-MM-DD format in local timezone
-          }));
-        }
+
+          if (booking.bookingType && booking.bookingType !== "daily") {
+            setBooking(prevBooking => ({
+              ...prevBooking,
+              bookingDate: new Date().toLocaleDateString('en-CA') // Ensures YYYY-MM-DD format in local timezone
+            }));
+          }
+          
+        
         checkExpiration(data.booking);
       } catch (error) {
         console.error("Error fetching booking details:", error);
@@ -51,7 +54,7 @@ export default function WorkoutInvitation({ route }) {
         useNativeDriver: true,
       }),
     ]).start();
-  }, [relatedId, fadeAnim, slideAnim]);
+  }, [relatedId, fadeAnim, slideAnim, booking]);
 
   const checkExpiration = (bookingData) => {
     if (bookingData.bookingDate && bookingData.slotStartTime && bookingData.bookingType) {
