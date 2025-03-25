@@ -15,7 +15,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import BookingUnavailable from '../components/BookingUnavailable'
 
 export default function Component({ navigation, route }) {
-  const { gym, requestId} = route.params
+  const { gym, requestId } = route.params
   const [date, setDate] = useState(new Date())
   const [showDatePicker, setShowDatePicker] = useState(false)
   const [selectedDuration, setSelectedDuration] = useState(60)
@@ -227,7 +227,12 @@ export default function Component({ navigation, route }) {
           </>}
 
           <TouchableOpacity onPress={handleConfirm} style={styles.confirmButton}>
-            <Text style={styles.confirmButtonText}>Confirm Slot (₹) {gym?.subscriptions[0][toCamelCase(selectedSubscription)]} </Text>
+            <Text style={styles.confirmButtonText}>
+              Confirm Slot (₹)
+              {toCamelCase(selectedSubscription) === "daily"
+                ? (gym?.subscriptions[0][toCamelCase(selectedSubscription)] * (selectedDuration / 60)).toFixed(2)
+                : gym?.subscriptions[0][toCamelCase(selectedSubscription)]}
+            </Text>
           </TouchableOpacity>
         </ScrollView>
       </LinearGradient>
