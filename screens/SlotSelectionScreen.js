@@ -89,6 +89,11 @@ export default function Component({ navigation, route }) {
     return timeString.replace(':00', '')
   }
 
+  const changeSubscription = (subscription) => {
+    setSelectedSubscription(subscription);
+    setSelectedDuration(60);
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       {/* StatusBar Configuration */}
@@ -147,7 +152,7 @@ export default function Component({ navigation, route }) {
               return (
                 <TouchableOpacity
                   key={subscription}
-                  onPress={() => setSelectedSubscription(subscription)}
+                  onPress={() => changeSubscription(subscription)}
                   style={[
                     styles.subscriptionBox,
                     selectedSubscription === subscription && styles.selectedSubscriptionBox
