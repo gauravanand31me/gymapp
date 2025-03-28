@@ -18,7 +18,7 @@ import {
 import * as Sharing from "expo-sharing";
 import { useFocusEffect } from '@react-navigation/native';
 import * as FileSystem from "expo-file-system";
-import { fetchIndividualGymData } from '../api/apiService';
+import { fetchIndividualGymData, userDetails } from '../api/apiService';
 import SlotSelectionScreen from './SlotSelectionScreen';
 import AmenitiesListPopup from '../components/AmenitiesListPopup';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -37,10 +37,24 @@ export default function GymDetailScreen({ navigation, route }) {
   const [loading, setLoading] = useState(true);
   const { gym_id } = route.params;
   const [imageLoading, setImageLoading] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(true);
 
   useEffect(() => {
     fetchGymData();
+    checkLogin();
   }, []);
+
+
+  const checkLogin = async () => {
+    const data = await userDetails();
+    if (!data) {
+      setIsLoggedIn(false);
+    } else {
+      setIsLoggedIn(true);
+      await storePushToken();
+    }
+  }
+
 
   useFocusEffect(
     useCallback(() => {
@@ -147,7 +161,7 @@ export default function GymDetailScreen({ navigation, route }) {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Text><Icon name="chevron-left" size={24} color="#4CAF50" /></Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Gym Details</Text>
+        <Text style={styles.headerTitle}>{gymData.name}</Text>
       </View>
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -185,7 +199,7 @@ export default function GymDetailScreen({ navigation, route }) {
 
 
         <View style={styles.infoContainer}>
-          <Text style={styles.gymName}>{gymData.name}</Text>
+          
 
           <TouchableOpacity onPress={() => shareGym(gym_id, gymData.name, gymData.city, gymData.images)} style={styles.shareButton}>
             <Icon name="share-alt" size={20} color="#000" />
@@ -227,9 +241,13 @@ export default function GymDetailScreen({ navigation, route }) {
         </View>
       </ScrollView>
 
-      <TouchableOpacity style={styles.bookButton} onPress={openSlotSelection}>
+      {isLoggedIn && <TouchableOpacity style={styles.bookButton} onPress={openSlotSelection}>
         <Text style={styles.bookButtonText}>Book Now</Text>
-      </TouchableOpacity>
+      </TouchableOpacity>}
+
+      {!isLoggedIn && <TouchableOpacity style={styles.bookButton} onPress={() => navigation.navigate("Login")}>
+        <Text style={styles.bookButtonText}>Login</Text>
+      </TouchableOpacity>}
 
       <Modal visible={isModalVisible} transparent={true} animationType="fade">
         <View style={styles.modalContainer}>
@@ -244,11 +262,14 @@ export default function GymDetailScreen({ navigation, route }) {
     </SafeAreaView>
   );
 }
+
+
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
-    paddingTop: 20
+    backgroundColor: '#F8F9FA', // Light background for a clean look
+    paddingTop: 20,
   },
   loadingContainer: {
     flex: 1,
@@ -258,23 +279,26 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: '#DDDDDD',
+    backgroundColor: '#FFFFFF',
+    elevation: 2, // Soft shadow for depth
   },
   backButton: {
     marginRight: 16,
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 'bold',
-    color: '#333333',
+    color: '#222222',
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 80,
+    paddingBottom: 100,
   },
   imageContainer: {
     position: 'relative',
@@ -285,54 +309,61 @@ const styles = StyleSheet.create({
   image: {
     width: screenWidth,
     height: screenWidth * 0.75,
+    borderRadius: 12, // Rounded edges for a modern look
   },
   dotContainer: {
     position: 'absolute',
-    bottom: 16,
+    bottom: 14,
     left: 0,
     right: 0,
     flexDirection: 'row',
     justifyContent: 'center',
   },
   dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
     backgroundColor: '#FFFFFF',
+    opacity: 0.5,
     marginHorizontal: 4,
   },
   activeDot: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#43A047',
+    opacity: 1,
   },
   infoContainer: {
-    padding: 16,
+    padding: 20,
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    marginTop: -20, // Lifted for a better transition
   },
   gymName: {
-    fontSize: 15,
+    fontSize: 18,
     fontWeight: 'bold',
-    color: '#333333',
-    marginBottom: 8,
+    color: '#222222',
+    marginBottom: 6,
   },
   ratingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   ratingText: {
-    marginLeft: 4,
+    marginLeft: 6,
     fontSize: 14,
-    color: '#666666',
+    color: '#777777',
   },
   gymDescription: {
-    fontSize: 15,
-    color: '#666666',
+    fontSize: 16,
+    color: '#444444',
     lineHeight: 24,
     marginBottom: 12,
   },
   showMoreText: {
-    color: '#4CAF50',
+    color: '#43A047',
     fontWeight: 'bold',
-    marginBottom: 16,
+    marginBottom: 14,
   },
   locationContainer: {
     flexDirection: 'row',
@@ -341,24 +372,24 @@ const styles = StyleSheet.create({
   },
   locationText: {
     flex: 1,
-    fontSize: 14,
-    color: '#666666',
+    fontSize: 15,
+    color: '#555555',
     marginLeft: 8,
   },
   mapButton: {
-    backgroundColor: '#4CAF50',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 4,
+    backgroundColor: '#43A047',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 6,
   },
   mapButtonText: {
     color: '#FFFFFF',
     fontWeight: 'bold',
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#333333',
+    color: '#222222',
     marginBottom: 12,
   },
   amenitiesContainer: {
@@ -375,33 +406,44 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   amenityText: {
-    marginLeft: 8,
-    fontSize: 14,
-    color: '#666666',
+    marginLeft: 10,
+    fontSize: 15,
+    color: '#555555',
   },
   showAllButton: {
     alignSelf: 'center',
-    marginTop: 8,
+    marginTop: 10,
   },
   showAllText: {
-    color: '#4CAF50',
+    color: '#43A047',
     fontWeight: 'bold',
   },
+  
   bookButton: {
     position: 'absolute',
     bottom: 16,
     left: 16,
     right: 16,
-    backgroundColor: '#4CAF50',
-    paddingVertical: 16,
-    borderRadius: 8,
+    backgroundColor: '#1B5E20', // Fallback color
+    paddingVertical: 18,
+    borderRadius: 50, // Rounded for a premium feel
     alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000000',
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 6,
+    overflow: 'hidden', // Needed for the gradient
   },
+  
   bookButtonText: {
     color: '#FFFFFF',
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
+  
   modalContainer: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.9)',
@@ -411,6 +453,7 @@ const styles = StyleSheet.create({
   modalImage: {
     width: '100%',
     height: '80%',
+    borderRadius: 10,
   },
   closeButton: {
     position: 'absolute',
@@ -424,4 +467,5 @@ const styles = StyleSheet.create({
     right: 10,
     padding: 8,
   },
-})
+});
+

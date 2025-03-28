@@ -110,12 +110,10 @@ export default function Component({ navigation, route }) {
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <ChevronLeft color="#FFFFFF" size={24} />
-            <Text style={styles.backButtonText}>Back</Text>
+            <Text style={styles.backButtonText}>{gym.name}</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => navigation.navigate('GymDetails', { gym_id: gym.id })}>
-            <Text style={styles.gymName}>{gym.name}</Text>
-          </TouchableOpacity>
+          
           <Text style={styles.title}>Select a Slot</Text>
 
           <TouchableOpacity
@@ -248,56 +246,74 @@ export default function Component({ navigation, route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#121212', // Darker background for a premium feel
   },
   background: {
     flex: 1,
   },
   scrollContent: {
     flexGrow: 1,
-    padding: 20,
+    padding: 24,
   },
+
+  // 🔙 Back Button (Smoother, More Visible)
   backButton: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 20,
-    marginTop: 20, // Added to move the button down
+    marginTop: 24,
   },
   backButtonText: {
     fontSize: 18,
+    fontWeight: 'bold',
     color: '#FFFFFF',
-    marginLeft: 8,
+    marginLeft: 10,
   },
+
+  // 🏋️ Gym Title
   gymName: {
-    fontSize: 28,
+    fontSize: 30,
     fontWeight: 'bold',
     color: '#FFFFFF',
     marginBottom: 8,
   },
   title: {
     fontSize: 22,
-    color: '#FFFFFF',
+    fontWeight: '600',
+    color: '#BBBBBB',
     marginBottom: 24,
   },
+
+  // 📅 Date Button (Glassmorphism Effect)
   dateButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F5F5F5', // Light grey for better contrast
     padding: 16,
     borderRadius: 12,
     marginBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3, // For Android shadow
   },
   dateButtonText: {
     marginLeft: 12,
     fontSize: 18,
-    color: '#4CAF50',
+    color: '#2E7D32', // Darker green for better readability
+    fontWeight: 'bold', // Make text more visible
   },
+
+  // 🏷 Section Titles
   sectionTitle: {
     fontSize: 20,
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#FFFFFF',
     marginBottom: 16,
   },
-  // Subscription styles with proper contentContainerStyle
+
+  // 💳 Subscription Styles
   subscriptionContainerContent: {
     flexDirection: 'row',
     paddingVertical: 4,
@@ -305,31 +321,32 @@ const styles = StyleSheet.create({
   },
   subscriptionBox: {
     backgroundColor: '#FFFFFF',
-    padding: 12,
-    borderRadius: 8,
+    padding: 14,
+    borderRadius: 10,
     marginRight: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    minWidth: 100,
-    height: 80,
+    minWidth: 110,
+    height: 90,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
   selectedSubscriptionBox: {
     backgroundColor: '#2E7D32',
   },
   subscriptionText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: 'bold',
     color: '#4CAF50',
     marginBottom: 4,
-  },
-  subscriptionPriceText: {
-    fontSize: 14,
-    color: '#4CAF50',
   },
   selectedSubscriptionText: {
     color: '#FFFFFF',
   },
-  // Time slot styles with proper contentContainerStyle
+
+  // ⏳ Time Slot Styling
   timeSlotContainerContent: {
     flexDirection: 'row',
     paddingVertical: 4,
@@ -337,13 +354,17 @@ const styles = StyleSheet.create({
   },
   timeSlot: {
     backgroundColor: '#FFFFFF',
-    padding: 8,
-    borderRadius: 8,
+    padding: 10,
+    borderRadius: 10,
     marginRight: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    minWidth: 70,
-    height: 80,
+    minWidth: 75,
+    height: 85,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
   selectedTimeSlot: {
     backgroundColor: '#2E7D32',
@@ -353,7 +374,7 @@ const styles = StyleSheet.create({
   },
   timeSlotText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#4CAF50',
     marginBottom: 2,
   },
@@ -367,6 +388,8 @@ const styles = StyleSheet.create({
   disabledText: {
     color: '#A0AEC0',
   },
+
+  // ⏱ Duration Styling
   durationContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -375,33 +398,51 @@ const styles = StyleSheet.create({
   },
   durationButton: {
     backgroundColor: '#FFFFFF',
-    padding: 12,
-    borderRadius: 12,
+    padding: 14,
+    borderRadius: 14,
     marginBottom: 12,
     width: '48%',
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
   selectedDurationButton: {
     backgroundColor: '#2E7D32',
   },
   durationButtonText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: 'bold',
     color: '#4CAF50',
   },
   selectedDurationButtonText: {
     color: '#FFFFFF',
   },
+
+  // ✅ Confirm Button (Better Hover & Press Effects)
   confirmButton: {
-    backgroundColor: '#FFFFFF',
-    padding: 16,
+    backgroundColor: '#1B5E20',
+    padding: 18,
     borderRadius: 12,
     alignItems: 'center',
+    shadowColor: '#43A047',
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
+    elevation: 6,
+    transition: '0.3s',
+  },
+  confirmButtonText: {
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
   },
 
-  confirmButtonText: {
-    color: '#4CAF50',
-    fontSize: 18,
-    fontWeight: 'bold',
+  // Confirm Button Hover & Press (For Web)
+  '@media (hover: hover)': {
+    confirmButton: {
+      backgroundColor: '#388E3C',
+    },
   },
-})
+});

@@ -5,7 +5,7 @@ import { loginUser, registerUser, userDetails } from '../api/apiService';
 import { Ionicons } from '@expo/vector-icons';
 import { CommonActions } from '@react-navigation/native';
 import indiaFlag from "../assets/india-flag.png";
-import Feather from "react-native-vector-icons/Feather"; 
+import Feather from "react-native-vector-icons/Feather";
 
 const LoginScreen = ({ navigation }) => {
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -80,7 +80,9 @@ const LoginScreen = ({ navigation }) => {
       >
 
 
-        <Text style={styles.title}>Welcome to YUPLUCK</Text>
+        <TouchableOpacity onPress={() => navigation.navigate('GymList')}>
+          <Text style={styles.title}>Welcome to YUPLUCK</Text>
+        </TouchableOpacity>
         <Text style={styles.subtitle}>Your instant GYM booking platform!</Text>
 
         <View style={styles.phoneInputContainer}>
@@ -101,7 +103,7 @@ const LoginScreen = ({ navigation }) => {
             editable={isRegistered}
           />
 
-{!isRegistered && (
+          {!isRegistered && (
             <TouchableOpacity onPress={() => setIsRegistered(true)}>
               <Text style={styles.changeNumberText}><Feather name="edit" size={16} color="#007BFF" style={styles.editIcon} /></Text>
             </TouchableOpacity>
@@ -109,9 +111,9 @@ const LoginScreen = ({ navigation }) => {
 
         </View>
 
-        
 
-        
+
+
 
         {!isRegistered && <TextInput
           style={styles.input}

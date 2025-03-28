@@ -19,7 +19,7 @@ import * as Location from 'expo-location';
 import { useFocusEffect, useNavigationState } from '@react-navigation/native';
 import axios from 'axios';
 import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
-import { fetchAllGyms, storePushToken } from '../api/apiService';
+import { fetchAllGyms, storePushToken, userDetails } from '../api/apiService';
 import Footer from '../components/Footer';
 import * as Linking from 'expo-linking';
 import SearchHeader from '../components/SearchComponent';
@@ -46,11 +46,15 @@ export default function GymListScreen({ navigation }) {
   const [showLocationModal, setShowLocationModal] = useState(false); // Show modal initially
   const [isLocation, setIsLocation] = useState(true);
   const [error, setError] = useState("");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userData, setUserData] = useState({});
 
 
   useEffect(() => {
     console.log("Initial useEffect running")
-    getLocation()
+    checkLogin();
+    getLocation();
+   
   }, [])
 
   useEffect(() => {
@@ -58,8 +62,21 @@ export default function GymListScreen({ navigation }) {
     checkLocationPermission();
   }, []);
 
+  const checkLogin = async () => {
+    const data = await userDetails();
+    if (!data) {
+      setIsLoggedIn(false);
+      setUserData({});
+    } else {
+      setIsLoggedIn(true);
+      setUserData(data);
+      await storePushToken();
+    }
+  }
+
   useFocusEffect(
     useCallback(() => {
+      checkLogin();
       console.log("Screen focused")
       if (lat && long && gyms.length === 0) {
         console.log("Fetching gyms on focus")
@@ -120,13 +137,18 @@ export default function GymListScreen({ navigation }) {
 
   const fetchGyms = async (latitude, longitude) => {
     console.log("Fetching gyms", { latitude, longitude, page })
+    
     if (page === 1) {
       setLoading(true)
-      await storePushToken()
+      
     } else {
       setLoadingMore(true)
     }
+
+    
+
     try {
+      
       
       const response = await fetchAllGyms(latitude, longitude, "", limit, page)
       console.log("Gyms fetched:", response?.length)
@@ -260,7 +282,7 @@ export default function GymListScreen({ navigation }) {
         translucent={false} 
       />
 
-      <SearchHeader fetchGymsByPincode={fetchGymsByPincode} setPincode={setPincode} address={address} pincode={pincode} navigation={navigation} lat={lat} long={long}/>
+      <SearchHeader data={userData} fetchGymsByPincode={fetchGymsByPincode} setPincode={setPincode} address={address} pincode={pincode} navigation={navigation} lat={lat} long={long}/>
 
       {loading ? (
        <><GymLoader /><><FlatList
@@ -281,131 +303,131 @@ export default function GymListScreen({ navigation }) {
           }
         />
       )}
-      {!isKeyboardVisible && <Footer navigation={navigation} style={styles.footer} />}
+      {!isKeyboardVisible && isLoggedIn && <Footer navigation={navigation} style={styles.footer} />}
       </KeyboardAvoidingView>
     
   </>
   );
 }
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f3f3f3',
-    justifyContent: 'center', // Ensures centering when loading
-
+    backgroundColor: '#F8FAFC', // Light elegant background
+    justifyContent: 'center',
   },
   header: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#2E7D32', // Muted professional green
     paddingTop: 50,
     paddingBottom: 20,
     paddingHorizontal: 20,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-    elevation: 5,
+    borderBottomLeftRadius: 25,
+    borderBottomRightRadius: 25,
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    shadowOffset: { width: 0, height: 3 },
   },
   locationText: {
-    color: '#fff',
+    color: '#E3F2FD', // Soft light blue for contrast
     fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 15,
+    fontWeight: 'bold',
+    marginBottom: 12,
+    letterSpacing: 0.5,
   },
   pincodeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
-    borderRadius: 25,
+    borderRadius: 30,
     paddingHorizontal: 15,
     marginBottom: 15,
-    elevation: 3,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    shadowOffset: { width: 0, height: 2 },
   },
   pincodeInput: {
     flex: 1,
-    color: '#333',
-    padding: 10,
+    color: '#333333', // Deep charcoal for text readability
+    padding: 12,
     fontSize: 16,
   },
   searchButton: {
-    padding: 10,
+    padding: 12,
   },
   searchGymButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    padding: 12,
-    borderRadius: 25,
+    backgroundColor: 'rgba(255,255,255,0.3)',
+    padding: 14,
+    borderRadius: 30,
   },
   searchGymText: {
-    color: '#fff',
+    color: '#E3F2FD', // Light blue for elegance
     fontSize: 16,
     marginLeft: 8,
-    fontWeight: '600',
+    fontWeight: 'bold',
   },
   gymCard: {
     flexDirection: 'row',
-    padding: 10,
-    backgroundColor: '#fff',
-    marginBottom: 10,
+    padding: 14,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    marginBottom: 12,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
   },
   gymImage: {
     width: 120,
     height: 120,
-    borderRadius: 10,
+    borderRadius: 12,
   },
   gymInfo: {
-    marginLeft: 10,
+    marginLeft: 14,
     flex: 1,
   },
   gymName: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: "#0aad11",
+    fontSize: 15, // Slightly smaller
+    fontWeight: '600', // Medium-bold for elegance
+    color: '#1B5E20', // Dark green for premium feel
+    letterSpacing: 0.3, // Slight spacing for refined look
+    textTransform: 'capitalize', // Capitalize each word
+  },
+  gymDistance: {
+    fontSize: 14,
+    color: '#555', // Softer dark gray
+    marginBottom: 5,
   },
   gymPrice: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#4CAF50',
+    color: '#388E3C', // Slightly deeper green
+    marginBottom: 10,
   },
   bookNowButton: {
-    backgroundColor: '#4CAF50',
-    paddingVertical: 5,
-    paddingHorizontal: 15,
-    borderRadius: 5,
+    backgroundColor: '#1B5E20', // Dark green
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 25,
     alignSelf: 'flex-end',
-    marginTop: -15,
+    marginTop: 8,
+    elevation: 3,
   },
   bookNowText: {
     color: '#fff',
+    fontSize: 16,
     fontWeight: 'bold',
   },
   starContainer: {
     flexDirection: 'row',
     marginLeft: 10,
-  },
-  gymDistance: {
-    fontSize: 14,
-    color: '#757575',
-    marginBottom: 5,
-  },
-  gymPrice: {
-    fontSize: 16,
-    color: '#4CAF50',
-    fontWeight: '600',
-    marginBottom: 12,
-  },
-  bookNowButton: {
-    backgroundColor: '#4CAF50',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 25,
-    alignSelf: 'flex-end', // This moves the button to the right
-    marginTop: 10,
-  },
-  bookNowText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  
   },
   loaderContainer: {
     flex: 1,
@@ -431,21 +453,24 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
+    elevation: 3,
   },
   smallText: {
-    fontSize: 11,
+    fontSize: 12,
     color: '#757575',
-    marginTop: 5
+    marginTop: 5,
   },
   verifiedContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 5
+    marginTop: 5,
   },
   verifiedText: {
-    fontSize: 12,
-    color: '#4CAF50',
-    marginLeft: 5
-  }
-  
+    fontSize: 13,
+    color: '#388E3C',
+    marginLeft: 5,
+  },
 });
+
+
+
