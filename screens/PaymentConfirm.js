@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import { Calendar, Clock, DollarSign, ArrowLeft, CheckCircle, CalendarClock} fro
 import * as WebBrowser from 'expo-web-browser';
 import { acceptBuddyRequest, createBooking, createOrder, fetchIndividualGymData } from '../api/apiService';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function PaymentScreen({ route, navigation }) {
   const { slotDetails, requestId } = route.params
@@ -71,13 +72,15 @@ export default function PaymentScreen({ route, navigation }) {
       }
       const bookingResponse = await createBooking(slotDetails);
 
+
+
       if (bookingResponse) {
         const orderResponse = await createOrder(
           slotDetails.price * (slotDetails.duration / 60) || slotDetails.subscriptionPrice,
           bookingResponse.bookingId,
           requestId
         );
-
+        
         if (orderResponse && orderResponse.orderId) {
           // Set the returning from browser flag before opening WebBrowser
           global.isReturningFromBrowser = true;
@@ -125,7 +128,16 @@ export default function PaymentScreen({ route, navigation }) {
       } catch (e) {
         clearInterval(pollInterval)
       }
-    }, 3000)
+    }, 3000);
+
+
+    useFocusEffect(
+      useCallback(() => {
+        return () => {
+          clearInterval(pollInterval);
+        };
+      }, [])
+    );
   }
 
 
