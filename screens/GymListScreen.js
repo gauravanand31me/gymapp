@@ -24,6 +24,7 @@ import Footer from '../components/Footer';
 import * as Linking from 'expo-linking';
 import SearchHeader from '../components/SearchComponent';
 import GymLoader from '../components/GymLoader';
+import PromotionalBanner from '../components/PromotionalBanner';
 
 
 
@@ -304,6 +305,7 @@ export default function GymListScreen({ navigation }) {
         />
       )}
       {!isKeyboardVisible && isLoggedIn && <Footer navigation={navigation} style={styles.footer} />}
+      {!isLoggedIn && <PromotionalBanner navigation={navigation} />}
       </KeyboardAvoidingView>
     
   </>

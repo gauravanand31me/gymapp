@@ -422,7 +422,7 @@ const styles = StyleSheet.create({
 
   // ✅ Confirm Button (Better Hover & Press Effects)
   confirmButton: {
-    backgroundColor: '#1B5E20',
+    backgroundColor: '#fff',
     padding: 18,
     borderRadius: 12,
     alignItems: 'center',
@@ -433,7 +433,7 @@ const styles = StyleSheet.create({
     transition: '0.3s',
   },
   confirmButtonText: {
-    color: '#FFFFFF',
+    color: '#1B5E20',
     fontSize: 20,
     fontWeight: 'bold',
     textTransform: 'uppercase',

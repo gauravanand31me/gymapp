@@ -52,10 +52,15 @@ export default function SearchHeader({
     <View style={styles.profileContainer}>
     
       {data?.username ? (
-        <>
-          <Text style={styles.userName} numberOfLines={1}>{data?.username ? data?.username : profileImage }</Text>
-          <Image source={{ uri: data?.profile_pic ? data?.profile_pic : profileImage }} style={styles.profileImage} />
-        </>
+        <TouchableOpacity onPress={() => navigation.navigate('Profile')} style={styles.profileContainer}>
+        <Text style={styles.userName} numberOfLines={1}>
+          {data?.username ? data?.username : 'Guest User'}
+        </Text>
+        <Image
+          source={{ uri: data?.profile_pic ? data?.profile_pic : profileImage }}
+          style={styles.profileImage}
+        />
+      </TouchableOpacity>
       ) : (
         <TouchableOpacity onPress={() => navigation.navigate('Login')}>
           <Text style={styles.loginText}>Login</Text>
@@ -131,8 +136,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   profileImage: {
-    width: 35,
-    height: 35,
+    width: 25,
+    height: 25,
     borderRadius: 25,
     borderWidth: 2,
     borderColor: '#FFC107', // Gold border
@@ -140,7 +145,7 @@ const styles = StyleSheet.create({
   },
   userName: {
     color: '#FFC107',
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '500',
     maxWidth: 100,
   },
@@ -190,5 +195,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     textDecorationLine: 'underline',
-  }
+  },
+  
 });
