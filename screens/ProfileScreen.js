@@ -134,7 +134,7 @@ export default function ProfileScreen({ navigation, route }) {
 
   const selectFromGallery = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-  
+
     if (permissionResult.granted === false) {
       Alert.alert(
         "Permission Denied",
@@ -148,7 +148,7 @@ export default function ProfileScreen({ navigation, route }) {
       aspect: [4, 3],
       quality: 1,
     });
-  
+
     if (!result.canceled) {
       await processAndUploadImage(result.assets[0].uri);
     }
@@ -231,10 +231,10 @@ export default function ProfileScreen({ navigation, route }) {
   const nextMilestone = currentMilestone === 'bronze'
     ? 'Silver'
     : currentMilestone === 'silver'
-    ? 'Gold'
-    : currentMilestone === 'gold'
-    ? 'Diamond'
-    : 'Bronze'; // Reset to 'Bronze' if at Diamond
+      ? 'Gold'
+      : currentMilestone === 'gold'
+        ? 'Diamond'
+        : 'Bronze'; // Reset to 'Bronze' if at Diamond
 
   const hoursToNextMilestone = milestones[nextMilestone.toLowerCase()] - totalWorkoutHours;
 
@@ -242,11 +242,11 @@ export default function ProfileScreen({ navigation, route }) {
     <View style={styles.safeArea}>
       <ScrollView style={styles.container}>
         {/* StatusBar Configuration */}
-      <StatusBar
-        barStyle="dark-content" // Use 'light-content' for white text on dark background
-        backgroundColor="#f5f5f5" // Ensure this matches the container's background
-        translucent={false} // Use translucent if you want to overlay content under the status bar
-      />
+        <StatusBar
+          barStyle="dark-content" // Use 'light-content' for white text on dark background
+          backgroundColor="#f5f5f5" // Ensure this matches the container's background
+          translucent={false} // Use translucent if you want to overlay content under the status bar
+        />
         <View style={styles.profileSection}>
           <View style={styles.profileHeader}>
             <TouchableOpacity onPress={toggleImageOptions}>
@@ -263,7 +263,7 @@ export default function ProfileScreen({ navigation, route }) {
               </View>
             </TouchableOpacity>
 
-            
+
 
             <Modal visible={isModalVisible} transparent={true} onRequestClose={toggleModal}>
               <View style={styles.modalContainer}>
@@ -283,10 +283,10 @@ export default function ProfileScreen({ navigation, route }) {
                       currentMilestone === 'bronze'
                         ? require('../assets/bronzemedal.jpg')
                         : currentMilestone === 'silver'
-                        ? require('../assets/silvermedal.jpg')
-                        : currentMilestone === 'gold'
-                        ? require('../assets/goldmedal.jpg')
-                        : require('../assets/diamondmedal.jpg')
+                          ? require('../assets/silvermedal.jpg')
+                          : currentMilestone === 'gold'
+                            ? require('../assets/goldmedal.jpg')
+                            : require('../assets/diamondmedal.jpg')
                     }
                     style={styles.milestoneIconNearName}
                   />
@@ -333,7 +333,7 @@ export default function ProfileScreen({ navigation, route }) {
             <Image source={require('../assets/goldmedal.jpg')} style={styles.milestoneIcon} />
             <Image source={require('../assets/diamondmedal.jpg')} style={styles.milestoneIcon} />
           </View>
-        
+
           <ProgressBar
             progress={Math.round(progress * 10) / 10}
             width={null}
@@ -364,27 +364,29 @@ export default function ProfileScreen({ navigation, route }) {
             onPress={() => setSelectedTab('Gym Buddies')}
           >
             <Text style={[styles.tabText, selectedTab === 'Gym Buddies' && styles.activeTabText]}>
-              Gym Buddies 
+              Gym Buddies
             </Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.listContainer}>
-        {selectedTab === 'Visited Gym' && visitedGyms.length === 0 ? (
-          <Text style={styles.noDataText}>No visited gyms yet</Text>
-        ) : selectedTab === 'Gym Buddies' && visitedBuddies.length === 0 ? (
-          <Text style={styles.noDataText}>No gym buddies yet</Text>
-        ) : (
-          <FlatList
-            data={selectedTab === 'Visited Gym' ? visitedGyms : visitedBuddies}
-            renderItem={renderListItem}
-            keyExtractor={(item) =>
-              selectedTab === 'Visited Gym' ? item.gymId : item.userId
-            }
-            contentContainerStyle={styles.listContent}
-          />
-        )}
-      </View>
+          {selectedTab === 'Visited Gym' && visitedGyms.length === 0 ? (
+            <Text style={styles.noDataText}>No visited gyms yet</Text>
+          ) : selectedTab === 'Gym Buddies' && visitedBuddies.length === 0 ? (
+            <Text style={styles.noDataText}>No gym buddies yet</Text>
+          ) : (
+            <FlatList
+              data={selectedTab === 'Visited Gym' ? visitedGyms : visitedBuddies}
+              renderItem={renderListItem}
+              keyExtractor={(item) =>
+                selectedTab === 'Visited Gym' ? item.gymId.toString() : item.userId.toString()
+              }
+              contentContainerStyle={styles.listContent}
+              nestedScrollEnabled={true}  
+              showsVerticalScrollIndicator={false}  
+            />
+          )}
+        </View>
 
       </ScrollView>
       <View style={styles.footerContainer}>
@@ -392,27 +394,27 @@ export default function ProfileScreen({ navigation, route }) {
       </View>
 
       <Modal visible={isImageOptionsVisible} transparent={true} animationType="slide">
-              <View style={styles.modalContainer}>
-                <View style={styles.modalContent}>
-                  <TouchableOpacity style={styles.modalOption} onPress={takePhoto}>
-                    <Icon name="camera" size={24} color="#4CAF50" />
-                    <Text style={styles.modalOptionText}>Take Photo</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={styles.modalOption} onPress={selectFromGallery}>
-                    <Icon name="image" size={24} color="#4CAF50" />
-                    <Text style={styles.modalOptionText}>Choose from Gallery</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={styles.modalOption} onPress={handleDeleteImage}>
-                    <Icon name="delete" size={24} color="#FF0000" />
-                    <Text style={styles.modalOptionText}>Delete Photo</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={styles.modalOption} onPress={toggleImageOptions}>
-                    <Icon name="close" size={24} color="#000" />
-                    <Text style={styles.modalOptionText}>Cancel</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </Modal>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <TouchableOpacity style={styles.modalOption} onPress={takePhoto}>
+              <Icon name="camera" size={24} color="#4CAF50" />
+              <Text style={styles.modalOptionText}>Take Photo</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.modalOption} onPress={selectFromGallery}>
+              <Icon name="image" size={24} color="#4CAF50" />
+              <Text style={styles.modalOptionText}>Choose from Gallery</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.modalOption} onPress={handleDeleteImage}>
+              <Icon name="delete" size={24} color="#FF0000" />
+              <Text style={styles.modalOptionText}>Delete Photo</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.modalOption} onPress={toggleImageOptions}>
+              <Icon name="close" size={24} color="#000" />
+              <Text style={styles.modalOptionText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -435,7 +437,7 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
   },
-  
+
   profileHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -528,7 +530,7 @@ const styles = StyleSheet.create({
     padding: 15,
     backgroundColor: '#fff',
     borderRadius: 15,
-    
+
   },
   sectionTitle: {
     fontSize: 12,
@@ -540,7 +542,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     marginBottom: 5,
     marginLeft: 20,
-    backgroundColor:'#fff'
+    backgroundColor: '#fff'
   },
   milestoneIcon: {
     width: 40,
@@ -582,16 +584,12 @@ const styles = StyleSheet.create({
   listContainer: {
     //backgroundColor: '#fff',
     //marginTop: 20,
-   // borderRadius: 15,
+    // borderRadius: 15,
     padding: 15,
     shadowColor: "#000",
     maxHeight: 300,
-    overflow: "auto"
-   
-    //shadowOffset: { width: 0, height: 1 },
-    //shadowOpacity: 0.1,
-    //shadowRadius: 2,
-    //elevation: 2,
+    overflow: "auto",
+    height: 500
   },
   listItem: {
     flexDirection: 'row',
@@ -655,7 +653,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
   },
-  
+
   listContainer: {
     flex: 1,
     paddingHorizontal: 20,

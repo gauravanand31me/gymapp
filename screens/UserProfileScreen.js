@@ -59,7 +59,6 @@ export default function UserProfileScreen({ navigation, route }) {
     setLoadFriend(true);
     try {
       const data = await fetchAllNearByUser(userData?.username);
-      
       setFriends(data[0]);
     } catch (error) {
       console.error('Error fetching friendship status:', error);

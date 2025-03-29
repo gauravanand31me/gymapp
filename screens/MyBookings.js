@@ -374,9 +374,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   bookingInfoText: {
-    fontSize: 14,
-    color: '#4B5563',
-    marginBottom: 4,
+    fontSize: 15, // Slightly larger for better readability
+    fontWeight: '600', // Semi-bold for emphasis
+    color: '#374151', // A deeper, richer gray
+    marginBottom: 6, // More breathing space
+    letterSpacing: 0.3, // Improves text clarity
   },
   priceText: {
     fontSize: 16,

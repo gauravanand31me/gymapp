@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import { Calendar, Clock, DollarSign, ArrowLeft, CheckCircle, CalendarClock} fro
 import * as WebBrowser from 'expo-web-browser';
 import { acceptBuddyRequest, createBooking, createOrder, fetchIndividualGymData } from '../api/apiService';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function PaymentScreen({ route, navigation }) {
   const { slotDetails, requestId } = route.params
@@ -71,13 +72,15 @@ export default function PaymentScreen({ route, navigation }) {
       }
       const bookingResponse = await createBooking(slotDetails);
 
+
+
       if (bookingResponse) {
         const orderResponse = await createOrder(
           slotDetails.price * (slotDetails.duration / 60) || slotDetails.subscriptionPrice,
           bookingResponse.bookingId,
           requestId
         );
-
+        
         if (orderResponse && orderResponse.orderId) {
           // Set the returning from browser flag before opening WebBrowser
           global.isReturningFromBrowser = true;
@@ -125,7 +128,16 @@ export default function PaymentScreen({ route, navigation }) {
       } catch (e) {
         clearInterval(pollInterval)
       }
-    }, 3000)
+    }, 3000);
+
+
+    useFocusEffect(
+      useCallback(() => {
+        return () => {
+          clearInterval(pollInterval);
+        };
+      }, [])
+    );
   }
 
 
@@ -220,6 +232,7 @@ export default function PaymentScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#F5F5F5',
   },
   background: {
     flex: 1,
@@ -227,100 +240,109 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
-    padding: 20,
+    padding: 24,
   },
   card: {
     backgroundColor: 'white',
-    borderRadius: 20,
-    padding: 24,
+    borderRadius: 24,
+    padding: 28,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 4,
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 6,
+    marginVertical: 12,
   },
   gymName: {
-    fontSize: 28,
+    fontSize: 30,
     fontWeight: 'bold',
-    color: '#4CAF50',
-    marginBottom: 8,
+    color: '#2E7D32',
+    marginBottom: 10,
     textAlign: 'center',
   },
   gymDescription: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 24,
+    fontSize: 17,
+    color: '#555',
+    marginBottom: 26,
     textAlign: 'center',
-    lineHeight: 24,
+    lineHeight: 26,
   },
   detailsContainer: {
-    marginBottom: 24,
+    marginBottom: 26,
   },
   detailRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 18,
   },
   detail: {
     fontSize: 18,
-    color: '#333',
-    marginLeft: 12,
+    color: '#444',
+    marginLeft: 14,
   },
   price: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 'bold',
-    color: '#4CAF50',
-    marginLeft: 12,
+    color: '#2E7D32',
+    marginLeft: 14,
   },
   button: {
-    backgroundColor: '#4CAF50',
-    padding: 16,
-    borderRadius: 12,
+    backgroundColor: '#2E7D32',
+    paddingVertical: 18,
+    borderRadius: 14,
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 18,
+    shadowColor: '#2E7D32',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 6,
   },
   buttonText: {
     color: 'white',
-    fontSize: 18,
+    fontSize: 19,
     fontWeight: 'bold',
   },
   backButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 16,
-    borderRadius: 12,
+    paddingVertical: 16,
+    borderRadius: 14,
     backgroundColor: '#E8F5E9',
+    borderWidth: 1,
+    borderColor: '#2E7D32',
   },
   backButtonText: {
-    color: '#4CAF50',
+    color: '#2E7D32',
     fontSize: 18,
     fontWeight: 'bold',
     marginLeft: 8,
   },
   expiredText: {
     color: '#D32F2F',
-    fontSize: 18,
+    fontSize: 19,
     fontWeight: 'bold',
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: 18,
   },
   statusContainer: {
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 18,
   },
   statusText: {
-    fontSize: 18,
-    color: '#4CAF50',
+    fontSize: 19,
+    color: '#2E7D32',
     marginTop: 12,
     fontWeight: 'bold',
   },
   changeText: {
-    color: '#4CAF50',
+    color: '#2E7D32',
     fontWeight: 'bold',
     textDecorationLine: 'underline',
+    fontSize: 16,
   }
-})
+});

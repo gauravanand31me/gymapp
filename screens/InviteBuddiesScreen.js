@@ -60,27 +60,6 @@ const InviteBuddiesScreen = ({ navigation }) => {
       <TouchableOpacity style={styles.invitedButton} onPress={() => navigation.navigate("UserProfile", { userId: item.id })}>
           <Text style={styles.invitedButtonText}><Ionicons name="person" size={20} color="#28A745" /></Text>
       </TouchableOpacity>
-
-      {/* {(item?.invited?.accepted) && (
-        <TouchableOpacity style={styles.invitedButton}>
-          <Text style={styles.invitedButtonText}>Friends</Text>
-        </TouchableOpacity>
-      )}
-      {(item?.invited?.sent && !item?.invited?.accepted) && (
-        <TouchableOpacity style={styles.invitedButton}>
-          <Text style={styles.invitedButtonText}>Request Sent</Text>
-        </TouchableOpacity>
-      )}
-      {(item?.invited?.received && !item?.invited?.accepted) && (
-        <TouchableOpacity style={styles.invitedButton}>
-          <Text style={styles.invitedButtonText}>Request Received</Text>
-        </TouchableOpacity>
-      )}
-      {(!item?.invited?.sent && !item?.invited?.accepted && !item?.invited?.received) && (
-        <TouchableOpacity style={styles.inviteButton} onPress={() => handleInvite(item.id)}>
-          <Text style={styles.invitedButtonText}>Add Friend</Text>
-        </TouchableOpacity>
-      )} */}
     </View>
   );
 

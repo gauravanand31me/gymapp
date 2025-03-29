@@ -41,20 +41,8 @@ export default function WorkoutInvitation({ route }) {
     };
     handleActionRequest(relatedId);
 
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 1000,
-        useNativeDriver: true,
-      }),
-      Animated.spring(slideAnim, {
-        toValue: 0,
-        speed: 12,
-        bounciness: 8,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, [relatedId, fadeAnim, slideAnim, booking]);
+    
+  }, []);
 
   const checkExpiration = (bookingData) => {
     if (bookingData.bookingDate && bookingData.slotStartTime && bookingData.bookingType) {
@@ -69,18 +57,34 @@ export default function WorkoutInvitation({ route }) {
           setIsExpired(bookingDateTime < now);
           break;
         case "monthly":
+          setBooking(prevBooking => ({
+            ...prevBooking,
+            bookingDate: new Date().toLocaleDateString('en-CA') // Ensures YYYY-MM-DD format in local timezone
+          }));
           expirationDate.setMonth(expirationDate.getMonth() + 1);
           setIsExpired(expirationDate < now);
           break;
         case "quarterly":
+          setBooking(prevBooking => ({
+            ...prevBooking,
+            bookingDate: new Date().toLocaleDateString('en-CA') // Ensures YYYY-MM-DD format in local timezone
+          }));
           expirationDate.setMonth(expirationDate.getMonth() + 3);
           setIsExpired(expirationDate < now);
           break;
         case "halfyearly":
+          setBooking(prevBooking => ({
+            ...prevBooking,
+            bookingDate: new Date().toLocaleDateString('en-CA') // Ensures YYYY-MM-DD format in local timezone
+          }));
           expirationDate.setMonth(expirationDate.getMonth() + 6);
           setIsExpired(expirationDate < now);
           break;
         case "yearly":
+          setBooking(prevBooking => ({
+            ...prevBooking,
+            bookingDate: new Date().toLocaleDateString('en-CA') // Ensures YYYY-MM-DD format in local timezone
+          }));
           expirationDate.setFullYear(expirationDate.getFullYear() + 1);
           setIsExpired(expirationDate < now);
           break;
@@ -172,8 +176,8 @@ export default function WorkoutInvitation({ route }) {
   );
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollContainer}>
-      <Animated.View style={[styles.container, { opacity: fadeAnim, transform: [{ translateX: slideAnim }] }]}>
+    <ScrollView contentContainerStyle={styles.container}>
+      
         {/* StatusBar Configuration */}
       <StatusBar
         barStyle="dark-content" // Use 'light-content' for white text on dark background
@@ -228,7 +232,7 @@ export default function WorkoutInvitation({ route }) {
 
 
         {!isExpired && <Text style={styles.footerText}>We look forward to seeing you there!</Text>}
-      </Animated.View>
+    
     </ScrollView>
   );
 }
