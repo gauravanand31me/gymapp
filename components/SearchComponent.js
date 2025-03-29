@@ -63,7 +63,7 @@ export default function SearchHeader({
       </TouchableOpacity>
       ) : (
         <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-          <Text style={styles.loginText}>Login</Text>
+          <Text style={styles.loginText}>Login/Register</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -191,10 +191,23 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   loginText: {
-    color: '#FFF',
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
-    textDecorationLine: 'underline',
+    color: '#ffffff',  // Pure white for contrast
+    letterSpacing: 1.2, // Slight spacing for elegance
+    textAlign: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    backgroundColor: '#FF5733', // Beautiful gradient base
+    borderRadius: 8, // Rounded edges
+    overflow: 'hidden',
+    shadowColor: '#FF5733', // Shadow matches the background
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 4,
+    textShadowColor: 'rgba(0, 0, 0, 0.2)', // Subtle text glow
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 3,
   },
   
 });

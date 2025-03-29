@@ -370,7 +370,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#2E7D32',
   },
   disabledTimeSlot: {
-    opacity: 0.5,
+    opacity: 0.8,
   },
   timeSlotText: {
     fontSize: 14,
