@@ -26,6 +26,9 @@ import {
   getVisitedBuddies,
   deleteProfileImage,
 } from '../api/apiService';
+import MilestoneProgress from '../components/MilestoneProgress';
+import StatsSection from '../components/StatsSelection';
+import ProfileSection from '../components/ProfileSection';
 
 const milestones = {
   bronze: 50,
@@ -242,67 +245,17 @@ export default function ProfileScreen({ navigation, route }) {
     <View style={styles.safeArea}>
       <ScrollView style={styles.container}>
         {/* StatusBar Configuration */}
-        <StatusBar
-          barStyle="dark-content" // Use 'light-content' for white text on dark background
-          backgroundColor="#f5f5f5" // Ensure this matches the container's background
-          translucent={false} // Use translucent if you want to overlay content under the status bar
-        />
-        <View style={styles.profileSection}>
-          <View style={styles.profileHeader}>
-            <TouchableOpacity onPress={toggleImageOptions}>
-              <View style={styles.profileImageContainer}>
-                <Image source={{ uri: profileImage }} style={styles.profileImage} />
-                {uploadingImage && (
-                  <View style={[styles.profileImage, styles.uploadingOverlay]}>
-                    <ActivityIndicator size="large" color="#4CAF50" />
-                  </View>
-                )}
-                <TouchableOpacity style={styles.addPhotoButton} onPress={toggleImageOptions}>
-                  <Icon name="camera" size={25} color="#fff" />
-                </TouchableOpacity>
-              </View>
-            </TouchableOpacity>
-
-
-
-            <Modal visible={isModalVisible} transparent={true} onRequestClose={toggleModal}>
-              <View style={styles.modalContainer}>
-                <TouchableOpacity style={styles.closeModalButton} onPress={toggleModal}>
-                  <Icon name="close" size={30} color="#fff" />
-                </TouchableOpacity>
-                <Image source={{ uri: profileImage }} style={styles.enlargedProfileImage} />
-              </View>
-            </Modal>
-
-            <View style={styles.profileDetails}>
-              <Text style={styles.fullName}>
-                {userData?.full_name || 'N/A'}
-                {currentMilestone && (
-                  <Image
-                    source={
-                      currentMilestone === 'bronze'
-                        ? require('../assets/bronzemedal.jpg')
-                        : currentMilestone === 'silver'
-                          ? require('../assets/silvermedal.jpg')
-                          : currentMilestone === 'gold'
-                            ? require('../assets/goldmedal.jpg')
-                            : require('../assets/diamondmedal.jpg')
-                    }
-                    style={styles.milestoneIconNearName}
-                  />
-                )}
-              </Text>
-              <Text style={styles.username}>@{userData?.username || 'N/A'}</Text>
-              <Text style={styles.mobileNumber}>{userData?.mobile_number || 'N/A'}</Text>
-            </View>
-          </View>
-          <TouchableOpacity
-            style={styles.settingsButton}
-            onPress={() => navigation.navigate('Settings', { fullName: userData?.full_name })}
-          >
-            <Icon name="cog" size={24} color="#555" />
+        <View style={styles.headerContainer}>
+          <Text style={styles.headerText}>Current workout time :{Math.round(totalWorkoutHours)}</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('Settings', { fullName: userData?.full_name })}>
+            <Icon name="cog" size={28} color="#4CAF50" />
           </TouchableOpacity>
         </View>
+
+
+
+        <ProfileSection userData={userData} profileImage={profileImage} uploadingImage={uploadingImage} currentMilestone={currentMilestone} toggleImageOptions={toggleImageOptions} />
+
 
         {uploadSuccess && (
           <View style={styles.successMessage}>
@@ -311,44 +264,8 @@ export default function ProfileScreen({ navigation, route }) {
           </View>
         )}
 
-        <View style={styles.statsContainer}>
-          <TouchableOpacity
-            style={styles.statItem}
-            onPress={() => navigation.navigate("InviteFriendBuddy")}
-          >
-            <Text style={styles.statValue}>{userData?.followers_count || 0}</Text>
-            <Text style={styles.statText}>Friends</Text>
-          </TouchableOpacity>
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>{Math.round(totalWorkoutHours)} hrs</Text>
-            <Text style={styles.statText}>Workout Time</Text>
-          </View>
-        </View>
-
-        <View style={styles.milestoneContainer}>
-          <Text style={styles.sectionTitle}>Milestone Progress</Text>
-          <View style={styles.milestoneIcons}>
-            <Image source={require('../assets/bronzemedal.jpg')} style={styles.milestoneIcon} />
-            <Image source={require('../assets/silvermedal.jpg')} style={styles.milestoneIcon} />
-            <Image source={require('../assets/goldmedal.jpg')} style={styles.milestoneIcon} />
-            <Image source={require('../assets/diamondmedal.jpg')} style={styles.milestoneIcon} />
-          </View>
-
-          <ProgressBar
-            progress={Math.round(progress * 10) / 10}
-            width={null}
-            height={10}
-            color="#6FCF97"
-            unfilledColor="#E0E0E0"
-            borderColor="transparent"
-            style={styles.progressBar}
-          />
-          <Text style={styles.milestoneText}>
-            {hoursToNextMilestone > 0
-              ? `${Math.floor(hoursToNextMilestone)} hours away from earning ${nextMilestone}.`
-              : `You have achieved ${nextMilestone} milestone!`}
-          </Text>
-        </View>
+        <StatsSection userData={userData} totalWorkoutHours={totalWorkoutHours} navigation={navigation} />
+        <MilestoneProgress progress={Math.round(progress * 10) / 10} hoursToNextMilestone={hoursToNextMilestone} nextMilestone={nextMilestone} />
 
         <View style={styles.tabContainer}>
           <TouchableOpacity
@@ -382,8 +299,8 @@ export default function ProfileScreen({ navigation, route }) {
                 selectedTab === 'Visited Gym' ? item.gymId.toString() : item.userId.toString()
               }
               contentContainerStyle={styles.listContent}
-              nestedScrollEnabled={true}  
-              showsVerticalScrollIndicator={false}  
+              nestedScrollEnabled={true}
+              showsVerticalScrollIndicator={false}
             />
           )}
         </View>
@@ -423,141 +340,14 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     //backgroundColor: '#f5f5f5',
-    paddingTop: 20,
   },
   container: {
     flex: 1,
-    paddingTop: 20,
+
     //backgroundColor: '#fff',
 
   },
-  profileSection: {
-    padding: 20,
-    //backgroundColor: '#fff',
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
-  },
 
-  profileHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  profileImageContainer: {
-    position: 'relative',
-  },
-  profileImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    borderWidth: 3,
-    borderColor: '#4CAF50',
-  },
-  uploadingOverlay: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  addPhotoButton: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    backgroundColor: '#4CAF50',
-    borderRadius: 15,
-    padding: 5,
-  },
-  profileDetails: {
-    marginLeft: 20,
-    flex: 1,
-  },
-  fullName: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 5,
-  },
-  milestoneIconNearName: {
-    width: 24,
-    height: 24,
-    marginLeft: 5,
-  },
-  username: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 3,
-  },
-  mobileNumber: {
-    fontSize: 14,
-    color: '#888',
-  },
-  settingsButton: {
-    position: 'absolute',
-    top: 20,
-    right: 20,
-  },
-  successMessage: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#E8F5E9',
-    padding: 10,
-    marginTop: 10,
-    borderRadius: 5,
-  },
-  successText: {
-    marginLeft: 10,
-    color: '#4CAF50',
-    fontSize: 16,
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    //backgroundColor: '#fff',
-    padding: 15,
-    marginTop: 20,
-  },
-  statItem: {
-    alignItems: 'center',
-  },
-  statValue: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#4CAF50',
-  },
-  statText: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 5,
-  },
-  milestoneContainer: {
-    marginTop: 20,
-    padding: 15,
-    backgroundColor: '#fff',
-    borderRadius: 15,
-
-  },
-  sectionTitle: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  milestoneIcons: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 5,
-    marginLeft: 20,
-    backgroundColor: '#fff'
-  },
-  milestoneIcon: {
-    width: 40,
-    height: 40,
-  },
-  progressBar: {
-    marginTop: 10,
-    height: 8,
-  },
-  milestoneText: {
-    marginTop: 10,
-    fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
-  },
   tabContainer: {
     flexDirection: 'row',
     marginTop: 20,
@@ -693,4 +483,42 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     color: '#333',
   },
+  settingsButton: {
+    position: "absolute",
+    top: 15,
+    right: 15,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    borderRadius: 25,
+    padding: 8,
+    elevation: 5,
+
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 15,
+    backgroundColor: '#fff',
+  },
+  
+  headerText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  
+  floatingButton: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    backgroundColor: '#4CAF50',
+    borderRadius: 50,
+    width: 50,
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 5,
+  },
+  
+
 });
