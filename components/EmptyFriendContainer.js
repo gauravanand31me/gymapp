@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { getLeaderBoard } from '../api/apiService';
 
 const EmptyFriendsContainer = () => {
   const [leaderboard, setLeaderboard] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigation = useNavigation();
 
   useEffect(() => {
     const fetchLeaderboard = async () => {
@@ -25,7 +26,7 @@ const EmptyFriendsContainer = () => {
     if (rank === 1) return "#FFD700"; // Gold
     if (rank === 2) return "#C0C0C0"; // Silver
     if (rank === 3) return "#CD7F32"; // Bronze
-    return "#FFF"; // Default white
+    return "#0044CC"; // Default blue
   };
 
   return (
@@ -33,7 +34,7 @@ const EmptyFriendsContainer = () => {
       <Text style={styles.leaderboardTitle}>🏆 Gym Leaderboard 🏆</Text>
 
       {loading ? (
-        <ActivityIndicator size="large" color="#FFD700" />
+        <ActivityIndicator size="large" color="#0044CC" />
       ) : (
         <View style={styles.tableContainer}>
           <View style={styles.tableHeader}>
@@ -46,15 +47,18 @@ const EmptyFriendsContainer = () => {
             data={leaderboard}
             keyExtractor={(item, index) => index.toString()}
             renderItem={({ item, index }) => (
-              <View style={[styles.tableRow, index < 3 && styles.topThree]}>
+              <TouchableOpacity 
+                style={[styles.tableRow, index < 3 && styles.topThree]} 
+                onPress={() => navigation.navigate('UserProfile', { id: item.id })}
+              >
                 <Text style={[styles.cellText, { width: '15%', color: getMedalColor(index + 1) }]}>
                   {index + 1}
                 </Text>
-                <Text style={[styles.cellText, { width: '50%' }]}>{item.username}</Text>
-                <Text style={[styles.cellText, { width: '35%', textAlign: 'right', color: '#66BB6A' }]}>
-                  {item.total_work_out_time / 60} hr
+                <Text style={[styles.cellText, { width: '50%', color: "#333" }]}>{item.username}</Text>
+                <Text style={[styles.cellText, { width: '35%', textAlign: 'right', color: '#28A745' }]}>
+                  {(item.total_work_out_time / 60).toFixed(1)} hr
                 </Text>
-              </View>
+              </TouchableOpacity>
             )}
           />
         </View>
@@ -68,12 +72,12 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 20,
     alignItems: 'center',
-    backgroundColor: '#121212',
+    backgroundColor: '#FFF',
   },
   leaderboardTitle: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#FFD700',
+    color: '#0044CC',
     marginBottom: 15,
     textTransform: 'uppercase',
   },
@@ -81,19 +85,23 @@ const styles = StyleSheet.create({
     width: '90%',
     borderRadius: 10,
     overflow: 'hidden',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: '#FFF',
+    borderColor: '#DDD',
     borderWidth: 1,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   tableHeader: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: '#EAF2FF',
     paddingVertical: 8,
   },
   headerText: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#FFF',
+    color: '#0044CC',
     paddingHorizontal: 10,
   },
   tableRow: {
@@ -101,14 +109,15 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 10,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+    borderBottomColor: '#DDD',
+    backgroundColor: '#FFF',
   },
   topThree: {
-    backgroundColor: 'rgba(255, 215, 0, 0.2)',
+    backgroundColor: '#FAFAFA',
   },
   cellText: {
     fontSize: 13,
-    color: '#FFF',
+    color: '#333',
   },
 });
 
