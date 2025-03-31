@@ -49,7 +49,7 @@ const EmptyFriendsContainer = () => {
             renderItem={({ item, index }) => (
               <TouchableOpacity 
                 style={[styles.tableRow, index < 3 && styles.topThree]} 
-                onPress={() => navigation.navigate('UserProfile', { id: item.id })}
+                onPress={() => navigation.navigate('UserProfile', { userId: item.id })}
               >
                 <Text style={[styles.cellText, { width: '15%', color: getMedalColor(index + 1) }]}>
                   {index + 1}
