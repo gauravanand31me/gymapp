@@ -52,7 +52,7 @@ const EmptyFriendsContainer = () => {
                 </Text>
                 <Text style={[styles.cellText, { width: '50%' }]}>{item.username}</Text>
                 <Text style={[styles.cellText, { width: '35%', textAlign: 'right', color: '#66BB6A' }]}>
-                  {item.total_work_out_time} min
+                  {item.total_work_out_time / 60} hr
                 </Text>
               </View>
             )}
