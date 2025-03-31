@@ -286,6 +286,7 @@ export default function ProfileScreen({ navigation, route }) {
           </TouchableOpacity>
         </View>
 
+        
         <View style={styles.listContainer}>
           {selectedTab === 'Visited Gym' && visitedGyms.length === 0 ? (
             <Text style={styles.noDataText}>No visited gyms yet</Text>
@@ -296,7 +297,7 @@ export default function ProfileScreen({ navigation, route }) {
               data={selectedTab === 'Visited Gym' ? visitedGyms : visitedBuddies}
               renderItem={renderListItem}
               keyExtractor={(item) =>
-                selectedTab === 'Visited Gym' ? item.gymId.toString() : item.userId.toString()
+                selectedTab === 'Visited Gym' ? item.gymId.toString() : item?.buddyName.toString()
               }
               contentContainerStyle={styles.listContent}
               nestedScrollEnabled={true}
