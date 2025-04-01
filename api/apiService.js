@@ -88,6 +88,7 @@ export const verifyOtp = async (mobileNumber, otp) => {
   }
 
 
+  
   export const fetchAllGyms = async (latitude = 12.9716, longitude = 77.5946,  searchText='', limit = 9, page = 1) => {
     try {
       
@@ -165,6 +166,24 @@ export const verifyOtp = async (mobileNumber, otp) => {
       
     }
   };
+
+
+  export const getLeaderBoard = async () => {
+    try {
+      const userToken = await AsyncStorage.getItem('authToken'); // Fetch token if needed
+      const endpoint = `${BASE_URL}/users/leaderboard`
+      const response = await fetch(endpoint, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${userToken}`, // Include the bearer token
+        },
+      });
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.log("Error received", error);
+    }
+  }
 
   export const userDetails = async (userId="") => {
     try {

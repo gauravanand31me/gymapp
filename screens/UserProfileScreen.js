@@ -32,15 +32,34 @@ export default function UserProfileScreen({ navigation, route }) {
   const [loadFriend, setLoadFriend] = useState(true);
   const [isVisible, setIsVisible] = useState(false);
   const { userId } = route.params;
+  const [sameUser, setSameUser] = useState(false);
 
   useEffect(() => {
     fetchUserData();
+    loggedInUser();
   }, [userId]);
 
   useEffect(() => {
     const timer = setTimeout(() => getFriendShip(), 2000);
     return () => clearTimeout(timer);
   }, [userData?.username]);
+
+  const loggedInUser = async () => {
+    
+    try {
+      const data = await userDetails();
+   
+      if (data.id === userId) {
+        setSameUser(true);
+      } else {
+        setSameUser(false);
+      }
+    } catch (e) {
+
+    } finally {
+
+    }
+  }
 
   const fetchUserData = async () => {
     setLoading(true);
@@ -178,7 +197,7 @@ export default function UserProfileScreen({ navigation, route }) {
 
           <Text style={styles.name}>{userData?.full_name || 'N/A'}</Text>
           <Text style={styles.username}>@{userData?.username || 'N/A'}</Text>
-          <TouchableOpacity style={styles.friendButton} onPress={handleFriendAction} disabled={loadFriend}>
+          {!sameUser && <TouchableOpacity style={styles.friendButton} onPress={handleFriendAction} disabled={loadFriend}>
             {loadFriend ? (
               <ActivityIndicator color="#fff" size="small" />
             ) : (
@@ -210,7 +229,7 @@ export default function UserProfileScreen({ navigation, route }) {
                 )}
               </>
             )}
-          </TouchableOpacity>
+          </TouchableOpacity>}
 
         </LinearGradient>
 

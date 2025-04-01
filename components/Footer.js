@@ -1,22 +1,33 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { fetchAllNotifications } from '../api/apiService'; // Import the fetch function
 import { NotificationContext } from '../context/NotificationContext';
+import { useFocusEffect } from '@react-navigation/native';
 
 const Footer = ({ navigation }) => {
   const [unreadCount, setUnreadCount] = useState(0);
   const { notification } = useContext(NotificationContext)
   // Fetch notifications on component mount
-  useEffect(() => {
-    const loadNotifications = async () => {
-      console.log("loadNotifications is called...")
-      const data = await fetchAllNotifications();
-      if (data && data.unreadCount !== undefined) {
-        setUnreadCount(data.unreadCount);
-      }
-    };
 
+
+  useFocusEffect(
+    useCallback(() => {
+      loadNotifications();
+      console.log("Footer Screen focused")
+      
+    }, []),
+  )
+
+  const loadNotifications = async () => {
+    console.log("loadNotifications is called...")
+    const data = await fetchAllNotifications();
+    if (data && data.unreadCount !== undefined) {
+      setUnreadCount(data.unreadCount);
+    }
+  };
+
+  useEffect(() => {
     loadNotifications();
   }, [notification]);
 
