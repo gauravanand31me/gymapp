@@ -201,9 +201,9 @@ export default function GymDetailScreen({ navigation, route }) {
         <View style={styles.infoContainer}>
           
 
-          <TouchableOpacity onPress={() => shareGym(gym_id, gymData.name, gymData.city, gymData.images)} style={styles.shareButton}>
+          {/* <TouchableOpacity onPress={() => shareGym(gym_id, gymData.name, gymData.city, gymData.images)} style={styles.shareButton}>
             <Icon name="share-alt" size={20} color="#000" />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
           <View style={styles.ratingContainer}>
             <Icon name="star" size={16} color="#FFD700" />

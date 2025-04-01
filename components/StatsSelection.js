@@ -26,12 +26,7 @@ const StatsSection = ({ userData, totalWorkoutHours, navigation }) => {
 
       <View style={[styles.statItem, styles.statCard]}>
         <MaterialIcons name="fitness-center" size={30} color="#4CAF50" />
-        <Animated.Text style={styles.statValue}>
-          {workoutAnim.interpolate({
-            inputRange: [0, totalWorkoutHours],
-            outputRange: [`0 hrs`, `${Math.round(totalWorkoutHours)} hrs`], // Ensuring same format
-          })}
-        </Animated.Text>
+        <Text style={styles.statValue}>{Math.round(totalWorkoutHours)}</Text>
         <Text style={styles.statText}>Workout Time</Text>
       </View>
     </View>

@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useState } from 'react'
 import {
   View,
   Text,
@@ -17,6 +17,7 @@ import Footer from '../components/Footer'
 import { Bell, Check, X, ChevronRight } from 'lucide-react-native'
 import { Ionicons } from '@expo/vector-icons';
 import { NotificationContext } from '../context/NotificationContext'
+import { useFocusEffect } from '@react-navigation/native'
 
 
 export default function NotificationListScreen({ navigation }) {
@@ -27,29 +28,38 @@ export default function NotificationListScreen({ navigation }) {
 
   const { notification } = useContext(NotificationContext)
   
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchNotifications();
+      console.log("Notification Screen focused")
+      
+    }, []),
+  )
+  
+
+  const fetchNotifications = async () => {
+    try {
+      const data = await fetchAllNotifications()
+      
+      if (data.notifications) {
+        setNotifications(data.notifications)
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }).start()
+      } else {
+        setError(data.message)
+      }
+    } catch (error) {
+      setError("Failed to fetch notifications. Please try again.")
+    } finally {
+      setLoading(false)
+    }
+  }
   
   useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        const data = await fetchAllNotifications()
-        
-        if (data.notifications) {
-          setNotifications(data.notifications)
-          Animated.timing(fadeAnim, {
-            toValue: 1,
-            duration: 500,
-            useNativeDriver: true,
-          }).start()
-        } else {
-          setError(data.message)
-        }
-      } catch (error) {
-        setError("Failed to fetch notifications. Please try again.")
-      } finally {
-        setLoading(false)
-      }
-    }
-
     const markNotificationsAsRead = async () => {
       try {
         await markAllNotificationsAsRead()
