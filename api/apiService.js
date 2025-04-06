@@ -646,13 +646,14 @@ export const updateName = async (name) => {
 }
 
 
-export const rateBooking = async (bookingId, gymId, rating) => {
+export const rateBooking = async (bookingId, gymId, rating, description) => {
   try {
     const userToken = await AsyncStorage.getItem('authToken'); // Fetch token if needed
     const response = await axios.post(`${BASE_URL}/rating/post`, {
       bookingId, // Send the amount to your backend (e.g., 500 for INR 500)
       gymId,
-      rating  
+      rating,
+      description
       }, {
       headers: {
         Authorization: `Bearer ${userToken}`,  // Add the Bearer token here
