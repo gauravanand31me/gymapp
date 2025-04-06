@@ -134,7 +134,7 @@ const calculateValidTill = (date, type) => {
               
               
               <Text style={styles.cancellationText}>
-                For cancellations, please contact the administrator.
+                For any queries, please contact the +91 96864 14727.
               </Text>
             </>
           )}
@@ -428,6 +428,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#9CA3AF',
     marginTop: 8,
+    fontWeight: "bold"
   },
   starRatingContainer: {
     marginTop: 12,
