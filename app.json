@@ -6,6 +6,9 @@
     "orientation": "portrait",
     "icon": "./assets/ic_launcher.png",
     "userInterfaceStyle": "light",
+    "scheme": "yupluck",
+    "deepLinking": true,
+    "platforms": ["ios", "android"],
     "splash": {
       "image": "./assets/exposplash.jpeg",
       "resizeMode": "cover",

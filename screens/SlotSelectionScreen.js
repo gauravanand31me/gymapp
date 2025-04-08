@@ -97,11 +97,11 @@ export default function Component({ navigation, route }) {
   return (
     <SafeAreaView style={styles.container}>
       {/* StatusBar Configuration */}
-      <StatusBar
-        barStyle="dark-content" // Use 'light-content' for white text on dark background
-        backgroundColor="#f5f5f5" // Ensure this matches the container's background
-        translucent={false} // Use translucent if you want to overlay content under the status bar
-      />
+              <StatusBar
+          barStyle="light-content"
+          backgroundColor="#4CAF50"
+          translucent={false}
+        />
       <LinearGradient
         colors={['#4CAF50', '#2E7D32']}
         style={styles.background}
@@ -292,10 +292,6 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
     elevation: 3, // For Android shadow
   },
   dateButtonText: {
@@ -328,9 +324,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     minWidth: 110,
     height: 90,
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
     elevation: 4,
   },
   selectedSubscriptionBox: {
@@ -361,9 +354,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     minWidth: 75,
     height: 85,
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
     elevation: 4,
   },
   selectedTimeSlot: {
@@ -403,9 +393,6 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     width: '48%',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
     elevation: 4,
   },
   selectedDurationButton: {
@@ -426,9 +413,6 @@ const styles = StyleSheet.create({
     padding: 18,
     borderRadius: 12,
     alignItems: 'center',
-    shadowColor: '#43A047',
-    shadowOpacity: 0.4,
-    shadowRadius: 6,
     elevation: 6,
     transition: '0.3s',
   },
