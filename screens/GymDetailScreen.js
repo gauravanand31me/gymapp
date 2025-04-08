@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-
 import {
   View,
   Text,
@@ -9,11 +8,11 @@ import {
   ScrollView,
   Modal,
   Dimensions,
-  Linking,
   SafeAreaView,
   StatusBar,
   Share,
-  Platform 
+  Platform,
+  Alert // Missing import
 } from 'react-native';
 import * as Sharing from "expo-sharing";
 import { useFocusEffect } from '@react-navigation/native';
@@ -24,7 +23,10 @@ import AmenitiesListPopup from '../components/AmenitiesListPopup';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import GymLoader from '../components/GymLoader';
-
+import * as IntentLauncher from 'expo-intent-launcher';
+import * as Application from 'expo-application';
+import * as Linking from 'expo-linking';
+import AppLink from 'react-native-app-link';
 const screenWidth = Dimensions.get('window').width;
 
 export default function GymDetailScreen({ navigation, route }) {
@@ -44,17 +46,14 @@ export default function GymDetailScreen({ navigation, route }) {
     checkLogin();
   }, []);
 
-
   const checkLogin = async () => {
     const data = await userDetails();
     if (!data) {
       setIsLoggedIn(false);
     } else {
       setIsLoggedIn(true);
-      await storePushToken();
     }
   }
-
 
   useFocusEffect(
     useCallback(() => {
@@ -84,43 +83,37 @@ export default function GymDetailScreen({ navigation, route }) {
     setModalVisible(true);
   };
 
-
-  const shareGym = async (gymId, gymName, gymLocation, gymImages) => {
+  // Simplified share function that works reliably
+  const shareGym = async () => {
+    if (!gymData) return;
+    
     try {
-      const appDeepLink = `yupluck://GymDetails/${gymId}`;
-      const webFallbackLink = `https://yupluck.com/appgym?id=${gymId}`; // Replace with actual link
-  
-      const message = `🔥 *Discover ${gymName}!* 🔥\n\n🏋️ *A Perfect Gym for Your Fitness!*  
-  📍 *Location:* ${gymLocation}  
-  📱 *Open in App:* ${appDeepLink}  
-  🌐 *Book Online:* ${webFallbackLink}\n\n  
-  🖼️ *Check Out These Images:*\n${gymImages.join("\n")}`;
-  
-      // Download images locally
-      let downloadedImages = [];
-      for (let imageUrl of gymImages) {
-        const fileUri = `${FileSystem.cacheDirectory}${imageUrl.split("/").pop()}`;
-        const downloadResumable = FileSystem.createDownloadResumable(imageUrl, fileUri);
-        const { uri } = await downloadResumable.downloadAsync();
-        downloadedImages.push(uri);
-      }
-  
-      // Share multiple images (Only works on Telegram, Instagram, iMessage, AirDrop)
-      if (Platform.OS === "ios") {
-        await Share.share({ message, urls: downloadedImages }); // iOS supports multiple images in Share API
-      } else if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(downloadedImages[0], {
-          mimeType: "image/jpeg",
-          dialogTitle: `Share ${gymName}`,
-          UTI: "image/jpeg",
-        });
-  
-        // Share text separately for platforms that don't support multiple images
-        await Share.share({ message });
-      } else {
-        await Share.share({ message });
+      const appDeepLink = `yupluck://GymDetails/${gym_id}`;
+      const webFallbackLink = `https://yupluck.com/appgym?id=${gym_id}`;
+      
+      const message = `Check out ${gymData.name} on Yupluck!\n\n📍 ${gymData.addressLine1}, ${gymData.city}\n\n🔗 ${webFallbackLink}`;
+      
+      // Use the native Share API which works on both iOS and Android
+      const result = await Share.share({
+        message,
+        url: webFallbackLink, // iOS only
+        title: `${gymData.name} on Yupluck` // Android only
+      });
+      
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          // shared with activity type of result.activityType
+          console.log('Shared with activity type:', result.activityType);
+        } else {
+          // shared
+          console.log('Shared successfully');
+        }
+      } else if (result.action === Share.dismissedAction) {
+        // dismissed
+        console.log('Share dismissed');
       }
     } catch (error) {
+      Alert.alert('Error', 'Could not share gym details');
       console.error("Error sharing:", error);
     }
   };
@@ -150,7 +143,7 @@ export default function GymDetailScreen({ navigation, route }) {
       </View>
     );
   }
-
+  
   const truncatedDescription = gymData?.description?.split(' ').slice(0, 50).join(' ');
 
   return (
@@ -162,8 +155,10 @@ export default function GymDetailScreen({ navigation, route }) {
           <Text><Icon name="chevron-left" size={24} color="#4CAF50" /></Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{gymData.name}</Text>
+        <TouchableOpacity onPress={shareGym} style={styles.shareIcon}>
+          <Icon name="share-alt" size={24} color="#4CAF50" />
+        </TouchableOpacity>
       </View>
-
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.imageContainer}>
           <ScrollView
@@ -196,15 +191,7 @@ export default function GymDetailScreen({ navigation, route }) {
           </View>
         </View>
 
-
-
         <View style={styles.infoContainer}>
-          
-
-          {/* <TouchableOpacity onPress={() => shareGym(gym_id, gymData.name, gymData.city, gymData.images)} style={styles.shareButton}>
-            <Icon name="share-alt" size={20} color="#000" />
-          </TouchableOpacity> */}
-
           <View style={styles.ratingContainer}>
             <Icon name="star" size={16} color="#FFD700" />
             <Text style={styles.ratingText}>{gymData.rating} ({gymData.reviews} reviews)</Text>
@@ -215,6 +202,8 @@ export default function GymDetailScreen({ navigation, route }) {
           <TouchableOpacity onPress={() => setDescriptionExpanded(!isDescriptionExpanded)}>
             <Text style={styles.showMoreText}>{isDescriptionExpanded ? 'Show Less' : 'Show More'}</Text>
           </TouchableOpacity>
+          
+          {/* Removed duplicate share button here */}
 
           <View style={styles.locationContainer}>
             <MaterialIcons name="location-on" size={24} color="#4CAF50" />
@@ -268,7 +257,7 @@ export default function GymDetailScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA', // Light background for a clean look
+    backgroundColor: '#FFFFFF',
     paddingTop: 20,
   },
   loadingContainer: {
@@ -334,9 +323,9 @@ const styles = StyleSheet.create({
   infoContainer: {
     padding: 20,
     backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    marginTop: -20, // Lifted for a better transition
+    borderTopLeftRadius: 5,
+    borderTopRightRadius: 5,
+    marginTop: -10, // Lifted for a better transition
   },
   gymName: {
     fontSize: 18,
@@ -424,7 +413,7 @@ const styles = StyleSheet.create({
     bottom: 16,
     left: 16,
     right: 16,
-    backgroundColor: '#1B5E20', // Fallback color
+    backgroundColor: '#4CAF50', // Fallback color
     paddingVertical: 18,
     borderRadius: 50, // Rounded for a premium feel
     alignItems: 'center',
@@ -466,6 +455,9 @@ const styles = StyleSheet.create({
     top: 10,
     right: 10,
     padding: 8,
+  },
+  shareIcon: {
+    marginLeft: 12,
   },
 });
 
