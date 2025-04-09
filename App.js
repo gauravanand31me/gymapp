@@ -34,6 +34,16 @@ import { NotificationProvider } from './context/NotificationContext';
 
 const Stack = createStackNavigator();
 
+// ✅ Linking Configuration
+const linking = {
+  prefixes: ['yupluck://'],
+  config: {
+    screens: {
+      GymDetails: 'GymDetails/:gym_id',
+    },
+  },
+};
+
 export default function App() {
   const [isLoading, setIsLoading] = React.useState(true);
   const [isAuthenticated, setIsAuthenticated] = React.useState(false);
@@ -186,7 +196,7 @@ export default function App() {
 
   return (
     <NotificationProvider>
-      <NavigationContainer>
+      <NavigationContainer linking={linking}>
         <Stack.Navigator
           initialRouteName={isAuthenticated ? "GymList" : "Login"}
           screenOptions={{ headerShown: false }}

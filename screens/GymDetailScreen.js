@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-
 import {
   View,
   Text,
@@ -9,11 +8,11 @@ import {
   ScrollView,
   Modal,
   Dimensions,
-  Linking,
   SafeAreaView,
   StatusBar,
   Share,
-  Platform 
+  Platform,
+  Alert // Missing import
 } from 'react-native';
 import * as Sharing from "expo-sharing";
 import { useFocusEffect } from '@react-navigation/native';
@@ -24,131 +23,126 @@ import AmenitiesListPopup from '../components/AmenitiesListPopup';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import GymLoader from '../components/GymLoader';
-
+import * as IntentLauncher from 'expo-intent-launcher';
+import * as Application from 'expo-application';
+import * as Linking from 'expo-linking';
+import AppLink from 'react-native-app-link';
 const screenWidth = Dimensions.get('window').width;
 
 export default function GymDetailScreen({ navigation, route }) {
-  const [gymData, setGymData] = useState(null);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isModalVisible, setModalVisible] = useState(false);
-  const [selectedImage, setSelectedImage] = useState(null);
-  const [showAmenitiesPopup, setShowAmenitiesPopup] = useState(false);
-  const [isDescriptionExpanded, setDescriptionExpanded] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const { gym_id } = route.params;
-  const [imageLoading, setImageLoading] = useState(true);
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const [gymData, setGymData] = useState(null)
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [isModalVisible, setModalVisible] = useState(false)
+  const [selectedImage, setSelectedImage] = useState(null)
+  const [showAmenitiesPopup, setShowAmenitiesPopup] = useState(false)
+  const [isDescriptionExpanded, setDescriptionExpanded] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const { gym_id } = route.params
+  const [imageLoading, setImageLoading] = useState(true)
+  const [isLoggedIn, setIsLoggedIn] = useState(true)
 
   useEffect(() => {
-    fetchGymData();
-    checkLogin();
-  }, []);
-
+    fetchGymData()
+    checkLogin()
+  }, [])
 
   const checkLogin = async () => {
-    const data = await userDetails();
+    const data = await userDetails()
     if (!data) {
-      setIsLoggedIn(false);
+      setIsLoggedIn(false)
     } else {
-      setIsLoggedIn(true);
-      await storePushToken();
+      setIsLoggedIn(true)
     }
   }
 
-
   useFocusEffect(
     useCallback(() => {
-      fetchGymData();
-    }, [gym_id])
-  );
+      fetchGymData()
+    }, [gym_id]),
+  )
 
   const fetchGymData = async () => {
     try {
-      const data = await fetchIndividualGymData(gym_id);
-      setGymData(data);
+      const data = await fetchIndividualGymData(gym_id)
+      setGymData(data)
     } catch (error) {
-      console.error('Error fetching gym details:', error);
+      console.error("Error fetching gym details:", error)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleScroll = (event) => {
-    const contentOffsetX = event.nativeEvent.contentOffset.x;
-    const index = Math.floor(contentOffsetX / screenWidth);
-    setCurrentIndex(index);
-  };
+    const contentOffsetX = event.nativeEvent.contentOffset.x
+    const index = Math.floor(contentOffsetX / screenWidth)
+    setCurrentIndex(index)
+  }
 
   const openModal = (image) => {
-    setSelectedImage(image);
-    setModalVisible(true);
-  };
+    setSelectedImage(image)
+    setModalVisible(true)
+  }
 
+  // Simplified share function that works reliably
+  const shareGym = async () => {
+    if (!gymData) return
 
-  const shareGym = async (gymId, gymName, gymLocation, gymImages) => {
     try {
-      const appDeepLink = `yupluck://GymDetails/${gymId}`;
-      const webFallbackLink = `https://yupluck.com/appgym?id=${gymId}`; // Replace with actual link
-  
-      const message = `🔥 *Discover ${gymName}!* 🔥\n\n🏋️ *A Perfect Gym for Your Fitness!*  
-  📍 *Location:* ${gymLocation}  
-  📱 *Open in App:* ${appDeepLink}  
-  🌐 *Book Online:* ${webFallbackLink}\n\n  
-  🖼️ *Check Out These Images:*\n${gymImages.join("\n")}`;
-  
-      // Download images locally
-      let downloadedImages = [];
-      for (let imageUrl of gymImages) {
-        const fileUri = `${FileSystem.cacheDirectory}${imageUrl.split("/").pop()}`;
-        const downloadResumable = FileSystem.createDownloadResumable(imageUrl, fileUri);
-        const { uri } = await downloadResumable.downloadAsync();
-        downloadedImages.push(uri);
-      }
-  
-      // Share multiple images (Only works on Telegram, Instagram, iMessage, AirDrop)
+      // Direct app store links
+      const iosAppStoreLink = "https://apps.apple.com/app/yupluck/id6737851845" // Replace with your App Store ID
+      const androidPlayStoreLink = "https://play.google.com/store/apps/details?id=com.yupluck.mepluck" // Replace with your package name
+
+      // Create a universal link that works better with iOS Safari
+      // This should be a properly configured Universal Link domain for your app
+      const universalLink = `https://yupluck.com/appgym?id=${gym_id}`
+
+      const message = `Check out ${gymData.name} on Yupluck!\n\n📍 ${gymData.addressLine1}, ${gymData.city}`
+
       if (Platform.OS === "ios") {
-        await Share.share({ message, urls: downloadedImages }); // iOS supports multiple images in Share API
-      } else if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(downloadedImages[0], {
-          mimeType: "image/jpeg",
-          dialogTitle: `Share ${gymName}`,
-          UTI: "image/jpeg",
-        });
-  
-        // Share text separately for platforms that don't support multiple images
-        await Share.share({ message });
+        // For iOS, use the universal link as the URL
+        const result = await Share.share({
+          message: message,
+          url: universalLink, // iOS uses this as the shared URL
+        })
       } else {
-        await Share.share({ message });
+        // Android implementation
+        const result = await Share.share({
+          message: message + "\n\n" + universalLink,
+          title: `${gymData.name} on Yupluck`,
+        })
       }
+
+      console.log("Shared successfully")
     } catch (error) {
-      console.error("Error sharing:", error);
+      Alert.alert("Error", "Could not share gym details")
+      console.error("Error sharing:", error)
     }
-  };
+  }
 
   const closeModal = () => {
-    setModalVisible(false);
-    setSelectedImage(null);
-  };
+    setModalVisible(false)
+    setSelectedImage(null)
+  }
 
   const openSlotSelection = () => {
-    navigation.navigate("SlotSelection", { gym: gymData });
-  };
+    navigation.navigate("SlotSelection", { gym: gymData })
+  }
 
   const toggleAmenitiesPopup = () => {
-    setShowAmenitiesPopup(!showAmenitiesPopup);
-  };
+    setShowAmenitiesPopup(!showAmenitiesPopup)
+  }
 
   const openGoogleMaps = (latitude, longitude) => {
-    const url = `https://www.google.com/maps?q=${latitude},${longitude}`;
-    Linking.openURL(url).catch((err) => console.error('Error opening Google Maps:', err));
-  };
+    const url = `https://www.google.com/maps?q=${latitude},${longitude}`
+    Linking.openURL(url).catch((err) => console.error("Error opening Google Maps:", err))
+  }
 
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
         <GymLoader />
       </View>
-    );
+    )
   }
 
   const goToRatingPage = () => {
@@ -165,12 +159,20 @@ export default function GymDetailScreen({ navigation, route }) {
       <StatusBar barStyle="dark-content" backgroundColor="#f5f5f5" translucent={false} />
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Text><Icon name="chevron-left" size={24} color="#4CAF50" /></Text>
+          <Text>
+            <Icon name="chevron-left" size={24} color="#4CAF50" />
+          </Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{gymData.name}</Text>
+        <TouchableOpacity onPress={shareGym} style={styles.shareIcon}>
+          <Icon name="share-alt" size={24} color="#4CAF50" />
+        </TouchableOpacity>
       </View>
-
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.imageContainer}>
           <ScrollView
             horizontal
@@ -202,15 +204,7 @@ export default function GymDetailScreen({ navigation, route }) {
           </View>
         </View>
 
-
-
         <View style={styles.infoContainer}>
-          
-
-          {/* <TouchableOpacity onPress={() => shareGym(gym_id, gymData.name, gymData.city, gymData.images)} style={styles.shareButton}>
-            <Icon name="share-alt" size={20} color="#000" />
-          </TouchableOpacity> */}
-
           <View style={styles.ratingContainer}>
             <Icon name="star" size={16} color="#FFD700" />
             <TouchableOpacity onPress={goToRatingPage}>
@@ -223,13 +217,20 @@ export default function GymDetailScreen({ navigation, route }) {
             {isDescriptionExpanded ? gymData.description : `${truncatedDescription}...`}
           </Text>
           <TouchableOpacity onPress={() => setDescriptionExpanded(!isDescriptionExpanded)}>
-            <Text style={styles.showMoreText}>{isDescriptionExpanded ? 'Show Less' : 'Show More'}</Text>
+            <Text style={styles.showMoreText}>{isDescriptionExpanded ? "Show Less" : "Show More"}</Text>
           </TouchableOpacity>
+
+          {/* Removed duplicate share button here */}
 
           <View style={styles.locationContainer}>
             <MaterialIcons name="location-on" size={24} color="#4CAF50" />
-            <Text style={styles.locationText}>{gymData.addressLine1}, {gymData.city}</Text>
-            <TouchableOpacity style={styles.mapButton} onPress={() => openGoogleMaps(gymData.latitude, gymData.longitude)}>
+            <Text style={styles.locationText}>
+              {gymData.addressLine1}, {gymData.city}
+            </Text>
+            <TouchableOpacity
+              style={styles.mapButton}
+              onPress={() => openGoogleMaps(gymData.latitude, gymData.longitude)}
+            >
               <Text style={styles.mapButtonText}>Open in Maps</Text>
             </TouchableOpacity>
           </View>
@@ -240,7 +241,7 @@ export default function GymDetailScreen({ navigation, route }) {
               {(gymData.equipment_list || []).slice(0, 4).map((amenity, index) => (
                 <View key={index} style={styles.amenityItem}>
                   <Icon name="check-circle" size={20} color="#4CAF50" />
-                  <Text style={styles.amenityText}>{amenity.equipment_name || 'Unnamed Equipment'}</Text>
+                  <Text style={styles.amenityText}>{amenity.equipment_name || "Unnamed Equipment"}</Text>
                 </View>
               ))}
             </View>
@@ -251,13 +252,17 @@ export default function GymDetailScreen({ navigation, route }) {
         </View>
       </ScrollView>
 
-      {isLoggedIn && <TouchableOpacity style={styles.bookButton} onPress={openSlotSelection}>
-        <Text style={styles.bookButtonText}>Book Now</Text>
-      </TouchableOpacity>}
+      {isLoggedIn && (
+        <TouchableOpacity style={styles.bookButton} onPress={openSlotSelection}>
+          <Text style={styles.bookButtonText}>Book Now</Text>
+        </TouchableOpacity>
+      )}
 
-      {!isLoggedIn && <TouchableOpacity style={styles.bookButton} onPress={() => navigation.navigate("Login")}>
-        <Text style={styles.bookButtonText}>Login</Text>
-      </TouchableOpacity>}
+      {!isLoggedIn && (
+        <TouchableOpacity style={styles.bookButton} onPress={() => navigation.navigate("Login")}>
+          <Text style={styles.bookButtonText}>Login</Text>
+        </TouchableOpacity>
+      )}
 
       <Modal visible={isModalVisible} transparent={true} animationType="fade">
         <View style={styles.modalContainer}>
@@ -270,15 +275,12 @@ export default function GymDetailScreen({ navigation, route }) {
 
       {showAmenitiesPopup && <AmenitiesListPopup gymId={gym_id} onClose={toggleAmenitiesPopup} />}
     </SafeAreaView>
-  );
+  )
 }
-
-
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA', // Light background for a clean look
+    backgroundColor: '#FFFFFF',
     paddingTop: 20,
   },
   loadingContainer: {
@@ -344,9 +346,9 @@ const styles = StyleSheet.create({
   infoContainer: {
     padding: 20,
     backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    marginTop: -20, // Lifted for a better transition
+    borderTopLeftRadius: 5,
+    borderTopRightRadius: 5,
+    marginTop: -10, // Lifted for a better transition
   },
   gymName: {
     fontSize: 18,
@@ -434,7 +436,7 @@ const styles = StyleSheet.create({
     bottom: 16,
     left: 16,
     right: 16,
-    backgroundColor: '#1B5E20', // Fallback color
+    backgroundColor: '#4CAF50', // Fallback color
     paddingVertical: 18,
     borderRadius: 50, // Rounded for a premium feel
     alignItems: 'center',
@@ -476,6 +478,9 @@ const styles = StyleSheet.create({
     top: 10,
     right: 10,
     padding: 8,
+  },
+  shareIcon: {
+    marginLeft: 12,
   },
 });
 
