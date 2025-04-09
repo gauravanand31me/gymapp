@@ -22,7 +22,15 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "y"
+      "bundleIdentifier": "com.yupluck.mepluck", 
+      "associatedDomains":["applinks:yupluck.com"],
+      "infoPlist": {
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLSchemes": ["yupluck"]
+          }
+        ]
+      }
     },
     "android": {
       "versionCode": 1,
@@ -40,7 +48,8 @@
       "useNextNotificationsApi": true
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "output": "server"
     },
     "notification": {
       "icon": "./assets/icon.png",
