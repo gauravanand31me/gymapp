@@ -31,15 +31,18 @@ import SearchListScreen from './screens/SearchGymScreen';
 import AutocompleteSearchComponent from './components/AutoCompleteInput';
 import PaymentFailedScreen from './screens/PaymentFailedScreen';
 import { NotificationProvider } from './context/NotificationContext';
+import RewardScreen from './screens/RewardScreen';
+import LandingScreen from './screens/LandingScreen';
+import CouponListScreen from './screens/CouponListScreen';
+import UserRatingsScreen from './screens/RatingScreen';
 
 const Stack = createStackNavigator();
 
-// ✅ Linking Configuration
 const linking = {
-  prefixes: ['yupluck://'],
+  prefixes: ["yupluck://"],
   config: {
     screens: {
-      GymDetails: 'GymDetails/:gym_id',
+      GymDetails: "GymDetails/:gym_id",
     },
   },
 };
@@ -132,7 +135,7 @@ export default function App() {
       }
 
       const { data: token } = await Notifications.getExpoPushTokenAsync({
-        projectId: "5c0cf145-3b66-4a09-a5aa-0b76f76d6260"
+        projectId: "de28077c-3982-44ff-8d62-6e1125668220"
       });
 
       if (token) {
@@ -198,7 +201,7 @@ export default function App() {
     <NotificationProvider>
       <NavigationContainer linking={linking}>
         <Stack.Navigator
-          initialRouteName={isAuthenticated ? "GymList" : "Login"}
+          initialRouteName={isAuthenticated ? "GymList" : "LandingScreen"}
           screenOptions={{ headerShown: false }}
         >
           <Stack.Screen name="Login" component={LoginScreen} />
@@ -223,6 +226,10 @@ export default function App() {
           <Stack.Screen name="SearchGymList" component={SearchListScreen} />
           <Stack.Screen name="SlotSelection" component={SlotSelectionScreen} />
           <Stack.Screen name="PaymentFailed" component={PaymentFailedScreen} />
+          <Stack.Screen name="RewardScreen" component={RewardScreen} />
+          <Stack.Screen name="LandingScreen" component={LandingScreen} />
+          <Stack.Screen name="CouponListScreen" component={CouponListScreen} />
+          <Stack.Screen name="UserRatingsScreen" component={UserRatingsScreen} />
           <Stack.Screen name="VisitedGymScreen" component={VisitedGymScreen} options={{ title: 'Visited Gyms' }} />
         </Stack.Navigator>
       </NavigationContainer>
