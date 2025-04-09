@@ -28,6 +28,7 @@
     "expo-location": "~18.0.1",
     "expo-navigation-bar": "~4.0.3",
     "expo-notifications": "~0.29.8",
+    "expo-router": "^4.0.20",
     "expo-sharing": "^13.0.1",
     "expo-splash-screen": "^0.29.18",
     "expo-status-bar": "~2.0.0",
