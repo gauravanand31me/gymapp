@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, FlatList,
-  Image, Modal, SafeAreaView, ActivityIndicator,StatusBar
+  Image, Modal, SafeAreaView, ActivityIndicator,StatusBar,
+  TextInput,
+  Alert
 } from 'react-native';
 import { fetchAllBookings, fetchBuddyInvites, rateBooking } from '../api/apiService';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -18,6 +20,7 @@ export default function BookingsScreen({ navigation }) {
   const [isEmpty, setIsEmpty] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isChanged, setIsChanged] = useState(false);
+  const [reviews, setReviews] = useState({});
 
   useEffect(() => {
     const getBookings = async () => {
@@ -42,11 +45,53 @@ export default function BookingsScreen({ navigation }) {
     setShowInviteModal(true);
   };
 
-  const handleRating = async (bookingId, gymId, star) => {
-    await rateBooking(bookingId, gymId, star);
+  // const handleRating = async (bookingId, gymId, star) => {
+  //   await rateBooking(bookingId, gymId, star);
+  //   setIsChanged(true);
+  //   setSelectedTab("Completed");
+  // };
+
+  const handleRating = (bookingId, gymId, rating) => {
+    setReviews((prev) => ({
+      ...prev,
+      [bookingId]: {
+        ...prev[bookingId],
+        rating,
+        gymId,
+      }
+    }));
+    console.log("reviews", reviews);
+};
+
+
+const handleReviewChange = (bookingId, text) => {
+    setReviews((prev) => ({
+      ...prev,
+      [bookingId]: {
+        ...prev[bookingId],
+        description: text
+      }
+    }));
+};
+
+const handleReviewSubmit = async (bookingId, gymId) => {
+  const rating = reviews[bookingId]?.rating;
+  const description = reviews[bookingId]?.description;
+
+  if (!rating) {
+    Alert.alert("Rating Required", "Please select a star rating before submitting.");
+    return;
+  }
+
+  try {
+    await rateBooking(bookingId, gymId, rating, description);
     setIsChanged(true);
     setSelectedTab("Completed");
-  };
+  } catch (error) {
+    Alert.alert("Error", "Something went wrong while submitting your review.");
+    console.error("Submit review failed:", error);
+  }
+};
 
 
 
@@ -141,22 +186,58 @@ const calculateValidTill = (date, type) => {
         </View>
 
         {selectedTab === "Completed" && (
-          <View style={styles.starRatingContainer}>
-            <Text style={styles.ratingPrompt}>Rate Your Experience:</Text>
-            <View style={styles.starContainer}>
-              {[1, 2, 3, 4, 5].map((star) => (
-                <TouchableOpacity key={star} onPress={() => handleRating(item.id, item.gymId, star)}>
-                  <Icon
-                    name="star"
-                    size={24}
-                    color={star <= item.bookingRating ? '#FBBF24' : '#E5E7EB'}
-                    style={styles.starIcon}
-                  />
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-        )}
+  <View style={styles.reviewContainer}>
+    <Text style={styles.ratingPrompt}>Rate Your Experience:</Text>
+
+    {!item.bookingRating && <View style={styles.starContainer}>
+        {[1, 2, 3, 4, 5].map((star) => (
+        <TouchableOpacity key={star} onPress={() => handleRating(item.id, item.gymId, star)}>
+          <Icon
+            name="star"
+            size={24}
+            color={star <= reviews[item.id]?.rating ? '#FBBF24' : '#E5E7EB'}
+            style={styles.starIcon}
+          />
+        </TouchableOpacity>
+      ))}
+    </View>}
+
+    {item.bookingRating && <View style={styles.starContainer}>
+        {[1, 2, 3, 4, 5].map((star) => (
+   
+          <Icon
+            key={star}
+            name="star"
+            size={24}
+            color={star <= item.bookingRating ? '#FBBF24' : '#E5E7EB'}
+            style={styles.starIcon}
+          />
+   
+      ))}
+    </View>}
+
+    {!item.bookingRating && (
+      <>
+        <TextInput
+          placeholder="Write about your experience..."
+          multiline
+          numberOfLines={4}
+          style={styles.reviewInput}
+          value={item.reviewText}
+          onChangeText={(text) => handleReviewChange(item.id, text)}
+        />
+
+        <TouchableOpacity
+          style={styles.submitButton}
+          onPress={() => handleReviewSubmit(item.id, item.gymId)}
+        >
+          <Text style={styles.submitText}>Submit Review</Text>
+        </TouchableOpacity>
+      </>
+    )}
+  </View>
+)}
+
       </View>
     </View>
   );
@@ -558,4 +639,34 @@ const styles = StyleSheet.create({
     marginTop: 4,
     fontWeight: "bold"
   },
+  reviewContainer: {
+    backgroundColor: '#f9f9f9',
+    padding: 16,
+    borderRadius: 8,
+    marginVertical: 10
+  },
+  starContainer: {
+    flexDirection: 'row',
+    marginBottom: 10
+  },
+  reviewInput: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 6,
+    padding: 10,
+    minHeight: 80,
+    textAlignVertical: 'top',
+    marginBottom: 10
+  },
+  submitButton: {
+    backgroundColor: '#10b981',
+    padding: 12,
+    borderRadius: 6,
+    alignItems: 'center'
+  },
+  submitText: {
+    color: '#fff',
+    fontWeight: 'bold'
+  }
+  
 });

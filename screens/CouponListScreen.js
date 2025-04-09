@@ -1,0 +1,109 @@
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, SafeAreaView, StatusBar } from 'react-native';
+import { ArrowLeft } from 'lucide-react-native';
+
+export default function CouponListScreen({ navigation, route }) {
+  const [coupons] = useState([
+    { id: '1', code: 'FIT50', description: 'Get 50% off on your first booking.' },
+    { id: '2', code: 'GYM100', description: 'Flat ₹100 off for monthly subscriptions.' },
+    { id: '3', code: 'WEEKLY20', description: '20% off for weekly bookings.' },
+  ]);
+
+  const applyCoupon = (couponCode) => {
+    // Send this back or update global/context/store based on your app logic
+    Alert.alert('Coupon Applied', `Code "${couponCode}" has been applied!`);
+    navigation.goBack();
+  };
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <StatusBar backgroundColor="#f5f5f5" barStyle="dark-content" />
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+          <ArrowLeft size={24} color="#2E7D32" />
+          <Text style={styles.backText}>Back</Text>
+        </TouchableOpacity>
+        <Text style={styles.title}>Available Coupons</Text>
+      </View>
+
+      <FlatList
+        data={coupons}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.list}
+        renderItem={({ item }) => (
+          <View style={styles.card}>
+            <Text style={styles.code}>{item.code}</Text>
+            <Text style={styles.description}>{item.description}</Text>
+            <TouchableOpacity style={styles.applyButton} onPress={() => applyCoupon(item.code)}>
+              <Text style={styles.applyButtonText}>Apply</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      />
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F5F5F5',
+  },
+  header: {
+    padding: 20,
+    borderBottomColor: '#ddd',
+    borderBottomWidth: 1,
+    backgroundColor: '#fff',
+  },
+  backBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  backText: {
+    marginLeft: 6,
+    color: '#2E7D32',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#2E7D32',
+  },
+  list: {
+    padding: 20,
+  },
+  card: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 16,
+    marginBottom: 18,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+  },
+  code: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#2E7D32',
+    marginBottom: 8,
+  },
+  description: {
+    fontSize: 16,
+    color: '#444',
+    marginBottom: 16,
+  },
+  applyButton: {
+    backgroundColor: '#2E7D32',
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  applyButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+});

@@ -20,7 +20,7 @@ const EmptyFriendsContainer = () => {
       }
     };
     fetchLeaderboard();
-  }, []);
+  }, [leaderboard]);
 
   const getMedalColor = (rank) => {
     if (rank === 1) return "#FFD700"; // Gold

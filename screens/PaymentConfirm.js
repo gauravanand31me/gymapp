@@ -10,11 +10,12 @@ import {
   SafeAreaView,
   StatusBar,
 } from 'react-native';
-import { Calendar, Clock, DollarSign, ArrowLeft, CheckCircle, CalendarClock} from 'lucide-react-native';
+import { Calendar, Clock, DollarSign, ArrowLeft, CheckCircle, CalendarClock } from 'lucide-react-native';
 import * as WebBrowser from 'expo-web-browser';
 import { acceptBuddyRequest, createBooking, createOrder, fetchIndividualGymData } from '../api/apiService';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect } from '@react-navigation/native';
+// import CouponSection from '../components/CouponCodeContainer';
 
 export default function PaymentScreen({ route, navigation }) {
   const { slotDetails, requestId } = route.params
@@ -22,8 +23,8 @@ export default function PaymentScreen({ route, navigation }) {
   const [isExpired, setIsExpired] = useState(false)
   const [confirm, setConfirm] = useState(false)
   const [gymData, setGymData] = useState(null);
-  
-  
+
+
 
   useEffect(() => {
     const checkExpiration = () => {
@@ -54,7 +55,7 @@ export default function PaymentScreen({ route, navigation }) {
 
   const fetchGymData = async () => {
     try {
-      
+
       const data = await fetchIndividualGymData(slotDetails?.gymId);
       setGymData(data);
     } catch (error) {
@@ -80,7 +81,7 @@ export default function PaymentScreen({ route, navigation }) {
           bookingResponse.bookingId,
           requestId
         );
-        
+
         if (orderResponse && orderResponse.orderId) {
           // Set the returning from browser flag before opening WebBrowser
           global.isReturningFromBrowser = true;
@@ -117,7 +118,7 @@ export default function PaymentScreen({ route, navigation }) {
     const pollInterval = setInterval(async () => {
       try {
         const indvBooking = await acceptBuddyRequest(orderId)
-      
+
         if (indvBooking.booking.isPaid) {
           clearInterval(pollInterval)
           navigation.replace('ConfirmationScreen', { slotDetails, data: bookingResponse })
@@ -176,7 +177,7 @@ export default function PaymentScreen({ route, navigation }) {
               <View style={styles.detailRow}>
                 <Calendar size={24} color="#4CAF50" />
                 <Text style={styles.detail}>
-                        Date: {slotDetails.date ? slotDetails.date : formatDate(slotDetails.bookingDate)}
+                  Date: {slotDetails.date ? slotDetails.date : formatDate(slotDetails.bookingDate)}
                 </Text>
               </View>
               <View style={styles.detailRow}>
@@ -193,12 +194,24 @@ export default function PaymentScreen({ route, navigation }) {
                 <Text style={styles.detail}>Duration: {slotDetails.duration || slotDetails.bookingDuration} min</Text>
               </View>}
               <View style={styles.detailRow}>
-                
+
                 <Text style={styles.price}>₹  Price: INR {slotDetails.price * (slotDetails.duration / 60) || slotDetails.subscriptionPrice}
                 </Text>
               </View>
             </View>
-              
+
+            {/* <CouponSection
+              couponCode={slotDetails.couponCode || ''}
+              onCouponChange={(text) => {
+                slotDetails.couponCode = text; // You can update this to use useState if needed
+              }}
+              onApplyCoupon={() => {
+                // Optional: Add coupon validation logic here
+                Alert.alert("Coupon Applied!", `Code: ${slotDetails.couponCode}`);
+              }}
+              onNavigateToCouponList={() => navigation.navigate('CouponListScreen')}
+            /> */}
+
             {isExpired ? (
               <Text style={styles.expiredText}>This booking time has expired.</Text>
             ) : !confirm ? (
@@ -216,7 +229,7 @@ export default function PaymentScreen({ route, navigation }) {
               </View>
             )}
 
-            
+
 
             <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
               <ArrowLeft size={24} color="#4CAF50" />

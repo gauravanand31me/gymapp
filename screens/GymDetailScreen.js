@@ -145,7 +145,13 @@ export default function GymDetailScreen({ navigation, route }) {
     )
   }
 
-  const truncatedDescription = gymData?.description?.split(" ").slice(0, 50).join(" ")
+  const goToRatingPage = () => {
+    navigation.navigate('UserRatingsScreen', {
+      gymId: gym_id
+    });
+  };
+
+  const truncatedDescription = gymData?.description?.split(' ').slice(0, 50).join(' ');
 
   return (
     <SafeAreaView style={styles.container}>
@@ -201,9 +207,11 @@ export default function GymDetailScreen({ navigation, route }) {
         <View style={styles.infoContainer}>
           <View style={styles.ratingContainer}>
             <Icon name="star" size={16} color="#FFD700" />
-            <Text style={styles.ratingText}>
-              {gymData.rating} ({gymData.reviews} reviews)
-            </Text>
+            <TouchableOpacity onPress={goToRatingPage}>
+      <Text style={styles.ratingText}>
+        {gymData.rating} ({gymData.reviews} reviews) See all
+      </Text>
+    </TouchableOpacity>
           </View>
           <Text style={styles.gymDescription}>
             {isDescriptionExpanded ? gymData.description : `${truncatedDescription}...`}
