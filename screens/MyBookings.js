@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, FlatList,
   Image, Modal, SafeAreaView, ActivityIndicator,StatusBar,
-  TextInput
+  TextInput,
+  Alert
 } from 'react-native';
 import { fetchAllBookings, fetchBuddyInvites, rateBooking } from '../api/apiService';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -74,10 +75,23 @@ const handleReviewChange = (bookingId, text) => {
 };
 
 const handleReviewSubmit = async (bookingId, gymId) => {
-  await rateBooking(bookingId, gymId, reviews[bookingId]?.rating, reviews[bookingId]?.description);
-  setIsChanged(true);
-  setSelectedTab("Completed");
-}
+  const rating = reviews[bookingId]?.rating;
+  const description = reviews[bookingId]?.description;
+
+  if (!rating) {
+    Alert.alert("Rating Required", "Please select a star rating before submitting.");
+    return;
+  }
+
+  try {
+    await rateBooking(bookingId, gymId, rating, description);
+    setIsChanged(true);
+    setSelectedTab("Completed");
+  } catch (error) {
+    Alert.alert("Error", "Something went wrong while submitting your review.");
+    console.error("Submit review failed:", error);
+  }
+};
 
 
 

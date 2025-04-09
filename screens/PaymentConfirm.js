@@ -15,7 +15,7 @@ import * as WebBrowser from 'expo-web-browser';
 import { acceptBuddyRequest, createBooking, createOrder, fetchIndividualGymData } from '../api/apiService';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect } from '@react-navigation/native';
-import CouponSection from '../components/CouponCodeContainer';
+// import CouponSection from '../components/CouponCodeContainer';
 
 export default function PaymentScreen({ route, navigation }) {
   const { slotDetails, requestId } = route.params
@@ -200,7 +200,7 @@ export default function PaymentScreen({ route, navigation }) {
               </View>
             </View>
 
-            <CouponSection
+            {/* <CouponSection
               couponCode={slotDetails.couponCode || ''}
               onCouponChange={(text) => {
                 slotDetails.couponCode = text; // You can update this to use useState if needed
@@ -210,7 +210,7 @@ export default function PaymentScreen({ route, navigation }) {
                 Alert.alert("Coupon Applied!", `Code: ${slotDetails.couponCode}`);
               }}
               onNavigateToCouponList={() => navigation.navigate('CouponListScreen')}
-            />
+            /> */}
 
             {isExpired ? (
               <Text style={styles.expiredText}>This booking time has expired.</Text>
