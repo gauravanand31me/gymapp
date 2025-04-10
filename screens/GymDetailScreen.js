@@ -115,31 +115,11 @@ const shareGym = async () => {
     setShowAmenitiesPopup(!showAmenitiesPopup)
   }
 
-const openMaps = (latitude, longitude) => {
-  const appleMapsUrl = `http://maps.apple.com/?q=${latitude},${longitude}`;
-  const googleMapsUrl = `https://www.google.com/maps?q=${latitude},${longitude}`;
-  const googleMapsAppUrl = `comgooglemaps://?q=${latitude},${longitude}`;
-
-if (Platform.OS === 'ios') {
-    Linking.canOpenURL(googleMapsAppUrl).then((supported) => {
-      if (supported) {
-        Alert.alert(
-          "Open in Maps",
-          "Choose an app:",
-          [
-            { text: "Google Maps", onPress: () => Linking.openURL(googleMapsAppUrl) },
-            { text: "Apple Maps", onPress: () => Linking.openURL(appleMapsUrl) },
-            { text: "Cancel", style: "cancel" }
-          ]
-        );
-      } else {
-        Linking.openURL(appleMapsUrl); // Default to Apple Maps if Google Maps is unavailable
-      }
-    }).catch((err) => console.error("Error opening map:", err));
-  } else {
-    Linking.openURL(googleMapsUrl); // Android: Open Google Maps in browser
+  const openGoogleMaps = (latitude, longitude) => {
+    const url = `https://www.google.com/maps?q=${latitude},${longitude}`
+    Linking.openURL(url).catch((err) => console.error("Error opening Google Maps:", err))
   }
-};
+
 
   if (loading) {
     return (
@@ -238,7 +218,7 @@ if (Platform.OS === 'ios') {
             </Text>
             <TouchableOpacity
               style={styles.mapButton}
-              onPress={() => openMaps(gymData.latitude, gymData.longitude)}
+              onPress={() => openGoogleMaps(gymData.latitude, gymData.longitude)}
             >
               <Text style={styles.mapButtonText}>Open in Maps</Text>
             </TouchableOpacity>
