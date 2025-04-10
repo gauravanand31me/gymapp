@@ -87,6 +87,7 @@ const styles = StyleSheet.create({
       flexDirection: 'row',
       alignItems: 'center',
       marginBottom: 10,
+      marginTop: 45, 
     },
     backText: {
       marginLeft: 6,
