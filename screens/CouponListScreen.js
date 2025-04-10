@@ -3,11 +3,11 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, SafeAreaView
 import { ArrowLeft } from 'lucide-react-native';
 
 export default function CouponListScreen({ navigation, route }) {
-  const { couponCode } = route.params;
+  const { couponCode, slotDetails,  requestId} = route.params;
 
-  const applyCoupon = (couponCode) => {
-    Alert.alert('Coupon Applied', `Code "${couponCode}" has been applied!`);
-    navigation.goBack();
+  const applyCoupon = (couponCodeData) => {
+    Alert.alert('Coupon Applied', `Code "${couponCodeData.coupon_code}" has been applied!`);
+    navigation.navigate('PaymentScreen', { selectedCoupon: couponCodeData, slotDetails,  requestId});
   };
 
   const renderCoupon = ({ item }) => {
@@ -22,7 +22,7 @@ export default function CouponListScreen({ navigation, route }) {
         <Text style={styles.description}>{description}</Text>
         <TouchableOpacity
           style={styles.applyButton}
-          onPress={() => applyCoupon(item.coupon_code)}
+          onPress={() => applyCoupon(item)}
         >
           <Text style={styles.applyButtonText}>Apply</Text>
         </TouchableOpacity>
