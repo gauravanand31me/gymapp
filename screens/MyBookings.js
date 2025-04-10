@@ -151,7 +151,7 @@ const calculateValidTill = (date, type) => {
           </Text>}
           {item.type === "daily" && <Text style={styles.bookingInfoText}>Slot time: {item.time}</Text>}
           {item.type === "daily"  && <Text style={styles.bookingInfoText}>Duration: {item.duration} minutes</Text>}
-          <Text style={styles.priceText}>Price: ₹ {item.price}</Text>
+          <Text style={styles.priceText}>Price: ₹ {item.discountedPrice || item.price}</Text>
 
                       <View style={styles.inviteAddMoreContainer}>
               <TouchableOpacity onPress={() => fetchInvitesForBooking(item)} style={styles.inviteButton}>

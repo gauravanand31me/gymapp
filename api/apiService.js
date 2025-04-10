@@ -259,7 +259,7 @@ export const verifyOtp = async (mobileNumber, otp) => {
 // Create a new date object in the format YYYY-MM-DD
         const parsedDate = new Date(`${year}-${month}-${day}`);
  
-        const bookingDate = parsedDate.toISOString(); // Convert to ISO format
+      const bookingDate = parsedDate.toISOString(); // Convert to ISO format
       const userToken = await AsyncStorage.getItem('authToken'); // Fetch token if needed
       const response = await axios.post(`${BASE_URL}/booking/create`, {
         slotId: slotDetails.slotId || slotDetails.bookingSlotId, // slot ID
@@ -270,7 +270,9 @@ export const verifyOtp = async (mobileNumber, otp) => {
         paymentId: slotDetails?.paymentId || Date.now.toString(),              // razorpay payment ID
         duration: slotDetails?.duration || slotDetails.bookingDuration,
         price: slotDetails.price * (slotDetails.duration / 60) || slotDetails.subscriptionPrice,
-        requestId: slotDetails.requestId
+        requestId: slotDetails.requestId,
+        discountedPrice: slotDetails.discountedPrice,
+        couponApplied: slotDetails.couponCode
       },{
         headers: {
           Authorization: `Bearer ${userToken}`,  // Add the Bearer token here
@@ -324,7 +326,8 @@ export const verifyOtp = async (mobileNumber, otp) => {
         paymentStatus: booking.isPaid == true ? "Paid" : "Not Paid",
         duration: booking.duration,
         bookingRating: booking.rating,
-        type: booking.type
+        type: booking.type,
+        discountedPrice: booking.discountedPrice
       }));
     } catch (error) {
       console.error("Error fetching bookings:", error);

@@ -19,7 +19,8 @@ import CouponSection from '../components/CouponCodeContainer';
 // import CouponSection from '../components/CouponCodeContainer';
 
 export default function PaymentScreen({ route, navigation }) {
-  const { slotDetails, requestId } = route.params
+  const { slotDetails, requestId, selectedCoupon} = route.params;
+  const [platformCharges, setPlatformCharges] = useState(0);
   const [loading, setLoading] = useState(false)
   const [isExpired, setIsExpired] = useState(false)
   const [confirm, setConfirm] = useState(false)
@@ -29,6 +30,21 @@ export default function PaymentScreen({ route, navigation }) {
   const [discount, setDiscount] = useState({});
   const [originalPrice, setOriginalPrice] = useState(0);
   const [finalPrice, setFinalPrice] = useState(0);
+
+
+  useEffect(() => {
+    if (selectedCoupon) {
+      setApplyCoupon(selectedCoupon.coupon_code);
+      setDiscount(selectedCoupon);
+  
+      const discountPrice = selectedCoupon.discount_type === 'cash'
+        ? parseFloat(selectedCoupon.discount_amount)
+        : (originalPrice * parseFloat(selectedCoupon.discount_amount)) / 100;
+  
+      const final = originalPrice - discountPrice;
+      setFinalPrice(final);
+    }
+  }, [selectedCoupon, originalPrice]);
 
   useEffect(() => {
     const checkExpiration = () => {
@@ -51,9 +67,10 @@ export default function PaymentScreen({ route, navigation }) {
         setIsExpired(true)
       }
     }
-    
+
     setOriginalPrice(slotDetails?.price * (slotDetails.duration / 60) || slotDetails.subscriptionPrice);
     setFinalPrice(slotDetails?.price * (slotDetails.duration / 60) || slotDetails.subscriptionPrice);
+    setPlatformCharges(slotDetails?.price * 5 / 100);
     checkExpiration();
     fetchGymData();
     setTimeout(() => { fetchCouponcode() }, 500)
@@ -61,10 +78,10 @@ export default function PaymentScreen({ route, navigation }) {
   }, [slotDetails.date, slotDetails.time])
 
   const fetchCouponcode = async () => {
-      const coupons = await getAllCouponCode(slotDetails?.gymId);
-      setCouponCode(coupons);
+    const coupons = await getAllCouponCode(slotDetails?.gymId);
+    setCouponCode(coupons);
   }
-  
+
   const fetchGymData = async () => {
     try {
 
@@ -83,13 +100,16 @@ export default function PaymentScreen({ route, navigation }) {
       if (requestId) {
         slotDetails.requestId = requestId;
       }
+
+      slotDetails.discountedPrice = finalPrice + platformCharges;
+      slotDetails.couponCode = appliedCoupon;
       const bookingResponse = await createBooking(slotDetails);
 
 
 
       if (bookingResponse) {
         const orderResponse = await createOrder(
-          slotDetails.price * (slotDetails.duration / 60) || slotDetails.subscriptionPrice,
+          finalPrice + platformCharges,
           bookingResponse.bookingId,
           requestId
         );
@@ -164,35 +184,32 @@ export default function PaymentScreen({ route, navigation }) {
     const found = couponCode.find(
       (c) => c.coupon_code.toLowerCase() === appliedCoupon.toLowerCase()
     );
-    
+
     setDiscount(found);
     if (found) {
-  
+
       let final = originalPrice;
       if (appliedCoupon) {
         const discountPrice = found.discount_type === 'cash'
           ? parseFloat(found.discount_amount)
           : (originalPrice * parseFloat(found.discount_amount)) / 100;
-  
-      
+
+
         final = originalPrice - discountPrice;
         setFinalPrice(final)
-    }
-
-
-      //Alert.alert('Coupon Applied!', `You saved ${found.discount_type === 'cash' ? '₹' : ''}${found.discount_amount}${found.discount_type === 'percent' ? '%' : ''}`);
-     
+      }
+    
     } else {
       setDiscount({});
       Alert.alert('Invalid Coupon', 'This coupon code does not exist or is not applicable.');
     }
   };
 
- 
 
-  
 
-  
+
+
+
 
   return (
     <SafeAreaView style={styles.container}>
@@ -239,30 +256,68 @@ export default function PaymentScreen({ route, navigation }) {
                 <Clock size={24} color="#4CAF50" />
                 <Text style={styles.detail}>Duration: {slotDetails.duration || slotDetails.bookingDuration} min</Text>
               </View>}
-              {(!discount?.discount_type) && <View style={styles.detailRow}>
-                <Text style={styles.price}>
-                    ₹  {originalPrice.toFixed(2)}
-                </Text>
-                  
-              </View>}
 
-              {( discount?.discount_type) && <View style={styles.detailRow}>
-                <Text style={{ fontSize: 16, color: '#999', textDecorationLine: 'line-through', marginRight: 10 }}>
-                    ₹{originalPrice.toFixed(2)}
-                </Text>
-                  <Text style={styles.price}>₹  Price: INR {finalPrice.toFixed(2)}
-                  </Text>
-              </View>}
+
+
             </View>
-           
+
+
+
+            <View style={styles.detailsContainer}>
+              <Text style={styles.sectionTitle}>Charges Breakdown</Text>
+
+              <View style={styles.chargeRow}>
+                <Text style={styles.chargeLabel}>Base Price</Text>
+                <Text style={styles.chargeValue}>₹ {originalPrice.toFixed(2)}</Text>
+              </View>
+
+              {discount?.discount_type && (
+                <View style={styles.chargeRow}>
+                  <Text style={styles.chargeLabel}>Discount ({discount.discount_type === 'cash' ? '₹' : ''}{discount.discount_amount}{discount.discount_type === 'percent' ? '%' : ''})</Text>
+                  <Text style={styles.chargeValue}>– ₹ {(originalPrice - finalPrice).toFixed(2)}</Text>
+                </View>
+              )}
+
+              <View style={styles.chargeRow}>
+                <Text style={styles.chargeLabel}>Platform Fee (5%)</Text>
+                <Text style={styles.chargeValue}>₹ {platformCharges.toFixed(2)}</Text>
+              </View>
+
+              <View style={styles.chargeDivider} />
+
+              <View style={styles.chargeRow}>
+                <Text style={styles.totalLabel}>Total Payable</Text>
+                <Text style={styles.totalValue}>₹ {(finalPrice + platformCharges).toFixed(2)}</Text>
+              </View>
+            </View>
+
+
+
             <CouponSection
               couponCode={appliedCoupon || ''}
               onCouponChange={(text) => {
                 setApplyCoupon(text)
               }}
               onApplyCoupon={applyCoupon}
-              onNavigateToCouponList={() => navigation.navigate('CouponListScreen', { couponCode })}
-            /> 
+              onNavigateToCouponList={() => navigation.navigate('CouponListScreen', { couponCode, slotDetails, requestId })}
+            />
+
+
+{discount?.coupon_code && (
+  <View style={styles.removeCouponContainer}>
+    <Text style={styles.appliedCouponText}>
+      Applied Coupon: <Text style={styles.couponCodeText}>{discount.coupon_code}</Text>
+    </Text>
+    <TouchableOpacity onPress={() => {
+      setApplyCoupon('');
+      setDiscount({});
+      setFinalPrice(originalPrice);
+      Alert.alert("Coupon Removed", "The applied coupon has been removed.");
+    }}>
+      <Text style={styles.removeText}>Remove</Text>
+    </TouchableOpacity>
+  </View>
+)}
 
             {isExpired ? (
               <Text style={styles.expiredText}>This booking time has expired.</Text>
@@ -409,5 +464,65 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textDecorationLine: 'underline',
     fontSize: 16,
-  }
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#2E7D32',
+    marginBottom: 12,
+    marginTop: 10,
+  },
+  chargeRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginVertical: 6,
+  },
+  chargeLabel: {
+    fontSize: 16,
+    color: '#666',
+  },
+  chargeValue: {
+    fontSize: 16,
+    color: '#222',
+    fontWeight: '500',
+  },
+  chargeDivider: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+    marginVertical: 10,
+  },
+  totalLabel: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#2E7D32',
+  },
+  totalValue: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#2E7D32',
+  },
+  removeCouponContainer: {
+    backgroundColor: '#E8F5E9',
+    borderRadius: 12,
+    padding: 12,
+    marginVertical: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  appliedCouponText: {
+    fontSize: 16,
+    color: '#388E3C',
+  },
+  couponCodeText: {
+    fontWeight: 'bold',
+    color: '#2E7D32',
+  },
+  removeText: {
+    color: '#D32F2F',
+    fontWeight: 'bold',
+    fontSize: 14,
+    textDecorationLine: 'underline',
+  },
+  
 });
