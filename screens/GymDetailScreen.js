@@ -83,37 +83,25 @@ export default function GymDetailScreen({ navigation, route }) {
     setModalVisible(true)
   }
 
-  // Simplified share function that works reliably
-  const shareGym = async () => {
-    if (!gymData) return;
-  
-    try {
-      const iosAppStoreLink = "https://apps.apple.com/in/app/yupluck/id6737851845";
-      const androidPlayStoreLink = "https://play.google.com/store/apps/details?id=com.yupluck.mepluck";
-  
-      // ✅ Use path-based universal link
-      const universalLink = `https://yupluck.com/appgym/${gym_id}`;
-  
-      const message = `Check out ${gymData.name} on Yupluck!\n\n📍 ${gymData.addressLine1}, ${gymData.city}`;
-  
-      if (Platform.OS === "ios") {
-        await Share.share({
-          message,
-          url: universalLink, // iOS reads this field
-        });
-      } else {
-        await Share.share({
-          message: `${message}\n\n${universalLink}`,
-          title: `${gymData.name} on Yupluck`,
-        });
-      }
-  
-      console.log("Shared successfully");
-    } catch (error) {
-      Alert.alert("Error", "Could not share gym details");
-      console.error("Error sharing:", error);
-    }
-  };
+const shareGym = async () => {
+  if (!gymData) return;
+
+  try {
+    const universalLink = `https://yupluck.com/appgym/${gym_id}`;
+    const message = `Check out ${gymData.name} on Yupluck!\n\n📍 ${gymData.addressLine1}, ${gymData.city}\n\n${universalLink}`;
+
+    await Share.share({
+      message,
+      title: `${gymData.name} on Yupluck`, // Title works on Android
+    });
+
+    console.log("Shared successfully");
+  } catch (error) {
+    Alert.alert("Error", "Could not share gym details");
+    console.error("Error sharing:", error);
+  }
+};
+
   const closeModal = () => {
     setModalVisible(false)
     setSelectedImage(null)
@@ -127,10 +115,31 @@ export default function GymDetailScreen({ navigation, route }) {
     setShowAmenitiesPopup(!showAmenitiesPopup)
   }
 
-  const openGoogleMaps = (latitude, longitude) => {
-    const url = `https://www.google.com/maps?q=${latitude},${longitude}`
-    Linking.openURL(url).catch((err) => console.error("Error opening Google Maps:", err))
+const openMaps = (latitude, longitude) => {
+  const appleMapsUrl = `http://maps.apple.com/?q=${latitude},${longitude}`;
+  const googleMapsUrl = `https://www.google.com/maps?q=${latitude},${longitude}`;
+  const googleMapsAppUrl = `comgooglemaps://?q=${latitude},${longitude}`;
+
+if (Platform.OS === 'ios') {
+    Linking.canOpenURL(googleMapsAppUrl).then((supported) => {
+      if (supported) {
+        Alert.alert(
+          "Open in Maps",
+          "Choose an app:",
+          [
+            { text: "Google Maps", onPress: () => Linking.openURL(googleMapsAppUrl) },
+            { text: "Apple Maps", onPress: () => Linking.openURL(appleMapsUrl) },
+            { text: "Cancel", style: "cancel" }
+          ]
+        );
+      } else {
+        Linking.openURL(appleMapsUrl); // Default to Apple Maps if Google Maps is unavailable
+      }
+    }).catch((err) => console.error("Error opening map:", err));
+  } else {
+    Linking.openURL(googleMapsUrl); // Android: Open Google Maps in browser
   }
+};
 
   if (loading) {
     return (
@@ -229,7 +238,7 @@ export default function GymDetailScreen({ navigation, route }) {
             </Text>
             <TouchableOpacity
               style={styles.mapButton}
-              onPress={() => openGoogleMaps(gymData.latitude, gymData.longitude)}
+              onPress={() => openMaps(gymData.latitude, gymData.longitude)}
             >
               <Text style={styles.mapButtonText}>Open in Maps</Text>
             </TouchableOpacity>
