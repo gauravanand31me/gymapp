@@ -39,10 +39,15 @@ import UserRatingsScreen from './screens/RatingScreen';
 const Stack = createStackNavigator();
 
 const linking = {
-  prefixes: ["yupluck://"],
+  prefixes: ["https://yupluck.com", "yupluck://"],
   config: {
     screens: {
-      GymDetails: "GymDetails/:gym_id",
+      GymDetails: {
+        path: "appgym/:gym_id",
+        parse: {
+          gym_id: (id) => `${id}`,
+        },
+      },
     },
   },
 };
