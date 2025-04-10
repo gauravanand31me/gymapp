@@ -25,7 +25,10 @@ export default function PaymentScreen({ route, navigation }) {
   const [confirm, setConfirm] = useState(false)
   const [gymData, setGymData] = useState(null);
   const [couponCode, setCouponCode] = useState([]);
-  
+  const [appliedCoupon, setApplyCoupon] = useState("");
+  const [discount, setDiscount] = useState({});
+  const [originalPrice, setOriginalPrice] = useState(0);
+  const [finalPrice, setFinalPrice] = useState(0);
 
   useEffect(() => {
     const checkExpiration = () => {
@@ -49,7 +52,8 @@ export default function PaymentScreen({ route, navigation }) {
       }
     }
     
-
+    setOriginalPrice(slotDetails?.price * (slotDetails.duration / 60) || slotDetails.subscriptionPrice);
+    setFinalPrice(slotDetails?.price * (slotDetails.duration / 60) || slotDetails.subscriptionPrice);
     checkExpiration();
     fetchGymData();
     setTimeout(() => { fetchCouponcode() }, 500)
@@ -156,6 +160,40 @@ export default function PaymentScreen({ route, navigation }) {
     return `${day}/${month}/${year}`;
   };
 
+  const applyCoupon = () => {
+    const found = couponCode.find(
+      (c) => c.coupon_code.toLowerCase() === appliedCoupon.toLowerCase()
+    );
+    
+    setDiscount(found);
+    if (found) {
+  
+      let final = originalPrice;
+      if (appliedCoupon) {
+        const discountPrice = found.discount_type === 'cash'
+          ? parseFloat(found.discount_amount)
+          : (originalPrice * parseFloat(found.discount_amount)) / 100;
+  
+      
+        final = originalPrice - discountPrice;
+        setFinalPrice(final)
+    }
+
+
+      //Alert.alert('Coupon Applied!', `You saved ${found.discount_type === 'cash' ? '₹' : ''}${found.discount_amount}${found.discount_type === 'percent' ? '%' : ''}`);
+     
+    } else {
+      setDiscount({});
+      Alert.alert('Invalid Coupon', 'This coupon code does not exist or is not applicable.');
+    }
+  };
+
+ 
+
+  
+
+  
+
   return (
     <SafeAreaView style={styles.container}>
       {/* StatusBar Configuration */}
@@ -201,22 +239,28 @@ export default function PaymentScreen({ route, navigation }) {
                 <Clock size={24} color="#4CAF50" />
                 <Text style={styles.detail}>Duration: {slotDetails.duration || slotDetails.bookingDuration} min</Text>
               </View>}
-              <View style={styles.detailRow}>
-
-                <Text style={styles.price}>₹  Price: INR {slotDetails.price * (slotDetails.duration / 60) || slotDetails.subscriptionPrice}
+              {(!discount?.discount_type) && <View style={styles.detailRow}>
+                <Text style={styles.price}>
+                    ₹  {originalPrice.toFixed(2)}
                 </Text>
-              </View>
-            </View>
+                  
+              </View>}
 
+              {( discount?.discount_type) && <View style={styles.detailRow}>
+                <Text style={{ fontSize: 16, color: '#999', textDecorationLine: 'line-through', marginRight: 10 }}>
+                    ₹{originalPrice.toFixed(2)}
+                </Text>
+                  <Text style={styles.price}>₹  Price: INR {finalPrice.toFixed(2)}
+                  </Text>
+              </View>}
+            </View>
+           
             <CouponSection
-              couponCode={slotDetails.couponCode || ''}
+              couponCode={appliedCoupon || ''}
               onCouponChange={(text) => {
-                slotDetails.couponCode = text; // You can update this to use useState if needed
+                setApplyCoupon(text)
               }}
-              onApplyCoupon={() => {
-                // Optional: Add coupon validation logic here
-                Alert.alert("Coupon Applied!", `Code: ${slotDetails.couponCode}`);
-              }}
+              onApplyCoupon={applyCoupon}
               onNavigateToCouponList={() => navigation.navigate('CouponListScreen', { couponCode })}
             /> 
 
