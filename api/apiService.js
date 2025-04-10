@@ -28,6 +28,8 @@ export const loginUser = async (phoneNumber) => {
 
 
 
+
+
 export const registerUser = async (fullName, phoneNumber) => {
   try {
     const response = await axios.post(`${BASE_URL}/auth/register`, {
@@ -698,6 +700,26 @@ export const deleteProfileImage = async () => {
     throw error;
   }
 }
+
+
+
+export const fetchUserRatings = async (gymId) => {
+  try {
+    const userToken = await AsyncStorage.getItem('authToken'); // Fetch token if needed
+    const response = await axios.get(`${BASE_URL}/rating/gym/${gymId}`, {}, {
+      headers: {
+        Authorization: `Bearer ${userToken}`,  // Add the Bearer token here
+      }
+    });
+    
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching visited gyms:', error);
+    throw error;
+  }
+}
+
+
 
 
 
