@@ -1,18 +1,33 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, SafeAreaView, StatusBar } from 'react-native';
 import { ArrowLeft } from 'lucide-react-native';
 
 export default function CouponListScreen({ navigation, route }) {
-  const [coupons] = useState([
-    { id: '1', code: 'FIT50', description: 'Get 50% off on your first booking.' },
-    { id: '2', code: 'GYM100', description: 'Flat ₹100 off for monthly subscriptions.' },
-    { id: '3', code: 'WEEKLY20', description: '20% off for weekly bookings.' },
-  ]);
+  const { couponCode } = route.params;
 
   const applyCoupon = (couponCode) => {
-    // Send this back or update global/context/store based on your app logic
     Alert.alert('Coupon Applied', `Code "${couponCode}" has been applied!`);
     navigation.goBack();
+  };
+
+  const renderCoupon = ({ item }) => {
+    const description =
+      item.discount_type === 'cash'
+        ? `Get ₹${parseFloat(item.discount_amount)} off your purchase.`
+        : `Save ${parseFloat(item.discount_amount)}% on your purchase.`;
+
+    return (
+      <View style={styles.card}>
+        <Text style={styles.code}>{item.coupon_code}</Text>
+        <Text style={styles.description}>{description}</Text>
+        <TouchableOpacity
+          style={styles.applyButton}
+          onPress={() => applyCoupon(item.coupon_code)}
+        >
+          <Text style={styles.applyButtonText}>Apply</Text>
+        </TouchableOpacity>
+      </View>
+    );
   };
 
   return (
@@ -26,20 +41,18 @@ export default function CouponListScreen({ navigation, route }) {
         <Text style={styles.title}>Available Coupons</Text>
       </View>
 
-      <FlatList
-        data={coupons}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.list}
-        renderItem={({ item }) => (
-          <View style={styles.card}>
-            <Text style={styles.code}>{item.code}</Text>
-            <Text style={styles.description}>{item.description}</Text>
-            <TouchableOpacity style={styles.applyButton} onPress={() => applyCoupon(item.code)}>
-              <Text style={styles.applyButtonText}>Apply</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      />
+      {couponCode && couponCode.length > 0 ? (
+        <FlatList
+          data={couponCode}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.list}
+          renderItem={renderCoupon}
+        />
+      ) : (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>No coupon found...</Text>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -105,5 +118,13 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  emptyContainer: {
+    padding: 30,
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#777',
   },
 });
