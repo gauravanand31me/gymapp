@@ -108,8 +108,9 @@ export default function PaymentScreen({ route, navigation }) {
 
 
       if (bookingResponse) {
+        const amountToPay = finalPrice + platformCharges;
         const orderResponse = await createOrder(
-          finalPrice + platformCharges,
+          amountToPay,
           bookingResponse.bookingId,
           requestId
         );
