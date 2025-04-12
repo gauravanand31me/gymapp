@@ -83,41 +83,24 @@ export default function GymDetailScreen({ navigation, route }) {
     setModalVisible(true)
   }
 
-  // Simplified share function that works reliably
   const shareGym = async () => {
-    if (!gymData) return
+    if (!gymData) return;
 
     try {
-      // Direct app store links
-      const iosAppStoreLink = "https://apps.apple.com/app/yupluck/id6737851845" // Replace with your App Store ID
-      const androidPlayStoreLink = "https://play.google.com/store/apps/details?id=com.yupluck.mepluck" // Replace with your package name
+      const universalLink = `https://yupluck.com/appgym/${gym_id}`;
+      const message = `Check out ${gymData.name} on Yupluck!\n\n📍 ${gymData.addressLine1}, ${gymData.city}\n\n${universalLink}`;
 
-      // Create a universal link that works better with iOS Safari
-      // This should be a properly configured Universal Link domain for your app
-      const universalLink = `https://yupluck.com/appgym?id=${gym_id}`
+      await Share.share({
+        message,
+        title: `${gymData.name} on Yupluck`, // Title works on Android
+      });
 
-      const message = `Check out ${gymData.name} on Yupluck!\n\n📍 ${gymData.addressLine1}, ${gymData.city}`
-
-      if (Platform.OS === "ios") {
-        // For iOS, use the universal link as the URL
-        const result = await Share.share({
-          message: message,
-          url: universalLink, // iOS uses this as the shared URL
-        })
-      } else {
-        // Android implementation
-        const result = await Share.share({
-          message: message + "\n\n" + universalLink,
-          title: `${gymData.name} on Yupluck`,
-        })
-      }
-
-      console.log("Shared successfully")
+      console.log("Shared successfully");
     } catch (error) {
-      Alert.alert("Error", "Could not share gym details")
-      console.error("Error sharing:", error)
+      Alert.alert("Error", "Could not share gym details");
+      console.error("Error sharing:", error);
     }
-  }
+  };
 
   const closeModal = () => {
     setModalVisible(false)
@@ -136,6 +119,7 @@ export default function GymDetailScreen({ navigation, route }) {
     const url = `https://www.google.com/maps?q=${latitude},${longitude}`
     Linking.openURL(url).catch((err) => console.error("Error opening Google Maps:", err))
   }
+
 
   if (loading) {
     return (
@@ -158,15 +142,21 @@ export default function GymDetailScreen({ navigation, route }) {
       {/* StatusBar Configuration */}
       <StatusBar barStyle="dark-content" backgroundColor="#f5f5f5" translucent={false} />
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <TouchableOpacity
+          onPress={() => {
+            if (navigation.canGoBack()) {
+              navigation.goBack();
+            } else {
+              navigation.navigate('GymList'); // or GymHome
+            }
+          }}
+          style={styles.backButton}
+        >
           <Text>
             <Icon name="chevron-left" size={24} color="#4CAF50" />
           </Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{gymData.name}</Text>
-        <TouchableOpacity onPress={shareGym} style={styles.shareIcon}>
-          <Icon name="share-alt" size={24} color="#4CAF50" />
-        </TouchableOpacity>
       </View>
       <ScrollView
         style={styles.scrollView}
@@ -206,13 +196,21 @@ export default function GymDetailScreen({ navigation, route }) {
 
         <View style={styles.infoContainer}>
           <View style={styles.ratingContainer}>
-            <Icon name="star" size={16} color="#FFD700" />
-            <TouchableOpacity onPress={goToRatingPage}>
-      <Text style={styles.ratingText}>
-        {gymData.rating} ({gymData.reviews} reviews) See all
-      </Text>
-    </TouchableOpacity>
+            <View style={styles.ratingTextWrapper}>
+              <Icon name="star" size={16} color="#FFD700" />
+              <TouchableOpacity onPress={goToRatingPage}>
+                <Text style={styles.ratingText}>
+                  {gymData.rating} ({gymData.reviews} reviews) See all
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity onPress={shareGym} style={styles.inlineShareButton}>
+              <Icon name="share-alt" size={20} color="#4CAF50" />
+            </TouchableOpacity>
           </View>
+
+
           <Text style={styles.gymDescription}>
             {isDescriptionExpanded ? gymData.description : `${truncatedDescription}...`}
           </Text>
@@ -358,13 +356,30 @@ const styles = StyleSheet.create({
   },
   ratingContainer: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 10,
   },
+
+  ratingTextWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexShrink: 1, // allow wrapping if needed
+  },
+
   ratingText: {
     marginLeft: 6,
     fontSize: 14,
     color: '#777777',
+    flexShrink: 1,
+  },
+
+  inlineShareButton: {
+    padding: 6,
+    // //backgroundColor: '#E8F5E9',
+    // borderRadius: 6,
+    // elevation: 2,
+    marginLeft: 10,
   },
   gymDescription: {
     fontSize: 16,
@@ -430,7 +445,7 @@ const styles = StyleSheet.create({
     color: '#43A047',
     fontWeight: 'bold',
   },
-  
+
   bookButton: {
     position: 'absolute',
     bottom: 16,
@@ -447,7 +462,7 @@ const styles = StyleSheet.create({
     elevation: 6,
     overflow: 'hidden', // Needed for the gradient
   },
-  
+
   bookButtonText: {
     color: '#FFFFFF',
     fontSize: 20,
@@ -455,7 +470,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
-  
+
   modalContainer: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.9)',
@@ -479,8 +494,4 @@ const styles = StyleSheet.create({
     right: 10,
     padding: 8,
   },
-  shareIcon: {
-    marginLeft: 12,
-  },
 });
-
