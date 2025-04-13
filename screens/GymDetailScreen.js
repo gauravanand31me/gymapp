@@ -58,7 +58,7 @@ export default function GymDetailScreen({ navigation, route }) {
   useFocusEffect(
     useCallback(() => {
       fetchGymData()
-    }, [gym_id]),
+    }, [route.params?.gym_id]),
   )
 
   const fetchGymData = async () => {
