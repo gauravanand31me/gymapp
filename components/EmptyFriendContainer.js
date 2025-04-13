@@ -7,28 +7,17 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   Image,
+  SafeAreaView,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { getLeaderBoard } from '../api/apiService';
 
-const EmptyFriendsContainer = () => {
-  const [leaderboard, setLeaderboard] = useState([]);
-  const [loading, setLoading] = useState(true);
+const EmptyFriendsContainer = ({leaderboard}) => {
+  console.log("leaderboard", leaderboard);
+  const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
 
-  useEffect(() => {
-    const fetchLeaderboard = async () => {
-      try {
-        const response = await getLeaderBoard();
-        setLeaderboard(response.data);
-      } catch (error) {
-        console.error('Error fetching leaderboard:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchLeaderboard();
-  }, []);
+  
 
   const getMedalColor = (rank) => {
     if (rank === 1) return '#FFD700';
@@ -64,22 +53,24 @@ const EmptyFriendsContainer = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.leaderboardTitle}>🏆 Gym Leaderboard 🏆</Text>
-
+    <SafeAreaView style={styles.container}>
       {loading ? (
         <ActivityIndicator size="large" color="#0044CC" />
       ) : (
-        <View style={styles.listContainer}>
+        <View style={styles.innerContainer}>
           <FlatList
             data={leaderboard}
             keyExtractor={(item, index) => index.toString()}
             renderItem={renderItem}
             showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.listContent}
+            ListHeaderComponent={
+              <Text style={styles.leaderboardTitle}>🏆 Gym Leaderboard 🏆</Text>
+            }
           />
         </View>
       )}
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -87,18 +78,19 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#EAF2FF',
-    paddingTop: 20,
+  },
+  innerContainer: {
+    flex: 1, // ✨ This ensures FlatList gets full height
   },
   leaderboardTitle: {
     fontSize: 24,
     fontWeight: 'bold',
     textAlign: 'center',
     color: '#0044CC',
-    marginBottom: 10,
+    marginVertical: 15,
     textTransform: 'uppercase',
   },
-  listContainer: {
-    flex: 1, // THIS IS IMPORTANT FOR SCROLLING
+  listContent: {
     paddingHorizontal: 15,
     paddingBottom: 20,
   },

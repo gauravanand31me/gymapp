@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, FlatList, K
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Dumbbell, Search, UserPlus, UserCheck, UserClock, User } from 'lucide-react-native'
 import Footer from '../components/Footer';
-import { fetchAllNearByUser } from '../api/apiService';
+import { fetchAllNearByUser, getLeaderBoard } from '../api/apiService';
 import { addFriend } from '../api/apiService'; // Import the addFriend function
 import { LinearGradient } from 'expo-linear-gradient'
 import EmptyFriendsContainer from '../components/EmptyFriendContainer';
@@ -12,6 +12,7 @@ const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient)
 
 const InviteBuddiesScreen = ({ navigation }) => {
   const [searchText, setSearchText] = useState('');
+  const [leaderboard, setLeaderboard] = useState([]);
   const [buddyList, setBuddyList] = useState([]);
   const [isFooterVisible, setIsFooterVisible] = useState(true); // State to manage footer visibility
   const message = "Add users to collaborate for better gyming"; // The message for placeholder
@@ -26,6 +27,20 @@ const InviteBuddiesScreen = ({ navigation }) => {
       console.error('Error fetching nearby users:', error);
     }
   };
+
+  useEffect(() => {
+    const fetchLeaderboard = async () => {
+      try {
+        const response = await getLeaderBoard();
+        setLeaderboard(response.data);
+      } catch (error) {
+        console.error('Error fetching leaderboard:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchLeaderboard();
+  }, []);
 
   useEffect(() => {
     fetchNearbyUsers();
@@ -64,7 +79,10 @@ const InviteBuddiesScreen = ({ navigation }) => {
   );
 
   const renderEmptyList = () => (
-    <EmptyFriendsContainer />
+    <View style={styles.emptyList}>
+         <EmptyFriendsContainer leaderboard={leaderboard}/>
+    </View>
+   
   );
 
   const headerOpacity = scrollY.interpolate({
@@ -104,7 +122,7 @@ const InviteBuddiesScreen = ({ navigation }) => {
 
       {/* Buddy List */}
     
-      <View style={styles.listContainer}>
+      
         <FlatList
           data={buddyList}
           keyExtractor={(item) => item.id.toString()}
@@ -114,7 +132,7 @@ const InviteBuddiesScreen = ({ navigation }) => {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled" // Ensures that taps are handled even when the keyboard is up
         />
-      </View>
+        
 
       {/* Conditional rendering of Footer */}
       {isFooterVisible && (
@@ -138,6 +156,7 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingTop: 60,
   },
+  
   headerText: {
     fontSize: 24,
     fontWeight: 'bold',
@@ -233,6 +252,9 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
   },
+  emptyList: {
+    marginBottom: 40
+  }
 });
 
 export default InviteBuddiesScreen;
