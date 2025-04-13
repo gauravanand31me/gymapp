@@ -15,7 +15,7 @@ const Footer = ({ navigation }) => {
     useCallback(() => {
       loadNotifications();
       console.log("Footer Screen focused")
-      
+
     }, []),
   )
 
@@ -33,22 +33,26 @@ const Footer = ({ navigation }) => {
 
   return (
     <View style={styles.footer}>
-      <TouchableOpacity onPress={() => navigation.navigate('GymList', {"id": 1})} style={styles.iconContainer}>
-        <Icon name="home" size={22} color="#808080" />
-        <Text style={styles.iconText}>Home</Text>
+      <TouchableOpacity onPress={() => navigation.navigate('FriendsFeedScreen')} style={styles.iconContainer}>
+        <Icon name="newspaper-o" size={22} color="#808080" />
+        <Text style={styles.iconText}>Feed</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity onPress={() => navigation.navigate('GymList', { id: 1 })} style={styles.iconContainer}>
+        <Icon name="building-o" size={22} color="#808080" />
+        <Text style={styles.iconText}>Gyms</Text>
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.navigate('InviteBuddy')} style={styles.iconContainer}>
-        <Icon name="search" size={22} color="#808080" />
-        <Text style={styles.iconText}>Search</Text>
+        <Icon name="trophy" size={22} color="#808080" />
+        <Text style={styles.iconText}>Leaderboard</Text>
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.navigate('MyBookings')} style={styles.iconContainer}>
-        <Icon name="calendar" size={22} color="#808080" />
+        <Icon name="calendar-check-o" size={22} color="#808080" />
         <Text style={styles.iconText}>Bookings</Text>
       </TouchableOpacity>
 
-      {/* Notification Icon with Unread Badge */}
       <TouchableOpacity onPress={() => navigation.navigate('NotificationListScreen')} style={styles.iconContainer}>
         <View style={styles.iconWithBadge}>
           <Icon name="bell" size={22} color="#808080" />
@@ -61,10 +65,11 @@ const Footer = ({ navigation }) => {
         <Text style={styles.iconText}>Notifications</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => navigation.navigate('Profile')} style={styles.iconContainer}>
-        <Icon name="user" size={22} color="#808080" />
+      {/* <TouchableOpacity onPress={() => navigation.navigate('Profile')} style={styles.iconContainer}>
+        <Icon name="user-circle-o" size={22} color="#808080" />
         <Text style={styles.iconText}>Profile</Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
+
     </View>
   );
 };
