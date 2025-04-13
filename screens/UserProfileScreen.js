@@ -48,6 +48,7 @@ export default function UserProfileScreen({ navigation, route }) {
     
     try {
       const data = await userDetails();
+
    
       if (data.id === userId) {
         setSameUser(true);
@@ -65,6 +66,7 @@ export default function UserProfileScreen({ navigation, route }) {
     setLoading(true);
     try {
       const data = await userDetails(userId);
+    
       setUserData(data);
     } catch (error) {
       console.error('Error fetching user data:', error);
@@ -183,11 +185,11 @@ export default function UserProfileScreen({ navigation, route }) {
         >
 
       <TouchableOpacity onPress={() => setIsVisible(true)}>
-        <Image source={{ uri: userData?.profile_pic }} style={styles.profileImage} />
+        <Image source={{ uri: userData?.profile_pic || "https://cdn-icons-png.flaticon.com/512/149/149071.png" }} style={styles.profileImage} />
       </TouchableOpacity>
 
       <ImageViewing
-        images={[{ uri: userData?.profile_pic }]}
+        images={[{ uri: userData?.profile_pic || "https://cdn-icons-png.flaticon.com/512/149/149071.png" }]}
         imageIndex={0}
         visible={isVisible}
         onRequestClose={() => setIsVisible(false)}
