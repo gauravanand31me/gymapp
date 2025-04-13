@@ -58,7 +58,7 @@ export default function GymDetailScreen({ navigation, route }) {
   useFocusEffect(
     useCallback(() => {
       fetchGymData()
-    }, [gym_id]),
+    }, [route.params?.gym_id]),
   )
 
   const fetchGymData = async () => {
@@ -83,24 +83,24 @@ export default function GymDetailScreen({ navigation, route }) {
     setModalVisible(true)
   }
 
-const shareGym = async () => {
-  if (!gymData) return;
+  const shareGym = async () => {
+    if (!gymData) return;
 
-  try {
-    const universalLink = `https://yupluck.com/appgym/${gym_id}`;
-    const message = `Check out ${gymData.name} on Yupluck!\n\n📍 ${gymData.addressLine1}, ${gymData.city}\n\n${universalLink}`;
+    try {
+      const universalLink = `https://yupluck.com/appgym/${gym_id}`;
+      const message = `Check out ${gymData.name} on Yupluck!\n\n📍 ${gymData.addressLine1}, ${gymData.city}\n\n${universalLink}`;
 
-    await Share.share({
-      message,
-      title: `${gymData.name} on Yupluck`, // Title works on Android
-    });
+      await Share.share({
+        message,
+        title: `${gymData.name} on Yupluck`, // Title works on Android
+      });
 
-    console.log("Shared successfully");
-  } catch (error) {
-    Alert.alert("Error", "Could not share gym details");
-    console.error("Error sharing:", error);
-  }
-};
+      console.log("Shared successfully");
+    } catch (error) {
+      Alert.alert("Error", "Could not share gym details");
+      console.error("Error sharing:", error);
+    }
+  };
 
   const closeModal = () => {
     setModalVisible(false)
@@ -142,7 +142,16 @@ const shareGym = async () => {
       {/* StatusBar Configuration */}
       <StatusBar barStyle="dark-content" backgroundColor="#f5f5f5" translucent={false} />
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <TouchableOpacity
+          onPress={() => {
+            if (navigation.canGoBack()) {
+              navigation.goBack();
+            } else {
+              navigation.navigate('GymList'); // or GymHome
+            }
+          }}
+          style={styles.backButton}
+        >
           <Text>
             <Icon name="chevron-left" size={24} color="#4CAF50" />
           </Text>
@@ -186,22 +195,22 @@ const shareGym = async () => {
         </View>
 
         <View style={styles.infoContainer}>
-        <View style={styles.ratingContainer}>
-  <View style={styles.ratingTextWrapper}>
-    <Icon name="star" size={16} color="#FFD700" />
-    <TouchableOpacity onPress={goToRatingPage}>
-      <Text style={styles.ratingText}>
-        {gymData.rating} ({gymData.reviews} reviews) See all
-      </Text>
-    </TouchableOpacity>
-  </View>
+          <View style={styles.ratingContainer}>
+            <View style={styles.ratingTextWrapper}>
+              <Icon name="star" size={16} color="#FFD700" />
+              <TouchableOpacity onPress={goToRatingPage}>
+                <Text style={styles.ratingText}>
+                  {gymData.rating} ({gymData.reviews} reviews) See all
+                </Text>
+              </TouchableOpacity>
+            </View>
 
-  <TouchableOpacity onPress={shareGym} style={styles.inlineShareButton}>
-    <Icon name="share-alt" size={20} color="#4CAF50" />
-  </TouchableOpacity>
-</View>
+            <TouchableOpacity onPress={shareGym} style={styles.inlineShareButton}>
+              <Icon name="share-alt" size={20} color="#4CAF50" />
+            </TouchableOpacity>
+          </View>
 
-          
+
           <Text style={styles.gymDescription}>
             {isDescriptionExpanded ? gymData.description : `${truncatedDescription}...`}
           </Text>
@@ -351,25 +360,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 10,
   },
-  
+
   ratingTextWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
     flexShrink: 1, // allow wrapping if needed
   },
-  
+
   ratingText: {
     marginLeft: 6,
     fontSize: 14,
     color: '#777777',
     flexShrink: 1,
   },
-  
+
   inlineShareButton: {
     padding: 6,
-    //backgroundColor: '#E8F5E9',
-    borderRadius: 6,
-    elevation: 2,
+    // //backgroundColor: '#E8F5E9',
+    // borderRadius: 6,
+    // elevation: 2,
     marginLeft: 10,
   },
   gymDescription: {
@@ -436,7 +445,7 @@ const styles = StyleSheet.create({
     color: '#43A047',
     fontWeight: 'bold',
   },
-  
+
   bookButton: {
     position: 'absolute',
     bottom: 16,
@@ -453,7 +462,7 @@ const styles = StyleSheet.create({
     elevation: 6,
     overflow: 'hidden', // Needed for the gradient
   },
-  
+
   bookButtonText: {
     color: '#FFFFFF',
     fontSize: 20,
@@ -461,7 +470,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
-  
+
   modalContainer: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.9)',
@@ -486,4 +495,3 @@ const styles = StyleSheet.create({
     padding: 8,
   },
 });
-

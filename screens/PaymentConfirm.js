@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useContext, useCallback } from 'react';
 import {
   View,
@@ -68,9 +69,10 @@ export default function PaymentScreen({ route, navigation }) {
       }
     }
 
+    const subscriptioPrice = slotDetails?.price || slotDetails?.subscriptionPrice;
     setOriginalPrice(slotDetails?.price * (slotDetails.duration / 60) || slotDetails.subscriptionPrice);
     setFinalPrice(slotDetails?.price * (slotDetails.duration / 60) || slotDetails.subscriptionPrice);
-    setPlatformCharges(slotDetails?.price * 5 / 100);
+    setPlatformCharges(subscriptioPrice * 5 / 100);
     checkExpiration();
     fetchGymData();
     setTimeout(() => { fetchCouponcode() }, 500)
@@ -108,8 +110,9 @@ export default function PaymentScreen({ route, navigation }) {
 
 
       if (bookingResponse) {
+        const amountToPay = finalPrice + platformCharges;
         const orderResponse = await createOrder(
-          finalPrice + platformCharges,
+          amountToPay,
           bookingResponse.bookingId,
           requestId
         );
@@ -286,8 +289,9 @@ export default function PaymentScreen({ route, navigation }) {
               <View style={styles.chargeDivider} />
 
               <View style={styles.chargeRow}>
-                <Text style={styles.totalLabel}>Total Payable</Text>
-                <Text style={styles.totalValue}>₹ {(finalPrice + platformCharges).toFixed(2)}</Text>
+                <Text style={styles.totalLabel}>Total Payable </Text>
+                <Text>(Round off)</Text>
+                <Text style={styles.totalValue}>₹ {Math.floor(finalPrice + platformCharges)}</Text>
               </View>
             </View>
 
