@@ -32,19 +32,21 @@ export default function PaymentScreen({ route, navigation }) {
   const [finalPrice, setFinalPrice] = useState(0);
 
 
-  useEffect(() => {
-    if (selectedCoupon) {
-      setApplyCoupon(selectedCoupon.coupon_code);
-      setDiscount(selectedCoupon);
+  useFocusEffect(
+    useCallback(() => {
+      if (selectedCoupon) {
+        setApplyCoupon(selectedCoupon.coupon_code);
+        setDiscount(selectedCoupon);
   
-      const discountPrice = selectedCoupon.discount_type === 'cash'
-        ? parseFloat(selectedCoupon.discount_amount)
-        : (originalPrice * parseFloat(selectedCoupon.discount_amount)) / 100;
+        const discountPrice = selectedCoupon.discount_type === 'cash'
+          ? parseFloat(selectedCoupon.discount_amount)
+          : (originalPrice * parseFloat(selectedCoupon.discount_amount)) / 100;
   
-      const final = originalPrice - discountPrice;
-      setFinalPrice(final);
-    }
-  }, [selectedCoupon, originalPrice]);
+        const final = originalPrice - discountPrice;
+        setFinalPrice(final);
+      }
+    }, [selectedCoupon, originalPrice])
+  );
 
   useEffect(() => {
     const checkExpiration = () => {
