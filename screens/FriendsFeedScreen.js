@@ -61,7 +61,8 @@ const demoFeedData = [
 
 export default function YupluckFeedScreen({ navigation }) {
   const [fadeAnim] = useState(new Animated.Value(1));
-
+  const [refreshing, setRefreshing] = useState(false);
+  
   const formatTime = (timestamp) => {
     const date = new Date(timestamp);
     return date.toLocaleString('en-GB', {
@@ -72,6 +73,15 @@ export default function YupluckFeedScreen({ navigation }) {
       hour12: true,
     });
   };
+
+  
+const handleRefresh = () => {
+  setRefreshing(true);
+  // Simulate API call
+  setTimeout(() => {
+    setRefreshing(false);
+  }, 1500);
+};
 
   const renderFeedItem = ({ item }) => {
     switch (item.activityType) {
@@ -158,13 +168,15 @@ export default function YupluckFeedScreen({ navigation }) {
     <View style={styles.wrapper}>
       <CustomHeader navigation={navigation} />
       <View style={styles.container}>
-        <FlatList
-          data={demoFeedData}
-          renderItem={renderFeedItem}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={{ paddingBottom: 100 }}
-          showsVerticalScrollIndicator={false}
-        />
+      <FlatList
+  data={demoFeedData}
+  renderItem={renderFeedItem}
+  keyExtractor={(item) => item.id}
+  contentContainerStyle={{ paddingBottom: 100 }}
+  showsVerticalScrollIndicator={false}
+  refreshing={refreshing}
+  onRefresh={handleRefresh}
+/>
       </View>
       <Footer navigation={navigation} />
     </View>
