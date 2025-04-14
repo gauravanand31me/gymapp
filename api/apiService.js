@@ -198,10 +198,11 @@ export const verifyOtp = async (mobileNumber, otp) => {
           imageUrl: item.imageUrl,
           timestamp: item.timestamp,
           user: {
-            id: item.User?.id,
-            name: item.User?.full_name,
-            profilePic: item.User?.profile_pic || 'https://via.placeholder.com/50'
-          }
+            id: item.user?.id,
+            name: item.user?.full_name,
+            profilePic: item.user?.profile_pic || 'https://via.placeholder.com/50'
+          },
+          
         }));
       } else {
         return [];
