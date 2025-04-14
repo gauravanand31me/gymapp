@@ -187,8 +187,7 @@ export const verifyOtp = async (mobileNumber, otp) => {
      
       const data = await response.json();
   
-      console.log('Feed Data:', data);
-  
+      
       if (response.ok && data.feed) {
         return data.feed.map(item => ({
           id: item.id,
@@ -201,7 +200,8 @@ export const verifyOtp = async (mobileNumber, otp) => {
             id: item.user?.id,
             name: item.user?.full_name,
             profilePic: item.user?.profile_pic || 'https://via.placeholder.com/50'
-          }
+          },
+          gym: item.gym
         }));
       } else {
         return [];

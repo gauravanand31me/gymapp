@@ -12,6 +12,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Footer from '../components/Footer';
 import CustomHeader from '../components/Header';
 import { fetchUserFeed } from '../api/apiService';
+import FeedCard from '../components/Feedcard';
+import FeedQuestionCard from '../components/FeedQuestionCard';
 
 export default function YupluckFeedScreen({ navigation }) {
   const [fadeAnim] = useState(new Animated.Value(1));
@@ -26,6 +28,7 @@ export default function YupluckFeedScreen({ navigation }) {
 
   const loadFeedData = async () => {
     const data = await fetchUserFeed(page, limit);
+    console.log("Data is", data);
     setFeedData(data);
   };
 
@@ -33,8 +36,7 @@ export default function YupluckFeedScreen({ navigation }) {
     setRefreshing(true);
     setPage(0);
     const refreshed = await fetchUserFeed(0, limit);
-    console.log("data from refresh", refreshed);
-    setFeedData(refreshed.feed);
+    setFeedData(refreshed);
     setRefreshing(false);
   };
 
@@ -52,24 +54,8 @@ export default function YupluckFeedScreen({ navigation }) {
   const renderFeedItem = ({ item }) => {
     switch (item.type) {
       case 'general':
-        return (
-          <View style={styles.card}>
-            <Image
-              source={{ uri: item.user?.profilePic || 'https://via.placeholder.com/100' }}
-              style={styles.avatar}
-            />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.text}>
-                <Text style={styles.usernameLink}>{item.user?.name}</Text> {item.description}
-              </Text>
-              {item.imageUrl && (
-                <Image source={{ uri: item.imageUrl }} style={styles.gymImage} />
-              )}
-              <Text style={styles.time}>{formatTime(item.timestamp)}</Text>
-
-            </View>
-          </View>
-        );
+        return <FeedCard item={item} formatTime={formatTime} />;
+      
 
       // Add your other cases here (checkin, workoutInvite, etc.)
 
@@ -78,12 +64,21 @@ export default function YupluckFeedScreen({ navigation }) {
     }
   };
 
+  const handleAnswerSubmit = (answer) => {
+    
+  };
+
   return (
     <View style={styles.wrapper}>
       <CustomHeader navigation={navigation} />
       <View style={styles.container}>
-        {console.log("Feed Data is", feedData)}
         <FlatList
+          ListHeaderComponent={
+            <FeedQuestionCard
+              question="What's your fitness goal this week?"
+              onSubmit={handleAnswerSubmit}
+            />
+          }
           data={feedData}
           renderItem={renderFeedItem}
           keyExtractor={(item) => item.id.toString()}
@@ -158,5 +153,11 @@ const styles = StyleSheet.create({
   },
   reaction: {
     fontSize: 20,
+  },
+  gymName: {
+    fontWeight: '600',
+    fontSize: 14,
+    color: '#4CAF50',
+    marginTop: 4,
   },
 });
