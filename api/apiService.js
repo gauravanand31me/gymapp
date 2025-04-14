@@ -201,8 +201,7 @@ export const verifyOtp = async (mobileNumber, otp) => {
             id: item.user?.id,
             name: item.user?.full_name,
             profilePic: item.user?.profile_pic || 'https://via.placeholder.com/50'
-          },
-          
+          }
         }));
       } else {
         return [];
