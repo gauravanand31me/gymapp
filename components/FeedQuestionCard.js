@@ -7,16 +7,38 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
+  Image,
 } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Feather, Camera, Video } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 
 export default function FeedQuestion({ question, onSubmit }) {
   const [answer, setAnswer] = useState('');
+  const [media, setMedia] = useState(null); // { uri, type }
 
   const handleShare = () => {
-    if (answer.trim()) {
-      onSubmit(answer);
+    if (answer.trim() || media) {
+      onSubmit({ answer, media });
       setAnswer('');
+      setMedia(null);
+    }
+  };
+
+  const pickMedia = async (type) => {
+    let result;
+    const options = {
+      mediaTypes: type === 'image' 
+        ? ImagePicker.MediaTypeOptions.Images 
+        : ImagePicker.MediaTypeOptions.Videos,
+      allowsEditing: true,
+      quality: 1,
+      videoMaxDuration: 30, // limit video to 30 seconds
+    };
+
+    result = await ImagePicker.launchImageLibraryAsync(options);
+
+    if (!result.cancelled) {
+      setMedia({ uri: result.assets[0].uri, type });
     }
   };
 
@@ -39,13 +61,37 @@ export default function FeedQuestion({ question, onSubmit }) {
           multiline
         />
 
+        {/* Media Preview */}
+        {media && (
+          <View style={styles.mediaPreview}>
+            {media.type === 'image' ? (
+              <Image source={{ uri: media.uri }} style={styles.image} />
+            ) : (
+              <Text style={styles.videoLabel}>🎥 Video Selected</Text>
+            )}
+            <TouchableOpacity onPress={() => setMedia(null)}>
+              <Text style={styles.removeMedia}>✕</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Media Upload Buttons */}
+        <View style={styles.uploadOptions}>
+          <TouchableOpacity onPress={() => pickMedia('image')}>
+            <Feather name="image" size={22} color="#0044CC" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => pickMedia('video')}>
+            <Feather name="video" size={22} color="#0044CC" />
+          </TouchableOpacity>
+        </View>
+
         <TouchableOpacity
           style={[
             styles.button,
-            { backgroundColor: answer.trim() ? '#0044CC' : '#ccc' },
+            { backgroundColor: answer.trim() || media ? '#0044CC' : '#ccc' },
           ]}
           onPress={handleShare}
-          disabled={!answer.trim()}
+          disabled={!answer.trim() && !media}
         >
           <Text style={styles.buttonText}>Share</Text>
         </TouchableOpacity>
@@ -83,8 +129,36 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     color: '#333',
   },
-  button: {
+  uploadOptions: {
+    flexDirection: 'row',
     marginTop: 12,
+    justifyContent: 'flex-start',
+    gap: 16,
+  },
+  mediaPreview: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 10,
+    gap: 10,
+  },
+  image: {
+    width: 80,
+    height: 80,
+    borderRadius: 8,
+  },
+  videoLabel: {
+    fontSize: 14,
+    color: '#555',
+    fontStyle: 'italic',
+  },
+  removeMedia: {
+    fontSize: 18,
+    color: '#FF4444',
+    marginLeft: 6,
+    fontWeight: 'bold',
+  },
+  button: {
+    marginTop: 14,
     paddingVertical: 10,
     borderRadius: 12,
     alignItems: 'center',
