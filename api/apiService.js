@@ -170,6 +170,49 @@ export const verifyOtp = async (mobileNumber, otp) => {
   };
 
 
+
+  export const fetchUserFeed = async (page = 0, limit = 10) => {
+    try {
+      const userToken = await AsyncStorage.getItem('authToken');
+  
+      const endpoint = `${BASE_URL}/users/feed?offset=${page * limit}&limit=${limit}`;
+  
+      const response = await fetch(endpoint, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${userToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+     
+      const data = await response.json();
+  
+      console.log('Feed Data:', data);
+  
+      if (response.ok && data.feed) {
+        return data.feed.map(item => ({
+          id: item.id,
+          type: item.activityType,
+          title: item.title,
+          description: item.description,
+          imageUrl: item.imageUrl,
+          timestamp: item.timestamp,
+          user: {
+            id: item.User?.id,
+            name: item.User?.full_name,
+            profilePic: item.User?.profile_pic || 'https://via.placeholder.com/50'
+          }
+        }));
+      } else {
+        return [];
+      }
+    } catch (error) {
+      console.error('Error fetching user feed:', error);
+      return [];
+    }
+  };
+
+
   export const getLeaderBoard = async () => {
     try {
       const userToken = await AsyncStorage.getItem('authToken'); // Fetch token if needed
@@ -198,7 +241,7 @@ export const verifyOtp = async (mobileNumber, otp) => {
       });
     
       const data = await response.json();
-      console.log("Data received", data);
+      
       return data.loggedInUser;
     
     } catch (error) {
