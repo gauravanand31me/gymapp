@@ -16,11 +16,27 @@ export default function FeedQuestion({ question, onSubmit }) {
   const [answer, setAnswer] = useState('');
   const [media, setMedia] = useState(null); // { uri, type: 'image' }
 
-  const handleShare = () => {
+  const handleShare = async () => {
     if (answer.trim() || media) {
-      onSubmit({ answer, media });
-      setAnswer('');
-      setMedia(null);
+      try {
+        const formData = new FormData();
+        
+        formData.append('answer', answer);
+  
+        if (media?.uri) {
+          const fileExtension = media.uri.split('.').pop();
+          formData.append('image', {
+            uri: media.uri,
+            name: `upload.${fileExtension}`,
+            type: `image/${fileExtension}`,
+          });
+        }
+  
+        onSubmit(formData)
+      } catch (err) {
+        console.error('Upload Error:', err);
+        alert('Something went wrong');
+      }
     }
   };
 

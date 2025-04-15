@@ -11,7 +11,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import Footer from '../components/Footer';
 import CustomHeader from '../components/Header';
-import { fetchUserFeed } from '../api/apiService';
+import { fetchUserFeed, uploadFeedAnswer } from '../api/apiService';
 import FeedCard from '../components/Feedcard';
 import FeedQuestionCard from '../components/FeedQuestionCard';
 
@@ -64,8 +64,9 @@ export default function YupluckFeedScreen({ navigation }) {
     }
   };
 
-  const handleAnswerSubmit = (answer) => {
-    
+  const handleAnswerSubmit = async (answer) => {
+        const upload_result = await uploadFeedAnswer(answer);
+        loadFeedData();
   };
 
   return (
@@ -77,6 +78,7 @@ export default function YupluckFeedScreen({ navigation }) {
             <FeedQuestionCard
               question="What's your fitness goal this week?"
               onSubmit={handleAnswerSubmit}
+              
             />
           }
           data={feedData}

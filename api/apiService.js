@@ -213,6 +213,27 @@ export const verifyOtp = async (mobileNumber, otp) => {
   };
 
 
+  export const uploadFeedAnswer = async (formData) => {
+    try {
+      const userToken = await AsyncStorage.getItem('authToken');
+  
+      const response = await fetch(`${BASE_URL}/users/feed/upload`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${userToken}`,
+          // Don't set Content-Type explicitly, let fetch handle it for FormData
+        },
+        body: formData,
+      });
+  
+      const data = await response.json();
+      return data;
+    } catch (e) {
+
+  }
+}
+
+
   export const getLeaderBoard = async () => {
     try {
       const userToken = await AsyncStorage.getItem('authToken'); // Fetch token if needed
