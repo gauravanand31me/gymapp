@@ -55,7 +55,8 @@ export default function YupluckFeedScreen({ navigation }) {
     switch (item.type) {
       case 'general':
         return <FeedCard item={item} formatTime={formatTime} />;
-      
+      case 'questionPrompt':
+          return <FeedCard item={item} formatTime={formatTime} />;
 
       // Add your other cases here (checkin, workoutInvite, etc.)
 
