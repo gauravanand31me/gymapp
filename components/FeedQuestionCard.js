@@ -31,8 +31,13 @@ export default function FeedQuestion({ question, onSubmit }) {
             type: `image/${fileExtension}`,
           });
         }
+
+
+        setAnswer('');
+        setMedia(null);
   
         onSubmit(formData)
+        
       } catch (err) {
         console.error('Upload Error:', err);
         alert('Something went wrong');
