@@ -76,23 +76,38 @@ export default function YupluckFeedScreen({ navigation }) {
   const renderFeedItem = ({ item }) => {
     switch (item.type) {
       case 'general':
+<<<<<<< HEAD
       case 'questionPrompt':
         return <FeedCard item={item} formatTime={formatTime} onComment={(post) => navigation.navigate('CommentScreen', { postId: post.id })}/>;
       case 'advertisement':
         return <AdCard item={item} />;
+=======
+        return <FeedCard item={item} formatTime={formatTime} />;
+      case 'questionPrompt':
+          return <FeedCard item={item} formatTime={formatTime} />;
+
+      // Add your other cases here (checkin, workoutInvite, etc.)
+
+>>>>>>> 5ad2b71eb549aa2781de9ea7498e348049fbfa87
       default:
         return null;
     }
   };
 
   const handleAnswerSubmit = async (answer) => {
+<<<<<<< HEAD
     await uploadFeedAnswer(answer);
     loadFeedData();
+=======
+        const upload_result = await uploadFeedAnswer(answer);
+        loadFeedData();
+>>>>>>> 5ad2b71eb549aa2781de9ea7498e348049fbfa87
   };
 
   return (
     <View style={styles.wrapper}>
       <CustomHeader navigation={navigation} />
+<<<<<<< HEAD
       <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
         <View style={styles.container}>
           <FlatList
@@ -117,6 +132,29 @@ export default function YupluckFeedScreen({ navigation }) {
           )}
         </View>
       </Animated.View>
+=======
+      <View style={styles.container}>
+        <FlatList
+          ListHeaderComponent={
+            <FeedQuestionCard
+              question="What's your fitness goal this week?"
+              onSubmit={handleAnswerSubmit}
+              
+            />
+          }
+          data={feedData}
+          renderItem={renderFeedItem}
+          keyExtractor={(item) => item.id.toString()}
+          contentContainerStyle={{ paddingBottom: 100 }}
+          showsVerticalScrollIndicator={false}
+          refreshing={refreshing}
+          onRefresh={handleRefresh}
+        />
+      </View>
+      {feedData?.length === 0 && !refreshing && (
+        <Text style={{ textAlign: 'center', marginTop: 20 }}>No feed activity found.</Text>
+      )}
+>>>>>>> 5ad2b71eb549aa2781de9ea7498e348049fbfa87
       <Footer navigation={navigation} />
     </View>
   );

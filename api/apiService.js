@@ -234,6 +234,7 @@ export const verifyOtp = async (mobileNumber, otp) => {
 }
 
 
+<<<<<<< HEAD
 export const fetchComments = async (postId) => {
   const token = await AsyncStorage.getItem('authToken');
   const res = await fetch(`${BASE_URL}/users/feed/comment/${postId}`, {
@@ -286,6 +287,8 @@ export const reactToPost = async (postId, reactionType) => {
 }
 
 
+=======
+>>>>>>> 5ad2b71eb549aa2781de9ea7498e348049fbfa87
   export const getLeaderBoard = async () => {
     try {
       const userToken = await AsyncStorage.getItem('authToken'); // Fetch token if needed

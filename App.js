@@ -31,18 +31,30 @@ import SearchListScreen from './screens/SearchGymScreen';
 import AutocompleteSearchComponent from './components/AutoCompleteInput';
 import PaymentFailedScreen from './screens/PaymentFailedScreen';
 import { NotificationProvider } from './context/NotificationContext';
+import RewardScreen from './screens/RewardScreen';
+import LandingScreen from './screens/LandingScreen';
+import CouponListScreen from './screens/CouponListScreen';
+import UserRatingsScreen from './screens/RatingScreen';
+import FriendsFeedScreen from './screens/FriendsFeedScreen';
+import CommentScreen from './screens/CommentScreen';
 
 const Stack = createStackNavigator();
 
 // ✅ Linking Configuration
 const linking = {
-  prefixes: ['yupluck://'],
+  prefixes: ["https://yupluck.com", "yupluck://"],
   config: {
     screens: {
-      GymDetails: 'GymDetails/:gym_id',
+      GymDetails: {
+        path: "appgym/:gym_id",
+        parse: {
+          gym_id: (id) => `${id}`,
+        },
+      },
     },
   },
 };
+
 
 export default function App() {
   const [isLoading, setIsLoading] = React.useState(true);
@@ -132,7 +144,7 @@ export default function App() {
       }
 
       const { data: token } = await Notifications.getExpoPushTokenAsync({
-        projectId: "5c0cf145-3b66-4a09-a5aa-0b76f76d6260"
+        projectId: "de28077c-3982-44ff-8d62-6e1125668220"
       });
 
       if (token) {
@@ -198,7 +210,7 @@ export default function App() {
     <NotificationProvider>
       <NavigationContainer linking={linking}>
         <Stack.Navigator
-          initialRouteName={isAuthenticated ? "GymList" : "Login"}
+          initialRouteName={isAuthenticated ? "GymList" : "LandingScreen"}
           screenOptions={{ headerShown: false }}
         >
           <Stack.Screen name="Login" component={LoginScreen} />
@@ -223,7 +235,13 @@ export default function App() {
           <Stack.Screen name="SearchGymList" component={SearchListScreen} />
           <Stack.Screen name="SlotSelection" component={SlotSelectionScreen} />
           <Stack.Screen name="PaymentFailed" component={PaymentFailedScreen} />
+          <Stack.Screen name="RewardScreen" component={RewardScreen} />
+          <Stack.Screen name="LandingScreen" component={LandingScreen} />
+          <Stack.Screen name="CouponListScreen" component={CouponListScreen} />
+          <Stack.Screen name="UserRatingsScreen" component={UserRatingsScreen} />
+          <Stack.Screen name="FriendsFeedScreen" component={FriendsFeedScreen} />
           <Stack.Screen name="VisitedGymScreen" component={VisitedGymScreen} options={{ title: 'Visited Gyms' }} />
+          <Stack.Screen name="CommentScreen" component={CommentScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </NotificationProvider>
