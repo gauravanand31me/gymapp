@@ -14,24 +14,15 @@ import * as ImagePicker from 'expo-image-picker';
 
 export default function FeedQuestion({ question, onSubmit }) {
   const [answer, setAnswer] = useState('');
-<<<<<<< HEAD
-  const [media, setMedia] = useState(null);
-=======
   const [media, setMedia] = useState(null); // { uri, type: 'image' }
->>>>>>> 5ad2b71eb549aa2781de9ea7498e348049fbfa87
 
   const handleShare = async () => {
     if (answer.trim() || media) {
       try {
         const formData = new FormData();
-<<<<<<< HEAD
-        formData.append('answer', answer);
-
-=======
         
         formData.append('answer', answer);
   
->>>>>>> 5ad2b71eb549aa2781de9ea7498e348049fbfa87
         if (media?.uri) {
           const fileExtension = media.uri.split('.').pop();
           formData.append('image', {
@@ -41,18 +32,12 @@ export default function FeedQuestion({ question, onSubmit }) {
           });
         }
 
-<<<<<<< HEAD
-        setAnswer('');
-        setMedia(null);
-        onSubmit(formData);
-=======
 
         setAnswer('');
         setMedia(null);
   
         onSubmit(formData)
         
->>>>>>> 5ad2b71eb549aa2781de9ea7498e348049fbfa87
       } catch (err) {
         console.error('Upload Error:', err);
         alert('Something went wrong');
@@ -101,29 +86,11 @@ export default function FeedQuestion({ question, onSubmit }) {
           </View>
         )}
 
-<<<<<<< HEAD
-        <View style={styles.actionsRow}>
-          <TouchableOpacity onPress={pickImage} style={styles.iconButton}>
-            <Feather name="image" size={20} color="#4A90E2" />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.shareButton,
-              { backgroundColor: answer.trim() || media ? '#4A90E2' : '#ccc' },
-            ]}
-            onPress={handleShare}
-            disabled={!answer.trim() && !media}
-          >
-            <Text style={styles.shareText}>Share</Text>
-          </TouchableOpacity>
-=======
         {/* Image Upload Button */}
         <View style={styles.uploadOptions}>
           <TouchableOpacity onPress={pickImage}>
             <Feather name="image" size={22} color="#0044CC" />
           </TouchableOpacity>
->>>>>>> 5ad2b71eb549aa2781de9ea7498e348049fbfa87
         </View>
       </View>
     </KeyboardAvoidingView>
@@ -158,14 +125,10 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     fontSize: 14,
     color: '#333',
-<<<<<<< HEAD
-    maxHeight: 80,
-=======
   },
   uploadOptions: {
     flexDirection: 'row',
     marginTop: 12,
->>>>>>> 5ad2b71eb549aa2781de9ea7498e348049fbfa87
   },
   mediaPreview: {
     flexDirection: 'row',
@@ -174,15 +137,9 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   image: {
-<<<<<<< HEAD
-    width: 70,
-    height: 70,
-    borderRadius: 10,
-=======
     width: 80,
     height: 80,
     borderRadius: 8,
->>>>>>> 5ad2b71eb549aa2781de9ea7498e348049fbfa87
   },
   removeMedia: {
     fontSize: 16,

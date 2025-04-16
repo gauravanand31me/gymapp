@@ -234,61 +234,6 @@ export const verifyOtp = async (mobileNumber, otp) => {
 }
 
 
-<<<<<<< HEAD
-export const fetchComments = async (postId) => {
-  const token = await AsyncStorage.getItem('authToken');
-  const res = await fetch(`${BASE_URL}/users/feed/comment/${postId}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return res.json();
-};
-
-// Add a comment to a post
-export const addComment = async (postId, commentText) => {
-  const token = await AsyncStorage.getItem('authToken');
-  const res = await fetch(`${BASE_URL}/users/feed/comment`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ postId, commentText }),
-  });
-  return res.json();
-};
-
-
-
-
-export const reactToPost = async (postId, reactionType) => {
-  try {
-    console.log("postId", postId);
-    console.log("reactTionType", reactionType);
-    const userToken = await AsyncStorage.getItem('authToken');
-
-    const response = await fetch(`${BASE_URL}/users/feed/react`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${userToken}`,
-        // Don't set Content-Type explicitly, let fetch handle it for FormData
-      },
-      body: {
-        postId,
-        reactionType
-      },
-    });
-
-    const data = await response.json();
-    console.log("data is", data);
-    return data;
-  } catch (e) {
-    console.error("Error received", error);
-  }
-}
-
-
-=======
->>>>>>> 5ad2b71eb549aa2781de9ea7498e348049fbfa87
   export const getLeaderBoard = async () => {
     try {
       const userToken = await AsyncStorage.getItem('authToken'); // Fetch token if needed
