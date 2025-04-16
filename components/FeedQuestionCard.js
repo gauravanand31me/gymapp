@@ -9,36 +9,47 @@ import {
   Platform,
   Image,
 } from 'react-native';
-import { Feather, Camera, Video } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 
 export default function FeedQuestion({ question, onSubmit }) {
   const [answer, setAnswer] = useState('');
-  const [media, setMedia] = useState(null); // { uri, type }
+  const [media, setMedia] = useState(null);
 
-  const handleShare = () => {
+  const handleShare = async () => {
     if (answer.trim() || media) {
-      onSubmit({ answer, media });
-      setAnswer('');
-      setMedia(null);
+      try {
+        const formData = new FormData();
+        formData.append('answer', answer);
+
+        if (media?.uri) {
+          const fileExtension = media.uri.split('.').pop();
+          formData.append('image', {
+            uri: media.uri,
+            name: `upload.${fileExtension}`,
+            type: `image/${fileExtension}`,
+          });
+        }
+
+        setAnswer('');
+        setMedia(null);
+        onSubmit(formData);
+      } catch (err) {
+        console.error('Upload Error:', err);
+        alert('Something went wrong');
+      }
     }
   };
 
-  const pickMedia = async (type) => {
-    let result;
-    const options = {
-      mediaTypes: type === 'image' 
-        ? ImagePicker.MediaTypeOptions.Images 
-        : ImagePicker.MediaTypeOptions.Videos,
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       quality: 1,
-      videoMaxDuration: 30, // limit video to 30 seconds
-    };
+    });
 
-    result = await ImagePicker.launchImageLibraryAsync(options);
-
-    if (!result.cancelled) {
-      setMedia({ uri: result.assets[0].uri, type });
+    if (!result.canceled) {
+      setMedia({ uri: result.assets[0].uri, type: 'image' });
     }
   };
 
@@ -49,7 +60,7 @@ export default function FeedQuestion({ question, onSubmit }) {
     >
       <View style={styles.card}>
         <Text style={styles.title}>
-          <Feather name="message-circle" size={18} color="#0044CC" /> {question}
+          <Feather name="message-circle" size={16} color="#4A90E2" /> {question}
         </Text>
 
         <TextInput
@@ -59,42 +70,34 @@ export default function FeedQuestion({ question, onSubmit }) {
           placeholder="Write your thoughts..."
           placeholderTextColor="#999"
           multiline
+          maxLength={180}
         />
 
-        {/* Media Preview */}
         {media && (
           <View style={styles.mediaPreview}>
-            {media.type === 'image' ? (
-              <Image source={{ uri: media.uri }} style={styles.image} />
-            ) : (
-              <Text style={styles.videoLabel}>🎥 Video Selected</Text>
-            )}
+            <Image source={{ uri: media.uri }} style={styles.image} />
             <TouchableOpacity onPress={() => setMedia(null)}>
               <Text style={styles.removeMedia}>✕</Text>
             </TouchableOpacity>
           </View>
         )}
 
-        {/* Media Upload Buttons */}
-        <View style={styles.uploadOptions}>
-          <TouchableOpacity onPress={() => pickMedia('image')}>
-            <Feather name="image" size={22} color="#0044CC" />
+        <View style={styles.actionsRow}>
+          <TouchableOpacity onPress={pickImage} style={styles.iconButton}>
+            <Feather name="image" size={20} color="#4A90E2" />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => pickMedia('video')}>
-            <Feather name="video" size={22} color="#0044CC" />
+
+          <TouchableOpacity
+            style={[
+              styles.shareButton,
+              { backgroundColor: answer.trim() || media ? '#4A90E2' : '#ccc' },
+            ]}
+            onPress={handleShare}
+            disabled={!answer.trim() && !media}
+          >
+            <Text style={styles.shareText}>Share</Text>
           </TouchableOpacity>
         </View>
-
-        <TouchableOpacity
-          style={[
-            styles.button,
-            { backgroundColor: answer.trim() || media ? '#0044CC' : '#ccc' },
-          ]}
-          onPress={handleShare}
-          disabled={!answer.trim() && !media}
-        >
-          <Text style={styles.buttonText}>Share</Text>
-        </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
   );
@@ -102,38 +105,33 @@ export default function FeedQuestion({ question, onSubmit }) {
 
 const styles = StyleSheet.create({
   container: {
-    marginVertical: 16,
     paddingHorizontal: 16,
+    marginBottom: 12,
   },
   card: {
-    backgroundColor: '#f8fbff',
+    backgroundColor: '#fff',
     borderRadius: 16,
-    padding: 16,
-    borderColor: '#ddeeff',
-    borderWidth: 1,
+    padding: 14,
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
     elevation: 2,
   },
   title: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
-    marginBottom: 10,
-    color: '#0044CC',
+    color: '#333',
+    marginBottom: 8,
   },
   input: {
-    borderColor: '#ccc',
-    borderWidth: 1,
+    backgroundColor: '#F3F4F6',
     borderRadius: 12,
-    padding: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     fontSize: 14,
-    minHeight: 60,
-    backgroundColor: '#fff',
     color: '#333',
-  },
-  uploadOptions: {
-    flexDirection: 'row',
-    marginTop: 12,
-    justifyContent: 'flex-start',
-    gap: 16,
+    maxHeight: 80,
   },
   mediaPreview: {
     flexDirection: 'row',
@@ -142,30 +140,34 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   image: {
-    width: 80,
-    height: 80,
-    borderRadius: 8,
-  },
-  videoLabel: {
-    fontSize: 14,
-    color: '#555',
-    fontStyle: 'italic',
+    width: 70,
+    height: 70,
+    borderRadius: 10,
   },
   removeMedia: {
-    fontSize: 18,
+    fontSize: 16,
     color: '#FF4444',
-    marginLeft: 6,
     fontWeight: 'bold',
+    marginLeft: 8,
   },
-  button: {
-    marginTop: 14,
-    paddingVertical: 10,
-    borderRadius: 12,
+  actionsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    marginTop: 12,
   },
-  buttonText: {
+  iconButton: {
+    padding: 8,
+    borderRadius: 10,
+    backgroundColor: '#EAF2FF',
+  },
+  shareButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+  },
+  shareText: {
     color: '#fff',
     fontWeight: '600',
-    fontSize: 15,
   },
 });

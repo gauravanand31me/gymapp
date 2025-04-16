@@ -2,21 +2,38 @@ import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
-  Image,
   FlatList,
-  TouchableOpacity,
   StyleSheet,
   Animated,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import Footer from '../components/Footer';
 import CustomHeader from '../components/Header';
-import { fetchUserFeed } from '../api/apiService';
+import { fetchUserFeed, uploadFeedAnswer } from '../api/apiService';
 import FeedCard from '../components/Feedcard';
 import FeedQuestionCard from '../components/FeedQuestionCard';
+import AdCard from '../components/AdCard';
+
+const ads = {
+  id: 'ad-001',
+  type: 'advertisement',
+  title: '🔥 Get Fit Now!',
+  description: 'Join Shriram Gym today and get 30% OFF on monthly plans!',
+  imageUrl: 'https://images.pexels.com/photos/1954524/pexels-photo-1954524.jpeg?cs=srgb&dl=pexels-willpicturethis-1954524.jpg&fm=jpg',
+  gym: {
+    name: 'Shriram Gym',
+  },
+  timestamp: new Date().toISOString(),
+  cta: 'Book Now',
+  user: {
+    name: 'Yupluck Promotion',
+    profilePic: 'https://cdn-icons-png.flaticon.com/512/2331/2331943.png',
+  },
+};
+
 
 export default function YupluckFeedScreen({ navigation }) {
-  const [fadeAnim] = useState(new Animated.Value(1));
+  const [fadeAnim] = useState(new Animated.Value(0));
+  
   const [refreshing, setRefreshing] = useState(false);
   const [feedData, setFeedData] = useState([]);
   const [page, setPage] = useState(0);
@@ -24,11 +41,16 @@ export default function YupluckFeedScreen({ navigation }) {
 
   useEffect(() => {
     loadFeedData();
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 600,
+      useNativeDriver: true,
+    }).start();
   }, []);
 
   const loadFeedData = async () => {
     const data = await fetchUserFeed(page, limit);
-    console.log("Data is", data);
+    data.push(ads);
     setFeedData(data);
   };
 
@@ -54,43 +76,47 @@ export default function YupluckFeedScreen({ navigation }) {
   const renderFeedItem = ({ item }) => {
     switch (item.type) {
       case 'general':
-        return <FeedCard item={item} formatTime={formatTime} />;
-      
-
-      // Add your other cases here (checkin, workoutInvite, etc.)
-
+      case 'questionPrompt':
+        return <FeedCard item={item} formatTime={formatTime} onComment={(post) => navigation.navigate('CommentScreen', { postId: post.id })}/>;
+      case 'advertisement':
+        return <AdCard item={item} />;
       default:
         return null;
     }
   };
 
-  const handleAnswerSubmit = (answer) => {
-    
+  const handleAnswerSubmit = async (answer) => {
+    await uploadFeedAnswer(answer);
+    loadFeedData();
   };
 
   return (
     <View style={styles.wrapper}>
       <CustomHeader navigation={navigation} />
-      <View style={styles.container}>
-        <FlatList
-          ListHeaderComponent={
-            <FeedQuestionCard
-              question="What's your fitness goal this week?"
-              onSubmit={handleAnswerSubmit}
-            />
-          }
-          data={feedData}
-          renderItem={renderFeedItem}
-          keyExtractor={(item) => item.id.toString()}
-          contentContainerStyle={{ paddingBottom: 100 }}
-          showsVerticalScrollIndicator={false}
-          refreshing={refreshing}
-          onRefresh={handleRefresh}
-        />
-      </View>
-      {feedData?.length === 0 && !refreshing && (
-        <Text style={{ textAlign: 'center', marginTop: 20 }}>No feed activity found.</Text>
-      )}
+      <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
+        <View style={styles.container}>
+          <FlatList
+            ListHeaderComponent={
+              <View style={styles.questionCard}>
+                <FeedQuestionCard
+                  question="What's your fitness goal this week?"
+                  onSubmit={handleAnswerSubmit}
+                />
+              </View>
+            }
+            data={feedData}
+            renderItem={renderFeedItem}
+            keyExtractor={(item) => item.id.toString()}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+          />
+          {feedData?.length === 0 && !refreshing && (
+            <Text style={styles.noFeedText}>No feed activity found.</Text>
+          )}
+        </View>
+      </Animated.View>
       <Footer navigation={navigation} />
     </View>
   );
@@ -99,65 +125,24 @@ export default function YupluckFeedScreen({ navigation }) {
 const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#F9F9FB',
   },
   container: {
     flex: 1,
     paddingHorizontal: 16,
     paddingTop: 10,
   },
-  card: {
-    flexDirection: 'row',
-    backgroundColor: '#fff',
-    padding: 16,
-    marginBottom: 16,
-    borderRadius: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 3,
+  questionCard: {
+    marginBottom: 20,
   },
-  avatar: {
-    width: 45,
-    height: 45,
-    borderRadius: 22,
-    marginRight: 12,
-    borderWidth: 2,
-    borderColor: '#fff',
+  listContent: {
+    paddingBottom: 120,
+    paddingTop: 10,
   },
-  gymImage: {
-    width: '100%',
-    height: 150,
-    borderRadius: 16,
-    marginTop: 10,
-  },
-  usernameLink: {
-    fontWeight: 'bold',
-    color: '#0044CC',
-  },
-  text: {
-    fontSize: 14,
-    color: '#333',
-  },
-  time: {
-    fontSize: 12,
-    color: '#888',
-    marginTop: 4,
-  },
-  reactionBar: {
-    flexDirection: 'row',
-    marginTop: 10,
-    justifyContent: 'space-between',
-    paddingHorizontal: 10,
-  },
-  reaction: {
-    fontSize: 20,
-  },
-  gymName: {
-    fontWeight: '600',
-    fontSize: 14,
-    color: '#4CAF50',
-    marginTop: 4,
+  noFeedText: {
+    textAlign: 'center',
+    marginTop: 30,
+    fontSize: 16,
+    color: '#999',
   },
 });
