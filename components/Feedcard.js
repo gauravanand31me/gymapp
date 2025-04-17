@@ -56,7 +56,7 @@ const [selectedReaction, setSelectedReaction] = useState(item.userReaction || nu
       const result = await reactToPost(item.id, type);
   
   
-      if (!result.success) {
+     
         // Rollback UI change if backend failed
         setSelectedReaction(previousReaction);
         setReactionCounts((prev) => {
@@ -65,8 +65,8 @@ const [selectedReaction, setSelectedReaction] = useState(item.userReaction || nu
           if (previousReaction) rollbackCounts[previousReaction] = (rollbackCounts[previousReaction] || 0) + 1;
           return rollbackCounts;
         });
-        Alert.alert('Reaction failed', 'Unable to save your reaction.');
-      }
+
+ 
     } catch (error) {
       console.error('Reaction error:', error);
     }
