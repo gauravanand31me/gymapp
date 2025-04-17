@@ -35,7 +35,7 @@ export default function CommentScreen({ route, navigation }) {
   const handleAddComment = async () => {
     if (!newComment.trim()) return;
     const added = await addComment(postId, newComment.trim());
-    if (added.success) {
+    if (added) {
       setNewComment('');
       loadComments();
     }
@@ -46,7 +46,7 @@ export default function CommentScreen({ route, navigation }) {
   }, []);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       {/* Header with back button */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -98,7 +98,7 @@ export default function CommentScreen({ route, navigation }) {
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -107,6 +107,7 @@ const styles = StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: '#fff',
+      marginTop: 20
     },
     header: {
       padding: 16,

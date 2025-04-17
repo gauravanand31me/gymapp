@@ -76,46 +76,47 @@ export default function YupluckFeedScreen({ navigation }) {
   const renderFeedItem = ({ item }) => {
     switch (item.type) {
       case 'general':
-        return <FeedCard item={item} formatTime={formatTime} />;
       case 'questionPrompt':
-          return <FeedCard item={item} formatTime={formatTime} />;
-
-      // Add your other cases here (checkin, workoutInvite, etc.)
-
+        return <FeedCard item={item} formatTime={formatTime} onComment={(post) => navigation.navigate('CommentScreen', { postId: post.id })}/>;
+      case 'advertisement':
+        return <AdCard item={item} />;
       default:
         return null;
     }
   };
 
   const handleAnswerSubmit = async (answer) => {
-        const upload_result = await uploadFeedAnswer(answer);
-        loadFeedData();
+    await uploadFeedAnswer(answer);
+    loadFeedData();
   };
 
   return (
     <View style={styles.wrapper}>
       <CustomHeader navigation={navigation} />
-      <View style={styles.container}>
-        <FlatList
-          ListHeaderComponent={
-            <FeedQuestionCard
-              question="What's your fitness goal this week?"
-              onSubmit={handleAnswerSubmit}
-              
-            />
-          }
-          data={feedData}
-          renderItem={renderFeedItem}
-          keyExtractor={(item) => item.id.toString()}
-          contentContainerStyle={{ paddingBottom: 100 }}
-          showsVerticalScrollIndicator={false}
-          refreshing={refreshing}
-          onRefresh={handleRefresh}
-        />
-      </View>
-      {feedData?.length === 0 && !refreshing && (
-        <Text style={{ textAlign: 'center', marginTop: 20 }}>No feed activity found.</Text>
-      )}
+      <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
+        <View style={styles.container}>
+          <FlatList
+            ListHeaderComponent={
+              <View style={styles.questionCard}>
+                <FeedQuestionCard
+                  question="What's your fitness goal this week?"
+                  onSubmit={handleAnswerSubmit}
+                />
+              </View>
+            }
+            data={feedData}
+            renderItem={renderFeedItem}
+            keyExtractor={(item) => item.id.toString()}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+          />
+          {feedData?.length === 0 && !refreshing && (
+            <Text style={styles.noFeedText}>No feed activity found.</Text>
+          )}
+        </View>
+      </Animated.View>
       <Footer navigation={navigation} />
     </View>
   );

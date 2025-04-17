@@ -8,18 +8,73 @@ import {
   Alert,
   Modal,
   Pressable,
+  Share,
 } from 'react-native';
 import {
   MoreVertical,
-  ThumbsUp,
   MessageCircle,
   Share2,
   X,
 } from 'lucide-react-native';
+import { reactToPost } from '../api/apiService';
 
-export default function FeedCard({ item, formatTime, onDelete, onReport }) {
-  const [liked, setLiked] = useState(false);
+const REACTIONS = [
+  { type: 'like', emoji: '👍' },
+  { type: 'love', emoji: '❤️' },
+  { type: 'haha', emoji: '😂' },
+  { type: 'wow', emoji: '😮' },
+  { type: 'angry', emoji: '😡' },
+];
+
+export default function FeedCard({ item, formatTime, onDelete, onReport, onComment, onShare }) {
+ 
+  const initialCounts = {};
+  console.log("reactionsBreakdown", item);
+(item.reactionsBreakdown || []).forEach(r => {
+  console.log("R is", r)
+  initialCounts[r.type] = r.count;
+});
+
+console.log("initialCounts", initialCounts);
+const [reactionCounts, setReactionCounts] = useState(initialCounts);
+const [selectedReaction, setSelectedReaction] = useState(item.userReaction || null);
   const [imageModalVisible, setImageModalVisible] = useState(false);
+
+  const handleReaction = async (type) => {
+    try {
+      const previousReaction = selectedReaction;
+  
+      setSelectedReaction((prev) => {
+        const newCounts = { ...reactionCounts };
+        if (prev && newCounts[prev]) newCounts[prev] -= 1;
+        newCounts[type] = (newCounts[type] || 0) + 1;
+        setReactionCounts(newCounts);
+        return type;
+      });
+  
+      // Call backend API to save reaction
+      const result = await reactToPost(item.id, type);
+  
+  
+      if (!result.success) {
+        // Rollback UI change if backend failed
+        setSelectedReaction(previousReaction);
+        setReactionCounts((prev) => {
+          const rollbackCounts = { ...prev };
+          if (rollbackCounts[type]) rollbackCounts[type] -= 1;
+          if (previousReaction) rollbackCounts[previousReaction] = (rollbackCounts[previousReaction] || 0) + 1;
+          return rollbackCounts;
+        });
+        Alert.alert('Reaction failed', 'Unable to save your reaction.');
+      }
+    } catch (error) {
+      console.error('Reaction error:', error);
+    }
+  };
+  
+
+
+  
 
   const handleMenuPress = () => {
     Alert.alert(
@@ -34,15 +89,20 @@ export default function FeedCard({ item, formatTime, onDelete, onReport }) {
     );
   };
 
+  const renderReactionSummary = () => {
+    const total = Object.values(reactionCounts).reduce((a, b) => a + b, 0);
+    if (total === 0) return null;
+    const firstReaction = selectedReaction || Object.keys(reactionCounts)[0];
+    const emoji = REACTIONS.find((r) => r.type === firstReaction)?.emoji || '👍';
+    return <Text style={styles.reactionText}>{emoji} {total}</Text>;
+  };
+
   return (
     <View style={styles.card}>
       {/* Header */}
       <View style={styles.header}>
         <Image
-          source={{
-            uri: item.user?.profilePic ||
-              'https://cdn-icons-png.flaticon.com/512/149/149071.png',
-          }}
+          source={{ uri: item.user?.profilePic || 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }}
           style={styles.avatar}
         />
         <View style={styles.userInfo}>
@@ -67,61 +127,87 @@ export default function FeedCard({ item, formatTime, onDelete, onReport }) {
             <Image source={{ uri: item.imageUrl }} style={styles.postImage} />
           </TouchableOpacity>
 
-          {/* Fullscreen Modal */}
           <Modal visible={imageModalVisible} transparent={true}>
             <View style={styles.modalContainer}>
               <Image source={{ uri: item.imageUrl }} style={styles.fullImage} />
-
-              {/* Close Button */}
-              <Pressable
-                onPress={() => setImageModalVisible(false)}
-                style={styles.closeButton}
-              >
+              <Pressable onPress={() => setImageModalVisible(false)} style={styles.closeButton}>
                 <X size={28} color="#fff" />
               </Pressable>
 
-              {/* Reactions in Modal */}
               <View style={styles.modalReactionBar}>
-                <TouchableOpacity onPress={() => setLiked(!liked)} style={styles.reactionButton}>
-                  <ThumbsUp size={20} color={liked ? '#0d6efd' : '#fff'} />
-                  <Text style={[styles.reactionText, liked && { color: '#0d6efd' }]}>
-                    {liked ? 'Liked' : 'Like'}
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.reactionButton}>
-                  <MessageCircle size={20} color="#fff" />
-                  <Text style={styles.reactionText}>Comment</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.reactionButton}>
-                  <Share2 size={20} color="#fff" />
-                  <Text style={styles.reactionText}>Share</Text>
-                </TouchableOpacity>
+                {REACTIONS.map((reaction) => (
+                  <TouchableOpacity
+                    key={reaction.type}
+                    onPress={() => handleReaction(reaction.type)}
+                    style={styles.reactionButton}
+                  >
+                    <Text style={styles.reactionEmoji}>{reaction.emoji}</Text>
+                  </TouchableOpacity>
+                ))}
               </View>
             </View>
           </Modal>
         </>
       )}
 
+{console.log("reactionCounts", reactionCounts)}
+{Object.keys(reactionCounts).length > 0 && (
+  <View style={styles.reactionBreakdown}>
+    {Object.entries(reactionCounts).map(([type, count]) => {
+      const emoji = REACTIONS.find(r => r.type === type)?.emoji || '👍';
+      return (
+        <View key={type} style={styles.reactionGroup}>
+          <Text style={styles.reactionEmoji}>{emoji}</Text>
+          <Text style={styles.reactionCount}>{count}</Text>
+        </View>
+      );
+    })}
+  </View>
+)}
+
       {/* Reaction Bar */}
       <View style={styles.reactionBar}>
-        <TouchableOpacity onPress={() => setLiked(!liked)} style={styles.reactionButton}>
-          <ThumbsUp size={18} color={liked ? '#0d6efd' : '#666'} />
-          <Text style={[styles.reactionText, liked && { color: '#0d6efd' }]}>
-            {liked ? 'Liked' : 'Like'}
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.reactionButton}>
+        <View style={styles.reactionSummary}>
+          {renderReactionSummary()}
+        </View>
+        <TouchableOpacity
+          style={styles.actionButton}
+          onPress={() => onComment?.(item)}
+        >
           <MessageCircle size={18} color="#666" />
-          <Text style={styles.reactionText}>Comment</Text>
+          <Text style={styles.reactionText}>{item.commentCount || 0} Comments</Text>
         </TouchableOpacity>
-
-        <TouchableOpacity style={styles.reactionButton}>
+        <TouchableOpacity
+          style={styles.actionButton}
+          onPress={() => {
+            if (onShare) {
+              onShare(item);
+            } else {
+              Share.share({
+                message: `Check this post: ${item.description}`,
+              });
+            }
+          }}
+        >
           <Share2 size={18} color="#666" />
           <Text style={styles.reactionText}>Share</Text>
         </TouchableOpacity>
+      </View>
+
+      {/* Reaction Options */}
+      <View style={styles.reactionPicker}>
+        {REACTIONS.map((reaction) => (
+          <TouchableOpacity
+            key={reaction.type}
+            onPress={() => handleReaction(reaction.type)}
+            style={[
+              styles.reactionButton,
+              selectedReaction === reaction.type && styles.selectedReaction,
+            ]}
+          >
+            <Text style={styles.reactionEmoji}>{reaction.emoji}</Text>
+          </TouchableOpacity>
+        ))}
       </View>
     </View>
   );
@@ -186,20 +272,48 @@ const styles = StyleSheet.create({
   },
   reactionBar: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
     marginTop: 14,
     borderTopWidth: 1,
     borderTopColor: '#eee',
     paddingTop: 10,
+    alignItems: 'center',
+  },
+  reactionSummary: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 6,
+  },
+  reactionPicker: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: 10,
   },
   reactionButton: {
-    alignItems: 'center',
     flexDirection: 'row',
-    gap: 4,
+    alignItems: 'center',
+    paddingHorizontal: 6,
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: 6,
+    backgroundColor: '#f9f9f9',
+    gap: 6,
   },
   reactionText: {
     fontSize: 13,
     color: '#666',
+    marginLeft: 4,
+  },
+  reactionEmoji: {
+    fontSize: 20,
+  },
+  selectedReaction: {
+    borderBottomWidth: 2,
+    borderColor: '#0d6efd',
   },
   modalContainer: {
     flex: 1,
@@ -229,5 +343,25 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     paddingVertical: 12,
     backgroundColor: 'rgba(0,0,0,0.3)',
+  },
+  reactionBreakdown: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 8,
+    gap: 10,
+    paddingHorizontal: 6,
+  },
+  reactionGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f2f2f2',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 16,
+  },
+  reactionCount: {
+    fontSize: 13,
+    marginLeft: 4,
+    color: '#444',
   },
 });
