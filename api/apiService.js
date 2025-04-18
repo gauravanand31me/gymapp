@@ -290,6 +290,27 @@ export const addComment = async (postId, commentText) => {
 };
 
 
+export const deleteComment = async (commentId) => {
+  try {
+    const userToken = await AsyncStorage.getItem('authToken');
+    const response = await fetch(`${BASE_URL}/users/feed/comment/${commentId}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${userToken}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) throw new Error('Failed to delete comment');
+
+    return true;
+  } catch (err) {
+    console.error('Error deleting comment:', err);
+    return false;
+  }
+};
+
+
 
 
 export const reactToPost = async (postId, reactionType) => {

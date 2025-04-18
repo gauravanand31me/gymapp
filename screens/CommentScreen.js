@@ -12,13 +12,23 @@ import {
   Platform,
 } from 'react-native';
 import { X } from 'lucide-react-native';
-import { fetchComments, addComment } from '../api/apiService'; // Adjust path
+import { fetchComments, addComment, deleteComment } from '../api/apiService'; // Adjust path
 
 export default function CommentScreen({ route, navigation }) {
   const { postId } = route.params;
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(false);
+
+
+  const handleDeleteComment = async (commentId) => {
+    try {
+      await deleteComment(commentId);
+      loadComments();
+    } catch (error) {
+      console.error('Failed to delete comment:', error);
+    }
+  };
 
   const loadComments = async () => {
     try {
@@ -64,19 +74,25 @@ export default function CommentScreen({ route, navigation }) {
         onRefresh={loadComments}
         contentContainerStyle={styles.commentList}
         renderItem={({ item }) => (
-            <View style={styles.commentCard}>
-            <Image
-              source={{
-                uri: item.user?.profilePic ||
-                  'https://cdn-icons-png.flaticon.com/512/149/149071.png',
-              }}
-              style={styles.commentAvatar}
-            />
-            <View style={styles.commentContent}>
+          <View style={styles.commentCard}>
+          <Image
+            source={{
+              uri: item.user?.profilePic || 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
+            }}
+            style={styles.commentAvatar}
+          />
+          <View style={styles.commentContent}>
+            <View style={styles.commentTopRow}>
               <Text style={styles.commentUser}>{item.user?.name || 'User'}</Text>
-              <Text style={styles.commentText}>{item.commentText}</Text>
+              {item.canDelete && (
+                <TouchableOpacity onPress={() => handleDeleteComment(item.id)}>
+                  <Text style={styles.deleteText}>Delete</Text>
+                </TouchableOpacity>
+              )}
             </View>
+            <Text style={styles.commentText}>{item.commentText}</Text>
           </View>
+        </View>
         )}
         ListEmptyComponent={<Text style={styles.emptyText}>No comments yet.</Text>}
       />
@@ -183,6 +199,17 @@ const styles = StyleSheet.create({
     sendButtonText: {
       color: '#fff',
       fontWeight: '500',
+    },
+    commentTopRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between', // push name left, delete right
+      alignItems: 'center',
+    },
+    deleteText: {
+      fontSize: 12,
+      color: 'red',
+      paddingHorizontal: 8,
+      paddingVertical: 2,
     },
   });
   
