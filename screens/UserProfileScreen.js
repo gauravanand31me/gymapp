@@ -49,6 +49,8 @@ export default function UserProfileScreen({ navigation, route }) {
     try {
       const data = await userDetails();
 
+      console.log("data.id", data.id);
+      console.log("userId", userId);
    
       if (data.id === userId) {
         setSameUser(true);

@@ -5,10 +5,11 @@ import {
   FlatList,
   StyleSheet,
   Animated,
+  Alert,
 } from 'react-native';
 import Footer from '../components/Footer';
 import CustomHeader from '../components/Header';
-import { fetchUserFeed, uploadFeedAnswer } from '../api/apiService';
+import { deletePost, fetchUserFeed, uploadFeedAnswer } from '../api/apiService';
 import FeedCard from '../components/Feedcard';
 import FeedQuestionCard from '../components/FeedQuestionCard';
 import AdCard from '../components/AdCard';
@@ -77,7 +78,43 @@ export default function YupluckFeedScreen({ navigation }) {
     switch (item.type) {
       case 'general':
       case 'questionPrompt':
-        return <FeedCard item={item} formatTime={formatTime} onComment={(post) => navigation.navigate('CommentScreen', { postId: post.id })}/>;
+        return (
+          <FeedCard
+            item={item}
+            formatTime={formatTime}
+            onComment={(post) => navigation.navigate('CommentScreen', { postId: post.id })}
+            onUserPress={(user) =>{
+              console.log("User is", user);
+              navigation.navigate('UserProfile', { userId: user.userId })
+            } }
+            onDelete={(post) => {
+              // Example logic: show confirmation and delete
+              Alert.alert(
+                'Delete Post',
+                'Are you sure you want to delete this post?',
+                [
+                  { text: 'Cancel', style: 'cancel' },
+                  {
+                    text: 'Delete',
+                    style: 'destructive',
+                    onPress: async () => {
+                      // TODO: call delete API and refresh feed
+                      console.log('Deleting post with ID:', post.id);
+                      const result = await deletePost(post.id);
+                        if (result.success) {
+                          // optionally refresh feed or show a toast
+                          handleRefresh();
+                        } else {
+                          Alert.alert('Error', result.message);
+                        }
+                    },
+                  },
+                ],
+                { cancelable: true }
+              );
+            }}
+          />
+        );
       case 'advertisement':
         return <AdCard item={item} />;
       default:

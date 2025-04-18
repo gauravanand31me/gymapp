@@ -170,6 +170,32 @@ export const verifyOtp = async (mobileNumber, otp) => {
   };
 
 
+  export const deletePost = async (postId) => {
+    try {
+      const userToken = await AsyncStorage.getItem('authToken');
+  
+      const response = await fetch(`${BASE_URL}/users/feed/${postId}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${userToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      console.log("Delete response received", response);
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to delete post');
+      }
+  
+      return { success: true, message: data.message };
+    } catch (error) {
+      console.error('Error deleting post:', error.message);
+      return { success: false, message: error.message };
+    }
+  };
+
+
 
   export const fetchUserFeed = async (page = 0, limit = 10) => {
     try {
@@ -192,11 +218,14 @@ export const verifyOtp = async (mobileNumber, otp) => {
       if (response.ok && data.feed) {
         return data.feed.map(item => ({
           id: item.id,
+          canDelete: item.canDelete,
+          canReport: item.canReport,
           type: item.activityType,
           title: item.title,
           description: item.description,
           imageUrl: item.imageUrl,
           timestamp: item.timestamp,
+          userId: item.userId,
           user: {
             id: item.user?.id,
             name: item.user?.full_name,
