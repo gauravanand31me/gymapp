@@ -14,22 +14,7 @@ import FeedCard from '../components/Feedcard';
 import FeedQuestionCard from '../components/FeedQuestionCard';
 import AdCard from '../components/AdCard';
 
-const ads = {
-  id: 'ad-001',
-  type: 'advertisement',
-  title: '🔥 Get Fit Now!',
-  description: 'Join Shriram Gym today and get 30% OFF on monthly plans!',
-  imageUrl: 'https://images.pexels.com/photos/1954524/pexels-photo-1954524.jpeg?cs=srgb&dl=pexels-willpicturethis-1954524.jpg&fm=jpg',
-  gym: {
-    name: 'Shriram Gym',
-  },
-  timestamp: new Date().toISOString(),
-  cta: 'Book Now',
-  user: {
-    name: 'Yupluck Promotion',
-    profilePic: 'https://cdn-icons-png.flaticon.com/512/2331/2331943.png',
-  },
-};
+const ads = {};
 
 
 export default function YupluckFeedScreen({ navigation }) {
@@ -62,7 +47,7 @@ export default function YupluckFeedScreen({ navigation }) {
   
     const newData = nextPage === 0 ? data : [...feedData, ...data];
   
-    if (nextPage === 0) newData.push(ads);
+    // if (nextPage === 0) newData.push(ads);
   
     setFeedData(newData);
     setPage(nextPage);
@@ -74,7 +59,7 @@ export default function YupluckFeedScreen({ navigation }) {
     setPage(0);
     setHasMore(true); // Reset hasMore
     const refreshed = await fetchUserFeed(0, limit);
-    refreshed.push(ads);
+    
     setFeedData(refreshed);
     setRefreshing(false);
   };
