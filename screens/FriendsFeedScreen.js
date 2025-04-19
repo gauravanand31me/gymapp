@@ -13,6 +13,7 @@ import { deletePost, fetchUserFeed, uploadFeedAnswer } from '../api/apiService';
 import FeedCard from '../components/Feedcard';
 import FeedQuestionCard from '../components/FeedQuestionCard';
 import AdCard from '../components/AdCard';
+import EmptyFeedMessage from '../components/EmptyFeedMessage';
 
 const ads = {};
 
@@ -163,7 +164,7 @@ export default function YupluckFeedScreen({ navigation }) {
             }
           />
           {feedData?.length === 0 && !refreshing && (
-            <Text style={styles.noFeedText}>No feed activity found.</Text>
+                <EmptyFeedMessage navigation={navigation} />
           )}
         </View>
       </Animated.View>

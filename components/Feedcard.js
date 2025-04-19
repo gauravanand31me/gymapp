@@ -146,17 +146,7 @@ const FeedCard = ({ item, formatTime, onDelete, onReport, onComment, onShare, on
           <MessageCircle size={18} color="#666" />
           <Text style={styles.reactionText}> {item?.commentCount} Comments</Text>
         </TouchableOpacity>
-
-        {/* <TouchableOpacity
-          style={styles.actionButton}
-          onPress={() =>
-            onShare?.(item) || Share.share({ message: `Check this post: ${item.description}` })
-          }
-        >
-          <Share2 size={18} color="#666" />
-          <Text style={styles.reactionText}>Share</Text>
-        </TouchableOpacity> */}
-      </View>
+        </View>
     </View>
   );
 };
