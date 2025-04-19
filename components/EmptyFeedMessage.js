@@ -1,18 +1,21 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
-import Icon from 'react-native-vector-icons/Feather';
+import { View, Text, StyleSheet, Image, TouchableOpacity, Dimensions } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome';
+
+const screenHeight = Dimensions.get('window').height;
 
 export default function EmptyFeedMessage({ navigation }) {
   return (
-    <View style={styles.container}>
+    <View style={styles.wrapper}>
       <Image
-        source={require('../assets/empty-feed.png')} // Optional: you can use a local image or use Image from URL
+        source={require('../assets/yupluck-hero.png')}
         style={styles.image}
         resizeMode="contain"
       />
+
       <Text style={styles.title}>Your Feed is Empty 😅</Text>
       <Text style={styles.subtitle}>
-        Book a gym session, track milestones, compete with friends, and build your fitness story!
+        Book a gym session, track milestones, invite buddies, and build your fitness story with Yupluck!
       </Text>
 
       <View style={styles.buttonRow}>
@@ -20,13 +23,13 @@ export default function EmptyFeedMessage({ navigation }) {
           style={styles.button}
           onPress={() => navigation.navigate('GymList')}
         >
-          <Icon name="map-pin" size={18} color="#fff" />
+          <Icon name="building-o" size={18} color="#fff" />
           <Text style={styles.buttonText}>Book Gym</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.button}
-          onPress={() => navigation.navigate('Leaderboard')}
+          onPress={() => navigation.navigate('InviteBuddy')}
         >
           <Icon name="trophy" size={18} color="#fff" />
           <Text style={styles.buttonText}>Leaderboard</Text>
@@ -37,46 +40,56 @@ export default function EmptyFeedMessage({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  wrapper: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    padding: 24,
-    marginTop: 40,
+    minHeight: screenHeight * 0.2,
+    paddingHorizontal: 20,
+    paddingBottom: 40,
   },
   image: {
-    width: 200,
+    width: 220,
     height: 180,
-    marginBottom: 20,
+    marginBottom: 25,
   },
   title: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: 8,
+    marginBottom: 10,
   },
   subtitle: {
     fontSize: 14,
-    color: '#777',
+    color: '#666',
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 25,
     lineHeight: 20,
     paddingHorizontal: 10,
   },
   buttonRow: {
     flexDirection: 'row',
-    gap: 12,
+    justifyContent: 'center',
+    gap: 10,
   },
   button: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#4CAF50',
     paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 8,
-    marginHorizontal: 5,
-    gap: 6,
+    paddingHorizontal: 16,
+    borderRadius: 25,
+    marginHorizontal: 8,
+    gap: 8,
+    elevation: 2, // adds shadow on Android
+    shadowColor: '#000', // iOS shadow
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
   },
   buttonText: {
     color: '#fff',
     fontWeight: '600',
+    fontSize: 14,
   },
 });

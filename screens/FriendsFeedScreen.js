@@ -163,10 +163,11 @@ export default function YupluckFeedScreen({ navigation }) {
               loadingMore ? <Text style={styles.loadingText}>Loading more...</Text> : null
             }
           />
-          {feedData?.length === 0 && !refreshing && (
+          
+        </View>
+        {feedData?.length === 0 && !refreshing && (
                 <EmptyFeedMessage navigation={navigation} />
           )}
-        </View>
       </Animated.View>
       <Footer navigation={navigation} />
     </View>
