@@ -213,7 +213,7 @@ export const verifyOtp = async (mobileNumber, otp) => {
   
       const data = await response.json();
   
-      console.log("Feed data received", data);
+      
   
       if (response.ok && data.feed) {
         return data.feed.map(item => ({
@@ -226,18 +226,22 @@ export const verifyOtp = async (mobileNumber, otp) => {
           imageUrl: item.imageUrl,
           timestamp: item.timestamp,
           userId: item.userId,
+          likeCount: item.likeCount || item.like_count || 0,       // ✅ Added like count
+          commentCount: item.commentCount || item.comment_count || 0, // ✅ Added comment count
+          userLiked: item.userLiked || false, // ✅ Shows if current user has liked
           user: {
             id: item.user?.id,
             name: item.user?.full_name,
             profilePic: item.user?.profile_pic || 'https://via.placeholder.com/50'
           },
           gym: item.gym,
-          userReaction: item.userReaction || null,  // 👍❤️😂 etc.
-          reactionsBreakdown: item.reactionsBreakdown || []  // array of {type, count}
+          userReaction: item.userReaction || null,
+          reactionsBreakdown: item.reactionsBreakdown || []
         }));
       } else {
         return [];
       }
+
     } catch (error) {
       console.error('Error fetching user feed:', error);
       return [];

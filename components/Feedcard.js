@@ -16,8 +16,7 @@ import { reactToPost } from '../api/apiService';
 const { width, height } = Dimensions.get('window');
 
 const FeedCard = ({ item, formatTime, onDelete, onReport, onComment, onShare, onUserPress, navigation }) => {
-  const initialLikeCount = (item.reactionsBreakdown || []).find(r => r.type === 'like')?.count || 0;
-  const [likeCount, setLikeCount] = useState(initialLikeCount);
+  const [likeCount, setLikeCount] = useState(item.likeCount);
   const [liked, setLiked] = useState(item.userReaction === 'like');
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -145,7 +144,7 @@ const FeedCard = ({ item, formatTime, onDelete, onReport, onComment, onShare, on
           onPress={() => onComment?.(item)}
         >
           <MessageCircle size={18} color="#666" />
-          <Text style={styles.reactionText}> Comments</Text>
+          <Text style={styles.reactionText}> {item?.commentCount} Comments</Text>
         </TouchableOpacity>
 
         {/* <TouchableOpacity
