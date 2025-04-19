@@ -7,14 +7,19 @@ import {
   TouchableOpacity,
   Alert,
   Share,
+  Modal,
+  Dimensions
 } from 'react-native';
 import { MoreVertical, MessageCircle, Share2 } from 'lucide-react-native';
 import { reactToPost } from '../api/apiService';
 
-const FeedCard = ({ item, formatTime, onDelete, onReport, onComment, onShare, onUserPress }) => {
+const { width, height } = Dimensions.get('window');
+
+const FeedCard = ({ item, formatTime, onDelete, onReport, onComment, onShare, onUserPress, navigation }) => {
   const initialLikeCount = (item.reactionsBreakdown || []).find(r => r.type === 'like')?.count || 0;
   const [likeCount, setLikeCount] = useState(initialLikeCount);
   const [liked, setLiked] = useState(item.userReaction === 'like');
+  const [modalVisible, setModalVisible] = useState(false);
 
   const handleLike = async () => {
     const previousLiked = liked;
@@ -83,11 +88,42 @@ const FeedCard = ({ item, formatTime, onDelete, onReport, onComment, onShare, on
       <Text style={styles.description}>{item.description}</Text>
 
       {/* Gym Name */}
-      {item.gym && <Text style={styles.gymName}>🏋️ {item.gym.name}</Text>}
+      {item.gym && (
+        <TouchableOpacity onPress={() => navigation.navigate('GymDetails', { gym_id: item.gym.id })}>
+          <Text style={styles.gymName}>🏋️ {item.gym.name}</Text>
+        </TouchableOpacity>
+      )}
 
-      {/* Image */}
+      {/* Image Preview */}
       {item.imageUrl && (
-        <Image source={{ uri: item.imageUrl }} style={styles.postImage} />
+        <>
+          <TouchableOpacity onPress={() => setModalVisible(true)}>
+            <Image source={{ uri: item.imageUrl }} style={styles.postImage} />
+          </TouchableOpacity>
+
+          <Modal
+            visible={modalVisible}
+            transparent={true}
+            animationType="fade"
+            onRequestClose={() => setModalVisible(false)}
+          >
+            <View style={styles.modalContainer}>
+              {/* Close Button */}
+              <TouchableOpacity
+                onPress={() => setModalVisible(false)}
+                style={styles.closeButton}
+              >
+                <Text style={styles.closeText}>✕</Text>
+              </TouchableOpacity>
+
+              <Image
+                source={{ uri: item.imageUrl }}
+                style={styles.fullscreenImage}
+                resizeMode="contain"
+              />
+            </View>
+          </Modal>
+        </>
       )}
 
       {/* Like Count */}
@@ -112,7 +148,7 @@ const FeedCard = ({ item, formatTime, onDelete, onReport, onComment, onShare, on
           <Text style={styles.reactionText}> Comments</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
+        {/* <TouchableOpacity
           style={styles.actionButton}
           onPress={() =>
             onShare?.(item) || Share.share({ message: `Check this post: ${item.description}` })
@@ -120,7 +156,7 @@ const FeedCard = ({ item, formatTime, onDelete, onReport, onComment, onShare, on
         >
           <Share2 size={18} color="#666" />
           <Text style={styles.reactionText}>Share</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
     </View>
   );
@@ -176,6 +212,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#4CAF50',
     marginBottom: 8,
+    textDecorationLine: 'underline',
   },
   postImage: {
     width: '100%',
@@ -221,6 +258,31 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.95)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  fullscreenImage: {
+    width: width,
+    height: height,
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 40,
+    right: 20,
+    zIndex: 10,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  closeText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 });
 

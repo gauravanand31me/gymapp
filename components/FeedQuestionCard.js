@@ -91,6 +91,16 @@ export default function FeedQuestion({ question, onSubmit }) {
           <TouchableOpacity onPress={pickImage}>
             <Feather name="image" size={22} color="#0044CC" />
           </TouchableOpacity>
+          <View style={styles.rightAlign}>
+    <TouchableOpacity
+      style={[styles.shareButton, { backgroundColor: answer.trim() || media ? '#0044CC' : '#ccc' }]}
+      onPress={handleShare}
+      disabled={!(answer.trim() || media)}
+    >
+      <Text style={styles.shareText}>Share</Text>
+    </TouchableOpacity>
+  </View>
+
         </View>
       </View>
     </KeyboardAvoidingView>
@@ -128,7 +138,14 @@ const styles = StyleSheet.create({
   },
   uploadOptions: {
     flexDirection: 'row',
-    marginTop: 12,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 10,
+  },
+  
+  rightAlign: {
+    flex: 1,
+    alignItems: 'flex-end',
   },
   mediaPreview: {
     flexDirection: 'row',

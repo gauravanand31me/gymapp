@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: '#fff',
-      marginTop: 20
+      marginTop: 0
     },
     header: {
       padding: 16,
@@ -132,6 +132,7 @@ const styles = StyleSheet.create({
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
+      marginTop: 25,
     },
     headerTitle: {
       fontSize: 18,
@@ -188,6 +189,7 @@ const styles = StyleSheet.create({
       paddingHorizontal: 14,
       paddingVertical: 8,
       fontSize: 14,
+      marginBottom: 20,
     },
     sendButton: {
       marginLeft: 8,
@@ -195,6 +197,7 @@ const styles = StyleSheet.create({
       paddingVertical: 8,
       paddingHorizontal: 14,
       borderRadius: 20,
+      marginBottom: 20,
     },
     sendButtonText: {
       color: '#fff',

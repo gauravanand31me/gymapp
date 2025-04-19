@@ -34,10 +34,11 @@ const ads = {
 
 export default function YupluckFeedScreen({ navigation }) {
   const [fadeAnim] = useState(new Animated.Value(0));
-  
+  const [loadingMore, setLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [feedData, setFeedData] = useState([]);
   const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
   const limit = 10;
 
   useEffect(() => {
@@ -49,18 +50,39 @@ export default function YupluckFeedScreen({ navigation }) {
     }).start();
   }, []);
 
-  const loadFeedData = async () => {
-    const data = await fetchUserFeed(page, limit);
-    data.push(ads);
-    setFeedData(data);
+  const loadFeedData = async (nextPage = page) => {
+    if (loadingMore || !hasMore) return;
+  
+    setLoadingMore(true);
+    const data = await fetchUserFeed(nextPage, limit);
+  
+    if (data.length < limit) {
+      setHasMore(false); // No more data to load
+    }
+  
+    const newData = nextPage === 0 ? data : [...feedData, ...data];
+  
+    if (nextPage === 0) newData.push(ads);
+  
+    setFeedData(newData);
+    setPage(nextPage);
+    setLoadingMore(false);
   };
 
   const handleRefresh = async () => {
     setRefreshing(true);
     setPage(0);
+    setHasMore(true); // Reset hasMore
     const refreshed = await fetchUserFeed(0, limit);
+    refreshed.push(ads);
     setFeedData(refreshed);
     setRefreshing(false);
+  };
+
+  const handleLoadMore = () => {
+    if (!loadingMore && hasMore) {
+      loadFeedData(page + 1);
+    }
   };
 
   const formatTime = (timestamp) => {
@@ -80,13 +102,14 @@ export default function YupluckFeedScreen({ navigation }) {
       case 'questionPrompt':
         return (
           <FeedCard
+            navigation={navigation}
             item={item}
             formatTime={formatTime}
             onComment={(post) => navigation.navigate('CommentScreen', { postId: post.id })}
-            onUserPress={(user) =>{
+            onUserPress={(user) => {
               console.log("User is", user);
               navigation.navigate('UserProfile', { userId: user.userId })
-            } }
+            }}
             onDelete={(post) => {
               // Example logic: show confirmation and delete
               Alert.alert(
@@ -101,12 +124,12 @@ export default function YupluckFeedScreen({ navigation }) {
                       // TODO: call delete API and refresh feed
                       console.log('Deleting post with ID:', post.id);
                       const result = await deletePost(post.id);
-                        if (result.success) {
-                          // optionally refresh feed or show a toast
-                          handleRefresh();
-                        } else {
-                          Alert.alert('Error', result.message);
-                        }
+                      if (result.success) {
+                        // optionally refresh feed or show a toast
+                        handleRefresh();
+                      } else {
+                        Alert.alert('Error', result.message);
+                      }
                     },
                   },
                 ],
@@ -148,6 +171,11 @@ export default function YupluckFeedScreen({ navigation }) {
             showsVerticalScrollIndicator={false}
             refreshing={refreshing}
             onRefresh={handleRefresh}
+            onEndReached={handleLoadMore}
+            onEndReachedThreshold={0.6}
+            ListFooterComponent={
+              loadingMore ? <Text style={styles.loadingText}>Loading more...</Text> : null
+            }
           />
           {feedData?.length === 0 && !refreshing && (
             <Text style={styles.noFeedText}>No feed activity found.</Text>
