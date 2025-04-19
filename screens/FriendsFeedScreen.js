@@ -93,7 +93,6 @@ export default function YupluckFeedScreen({ navigation }) {
             formatTime={formatTime}
             onComment={(post) => navigation.navigate('CommentScreen', { postId: post.id })}
             onUserPress={(user) => {
-              console.log("User is", user);
               navigation.navigate('UserProfile', { userId: user.userId })
             }}
             onDelete={(post) => {
