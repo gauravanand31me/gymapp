@@ -915,4 +915,3 @@ export const deleteUserAccount = async () => {
   }
 }
 
-
