@@ -36,7 +36,6 @@ import LandingScreen from './screens/LandingScreen';
 import CouponListScreen from './screens/CouponListScreen';
 import UserRatingsScreen from './screens/RatingScreen';
 import FriendsFeedScreen from './screens/FriendsFeedScreen';
-import CommentScreen from './screens/CommentScreen';
 
 const Stack = createStackNavigator();
 
@@ -210,7 +209,7 @@ export default function App() {
     <NotificationProvider>
       <NavigationContainer linking={linking}>
         <Stack.Navigator
-          initialRouteName={isAuthenticated ? "GymList" : "LandingScreen"}
+          initialRouteName={isAuthenticated ? "FriendsFeedScreen" : "LandingScreen"}
           screenOptions={{ headerShown: false }}
         >
           <Stack.Screen name="Login" component={LoginScreen} />
@@ -241,7 +240,6 @@ export default function App() {
           <Stack.Screen name="UserRatingsScreen" component={UserRatingsScreen} />
           <Stack.Screen name="FriendsFeedScreen" component={FriendsFeedScreen} />
           <Stack.Screen name="VisitedGymScreen" component={VisitedGymScreen} options={{ title: 'Visited Gyms' }} />
-          <Stack.Screen name="CommentScreen" component={CommentScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </NotificationProvider>
