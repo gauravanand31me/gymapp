@@ -1,0 +1,199 @@
+import React, { useEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  Animated,
+  Alert,
+} from 'react-native';
+import Footer from '../components/Footer';
+import CustomHeader from '../components/Header';
+import { deletePost, fetchUserFeed, uploadFeedAnswer } from '../api/apiService';
+import FeedCard from '../components/Feedcard';
+import FeedQuestionCard from '../components/FeedQuestionCard';
+import AdCard from '../components/AdCard';
+import EmptyFeedMessage from '../components/EmptyFeedMessage';
+
+const ads = {};
+
+
+export default function YupluckFeedScreen({ navigation }) {
+  const [fadeAnim] = useState(new Animated.Value(0));
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [feedData, setFeedData] = useState([]);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const limit = 10;
+
+  useEffect(() => {
+    loadFeedData();
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 600,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
+  const loadFeedData = async (nextPage = page) => {
+    if (loadingMore || !hasMore) return;
+  
+    setLoadingMore(true);
+    const data = await fetchUserFeed(nextPage, limit);
+  
+    if (data.length < limit) {
+      setHasMore(false); // No more data to load
+    }
+  
+    const newData = nextPage === 0 ? data : [...feedData, ...data];
+  
+    // if (nextPage === 0) newData.push(ads);
+  
+    setFeedData(newData);
+    setPage(nextPage);
+    setLoadingMore(false);
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    setPage(0);
+    setHasMore(true); // Reset hasMore
+    const refreshed = await fetchUserFeed(0, limit);
+    
+    setFeedData(refreshed);
+    setRefreshing(false);
+  };
+
+  const handleLoadMore = () => {
+    if (!loadingMore && hasMore) {
+      loadFeedData(page + 1);
+    }
+  };
+
+  const formatTime = (timestamp) => {
+    const date = new Date(timestamp);
+    return date.toLocaleString('en-GB', {
+      day: 'numeric',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    });
+  };
+
+  const renderFeedItem = ({ item }) => {
+    switch (item.type) {
+      case 'general':
+      case 'questionPrompt':
+        return (
+          <FeedCard
+            navigation={navigation}
+            item={item}
+            formatTime={formatTime}
+            onComment={(post) => navigation.navigate('CommentScreen', { postId: post.id })}
+            onUserPress={(user) => {
+              navigation.navigate('UserProfile', { userId: user.userId })
+            }}
+            onDelete={(post) => {
+              // Example logic: show confirmation and delete
+              Alert.alert(
+                'Delete Post',
+                'Are you sure you want to delete this post?',
+                [
+                  { text: 'Cancel', style: 'cancel' },
+                  {
+                    text: 'Delete',
+                    style: 'destructive',
+                    onPress: async () => {
+                      // TODO: call delete API and refresh feed
+                      console.log('Deleting post with ID:', post.id);
+                      const result = await deletePost(post.id);
+                      if (result.success) {
+                        // optionally refresh feed or show a toast
+                        handleRefresh();
+                      } else {
+                        Alert.alert('Error', result.message);
+                      }
+                    },
+                  },
+                ],
+                { cancelable: true }
+              );
+            }}
+          />
+        );
+      case 'advertisement':
+        return <AdCard item={item} />;
+      default:
+        return null;
+    }
+  };
+
+  const handleAnswerSubmit = async (answer) => {
+    await uploadFeedAnswer(answer);
+    loadFeedData();
+  };
+
+  return (
+    <View style={styles.wrapper}>
+      <CustomHeader navigation={navigation} />
+      <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
+        <View style={styles.container}>
+          <FlatList
+            ListHeaderComponent={
+              <View style={styles.questionCard}>
+                <FeedQuestionCard
+                  question="What's your fitness goal this week?"
+                  onSubmit={handleAnswerSubmit}
+                />
+              </View>
+            }
+            data={feedData}
+            renderItem={renderFeedItem}
+            keyExtractor={(item) => item.id.toString()}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            onEndReached={handleLoadMore}
+            onEndReachedThreshold={0.6}
+            ListFooterComponent={
+              loadingMore ? <Text style={styles.loadingText}>Loading more...</Text> : null
+            }
+          />
+          
+        </View>
+        {feedData?.length === 0 && !refreshing && (
+                <EmptyFeedMessage navigation={navigation} />
+          )}
+      </Animated.View>
+      <Footer navigation={navigation} />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  wrapper: {
+    flex: 1,
+    backgroundColor: '#F9F9FB',
+  },
+  container: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingTop: 10,
+  },
+  questionCard: {
+    marginBottom: 20,
+  },
+  listContent: {
+    paddingBottom: 120,
+    paddingTop: 10,
+  },
+  noFeedText: {
+    textAlign: 'center',
+    marginTop: 30,
+    fontSize: 16,
+    color: '#999',
+  },
+});

@@ -340,6 +340,7 @@ export default function ProfileScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
+    marginTop: 30
     //backgroundColor: '#f5f5f5',
   },
   container: {

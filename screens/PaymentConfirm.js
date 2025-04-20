@@ -32,19 +32,21 @@ export default function PaymentScreen({ route, navigation }) {
   const [finalPrice, setFinalPrice] = useState(0);
 
 
-  useEffect(() => {
-    if (selectedCoupon) {
-      setApplyCoupon(selectedCoupon.coupon_code);
-      setDiscount(selectedCoupon);
+  useFocusEffect(
+    useCallback(() => {
+      if (selectedCoupon) {
+        setApplyCoupon(selectedCoupon.coupon_code);
+        setDiscount(selectedCoupon);
   
-      const discountPrice = selectedCoupon.discount_type === 'cash'
-        ? parseFloat(selectedCoupon.discount_amount)
-        : (originalPrice * parseFloat(selectedCoupon.discount_amount)) / 100;
+        const discountPrice = selectedCoupon.discount_type === 'cash'
+          ? parseFloat(selectedCoupon.discount_amount)
+          : (originalPrice * parseFloat(selectedCoupon.discount_amount)) / 100;
   
-      const final = originalPrice - discountPrice;
-      setFinalPrice(final);
-    }
-  }, [selectedCoupon, originalPrice]);
+        const final = originalPrice - discountPrice;
+        setFinalPrice(final);
+      }
+    }, [selectedCoupon, originalPrice])
+  );
 
   useEffect(() => {
     const checkExpiration = () => {
@@ -68,9 +70,10 @@ export default function PaymentScreen({ route, navigation }) {
       }
     }
 
+    const subscriptioPrice = slotDetails?.price || slotDetails?.subscriptionPrice;
     setOriginalPrice(slotDetails?.price * (slotDetails.duration / 60) || slotDetails.subscriptionPrice);
     setFinalPrice(slotDetails?.price * (slotDetails.duration / 60) || slotDetails.subscriptionPrice);
-    setPlatformCharges(slotDetails?.price * 5 / 100);
+    setPlatformCharges(subscriptioPrice * 5 / 100);
     checkExpiration();
     fetchGymData();
     setTimeout(() => { fetchCouponcode() }, 500)
@@ -108,8 +111,9 @@ export default function PaymentScreen({ route, navigation }) {
 
 
       if (bookingResponse) {
+        const amountToPay = finalPrice + platformCharges;
         const orderResponse = await createOrder(
-          finalPrice + platformCharges,
+          amountToPay,
           bookingResponse.bookingId,
           requestId
         );
@@ -286,8 +290,9 @@ export default function PaymentScreen({ route, navigation }) {
               <View style={styles.chargeDivider} />
 
               <View style={styles.chargeRow}>
-                <Text style={styles.totalLabel}>Total Payable</Text>
-                <Text style={styles.totalValue}>₹ {(finalPrice + platformCharges).toFixed(2)}</Text>
+                <Text style={styles.totalLabel}>Total Payable </Text>
+                <Text>(Round off)</Text>
+                <Text style={styles.totalValue}>₹ {Math.floor(finalPrice + platformCharges)}</Text>
               </View>
             </View>
 

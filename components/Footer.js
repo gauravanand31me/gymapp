@@ -7,6 +7,8 @@ import { useFocusEffect } from '@react-navigation/native';
 
 const Footer = ({ navigation }) => {
   const [unreadCount, setUnreadCount] = useState(0);
+  const currentRoute = navigation.getState()?.routes?.[navigation.getState().index]?.name;
+
   const { notification } = useContext(NotificationContext)
   // Fetch notifications on component mount
 
@@ -15,7 +17,7 @@ const Footer = ({ navigation }) => {
     useCallback(() => {
       loadNotifications();
       console.log("Footer Screen focused")
-      
+
     }, []),
   )
 
@@ -33,38 +35,101 @@ const Footer = ({ navigation }) => {
 
   return (
     <View style={styles.footer}>
-      <TouchableOpacity onPress={() => navigation.navigate('GymList', {"id": 1})} style={styles.iconContainer}>
-        <Icon name="home" size={22} color="#808080" />
-        <Text style={styles.iconText}>Home</Text>
+      <TouchableOpacity onPress={() => navigation.navigate('FriendsFeedScreen')} style={[
+        styles.iconContainer,
+        currentRoute === 'FriendsFeedScreen' && styles.activeLink
+      ]} >
+        <Icon name="newspaper-o" size={22} color={currentRoute === 'FriendsFeedScreen' ? '#4CAF50' : '#808080'} />
+        <Text style={[styles.iconText, currentRoute === 'FriendsFeedScreen' && styles.activeText]}>Feed</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => navigation.navigate('InviteBuddy')} style={styles.iconContainer}>
-        <Icon name="search" size={22} color="#808080" />
-        <Text style={styles.iconText}>Search</Text>
+      <TouchableOpacity
+        onPress={() => navigation.navigate('GymList', { id: 1 })}
+        style={[
+          styles.iconContainer,
+          currentRoute === 'GymList' && styles.activeLink
+        ]}
+      >
+        <Icon name="building-o" size={22} color={currentRoute === 'GymList' ? '#4CAF50' : '#808080'} />
+        <Text style={[styles.iconText, currentRoute === 'GymList' && styles.activeText]}>Gyms</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => navigation.navigate('MyBookings')} style={styles.iconContainer}>
-        <Icon name="calendar" size={22} color="#808080" />
-        <Text style={styles.iconText}>Bookings</Text>
+      <TouchableOpacity
+        onPress={() => navigation.navigate('InviteBuddy')}
+        style={[
+          styles.iconContainer,
+          currentRoute === 'InviteBuddy' && styles.activeLink
+        ]}
+      >
+        <Icon
+          name="trophy"
+          size={22}
+          color={currentRoute === 'InviteBuddy' ? '#4CAF50' : '#808080'}
+        />
+        <Text style={[
+          styles.iconText,
+          currentRoute === 'InviteBuddy' && styles.activeText
+        ]}>
+          Leaderboard
+        </Text>
       </TouchableOpacity>
 
-      {/* Notification Icon with Unread Badge */}
-      <TouchableOpacity onPress={() => navigation.navigate('NotificationListScreen')} style={styles.iconContainer}>
+      <TouchableOpacity
+        onPress={() => navigation.navigate('MyBookings')}
+        style={[
+          styles.iconContainer,
+          currentRoute === 'MyBookings' && styles.activeLink
+        ]}
+      >
+        <Icon
+          name="calendar-check-o"
+          size={22}
+          color={currentRoute === 'MyBookings' ? '#4CAF50' : '#808080'}
+        />
+        <Text
+          style={[
+            styles.iconText,
+            currentRoute === 'MyBookings' && styles.activeText
+          ]}
+        >
+          Bookings
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        onPress={() => navigation.navigate('NotificationListScreen')}
+        style={[
+          styles.iconContainer,
+          currentRoute === 'NotificationListScreen' && styles.activeLink
+        ]}
+      >
         <View style={styles.iconWithBadge}>
-          <Icon name="bell" size={22} color="#808080" />
+          <Icon
+            name="bell"
+            size={22}
+            color={currentRoute === 'NotificationListScreen' ? '#4CAF50' : '#808080'}
+          />
           {unreadCount > 0 && (
             <View style={styles.badge}>
               <Text style={styles.badgeText}>{unreadCount}</Text>
             </View>
           )}
         </View>
-        <Text style={styles.iconText}>Notifications</Text>
+        <Text
+          style={[
+            styles.iconText,
+            currentRoute === 'NotificationListScreen' && styles.activeText
+          ]}
+        >
+          Notifications
+        </Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => navigation.navigate('Profile')} style={styles.iconContainer}>
-        <Icon name="user" size={22} color="#808080" />
+      {/* <TouchableOpacity onPress={() => navigation.navigate('Profile')} style={styles.iconContainer}>
+        <Icon name="user-circle-o" size={22} color="#808080" />
         <Text style={styles.iconText}>Profile</Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
+
     </View>
   );
 };
@@ -110,6 +175,14 @@ const styles = StyleSheet.create({
   badgeText: {
     color: 'white',
     fontSize: 10,
+    fontWeight: 'bold',
+  },
+  activeLink: {
+    borderTopWidth: 2,
+    borderTopColor: '#4CAF50',
+  },
+  activeText: {
+    color: '#4CAF50',
     fontWeight: 'bold',
   },
 });

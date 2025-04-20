@@ -35,9 +35,11 @@ import RewardScreen from './screens/RewardScreen';
 import LandingScreen from './screens/LandingScreen';
 import CouponListScreen from './screens/CouponListScreen';
 import UserRatingsScreen from './screens/RatingScreen';
+import FriendsFeedScreen from './screens/FriendsFeedScreen';
 
 const Stack = createStackNavigator();
 
+// ✅ Linking Configuration
 const linking = {
   prefixes: ["https://yupluck.com", "yupluck://"],
   config: {
@@ -51,6 +53,7 @@ const linking = {
     },
   },
 };
+
 
 export default function App() {
   const [isLoading, setIsLoading] = React.useState(true);
@@ -206,7 +209,7 @@ export default function App() {
     <NotificationProvider>
       <NavigationContainer linking={linking}>
         <Stack.Navigator
-          initialRouteName={isAuthenticated ? "GymList" : "LandingScreen"}
+          initialRouteName={isAuthenticated ? "FriendsFeedScreen" : "LandingScreen"}
           screenOptions={{ headerShown: false }}
         >
           <Stack.Screen name="Login" component={LoginScreen} />
@@ -235,6 +238,7 @@ export default function App() {
           <Stack.Screen name="LandingScreen" component={LandingScreen} />
           <Stack.Screen name="CouponListScreen" component={CouponListScreen} />
           <Stack.Screen name="UserRatingsScreen" component={UserRatingsScreen} />
+          <Stack.Screen name="FriendsFeedScreen" component={FriendsFeedScreen} />
           <Stack.Screen name="VisitedGymScreen" component={VisitedGymScreen} options={{ title: 'Visited Gyms' }} />
         </Stack.Navigator>
       </NavigationContainer>

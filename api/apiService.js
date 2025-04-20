@@ -170,6 +170,180 @@ export const verifyOtp = async (mobileNumber, otp) => {
   };
 
 
+  export const deletePost = async (postId) => {
+    try {
+      const userToken = await AsyncStorage.getItem('authToken');
+  
+      const response = await fetch(`${BASE_URL}/users/feed/${postId}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${userToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      console.log("Delete response received", response);
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to delete post');
+      }
+  
+      return { success: true, message: data.message };
+    } catch (error) {
+      console.error('Error deleting post:', error.message);
+      return { success: false, message: error.message };
+    }
+  };
+
+
+
+  export const fetchUserFeed = async (page = 0, limit = 10) => {
+    try {
+      const userToken = await AsyncStorage.getItem('authToken');
+  
+      const endpoint = `${BASE_URL}/users/feed?offset=${page * limit}&limit=${limit}`;
+  
+      const response = await fetch(endpoint, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${userToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+  
+      const data = await response.json();
+  
+      
+  
+      if (response.ok && data.feed) {
+        return data.feed.map(item => ({
+          id: item.id,
+          canDelete: item.canDelete,
+          canReport: item.canReport,
+          type: item.activityType,
+          title: item.title,
+          description: item.description,
+          imageUrl: item.imageUrl,
+          timestamp: item.timestamp,
+          userId: item.userId,
+          likeCount: item.likeCount || item.like_count || 0,       // ✅ Added like count
+          commentCount: item.commentCount || item.comment_count || 0, // ✅ Added comment count
+          userLiked: item.userLiked || false, // ✅ Shows if current user has liked
+          user: {
+            id: item.user?.id,
+            name: item.user?.full_name,
+            profilePic: item.user?.profile_pic || 'https://via.placeholder.com/50'
+          },
+          gym: item.gym,
+          userReaction: item.userReaction || null,
+          reactionsBreakdown: item.reactionsBreakdown || []
+        }));
+      } else {
+        return [];
+      }
+
+    } catch (error) {
+      console.error('Error fetching user feed:', error);
+      return [];
+    }
+  };
+  
+
+
+  export const uploadFeedAnswer = async (formData) => {
+    try {
+      const userToken = await AsyncStorage.getItem('authToken');
+  
+      const response = await fetch(`${BASE_URL}/users/feed/upload`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${userToken}`,
+          // Don't set Content-Type explicitly, let fetch handle it for FormData
+        },
+        body: formData,
+      });
+  
+      const data = await response.json();
+      return data;
+    } catch (e) {
+
+  }
+}
+
+
+export const fetchComments = async (postId) => {
+  const token = await AsyncStorage.getItem('authToken');
+  const res = await fetch(`${BASE_URL}/users/feed/comment/${postId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.json();
+};
+
+// Add a comment to a post
+export const addComment = async (postId, commentText) => {
+  const token = await AsyncStorage.getItem('authToken');
+  const res = await fetch(`${BASE_URL}/users/feed/comment`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ postId, commentText }),
+  });
+  return res.json();
+};
+
+
+export const deleteComment = async (commentId) => {
+  try {
+    const userToken = await AsyncStorage.getItem('authToken');
+    const response = await fetch(`${BASE_URL}/users/feed/comment/${commentId}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${userToken}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) throw new Error('Failed to delete comment');
+
+    return true;
+  } catch (err) {
+    console.error('Error deleting comment:', err);
+    return false;
+  }
+};
+
+
+
+
+export const reactToPost = async (postId, reactionType) => {
+  try {
+    console.log("postId", postId);
+    console.log("reactTionType", reactionType);
+    const userToken = await AsyncStorage.getItem('authToken');
+
+    const response = await fetch(`${BASE_URL}/users/feed/react`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${userToken}`,
+       'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        postId,
+        reactionType
+      }),
+    });
+
+    const data = await response.json();
+    console.log("data is", data);
+    return data;
+  } catch (e) {
+    console.error("Error received", error);
+  }
+}
+
+
   export const getLeaderBoard = async () => {
     try {
       const userToken = await AsyncStorage.getItem('authToken'); // Fetch token if needed
@@ -198,7 +372,7 @@ export const verifyOtp = async (mobileNumber, otp) => {
       });
     
       const data = await response.json();
-      console.log("Data received", data);
+      
       return data.loggedInUser;
     
     } catch (error) {
