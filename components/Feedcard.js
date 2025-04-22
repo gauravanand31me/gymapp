@@ -19,6 +19,33 @@ const FeedCard = ({ item, formatTime, onDelete, onReport, onComment, onShare, on
   const [likeCount, setLikeCount] = useState(item.likeCount);
   const [liked, setLiked] = useState(item.userLiked);
   const [modalVisible, setModalVisible] = useState(false);
+  const [imageHeight, setImageHeight] = useState(280);
+
+  // Calculate the correct image height based on aspect ratio
+  const calculateImageHeight = (uri) => {
+    if (!uri) return;
+    
+    Image.getSize(uri, (width, height) => {
+      // Get the screen width (minus padding)
+      const screenWidth = Dimensions.get('window').width - 28; // 14px padding on each side
+      // Calculate the height based on the image aspect ratio
+      const ratio = height / width;
+      const calculatedHeight = screenWidth * ratio;
+      
+      // Set a reasonable max height if needed
+      const maxHeight = 500;
+      setImageHeight(Math.min(calculatedHeight, maxHeight));
+    }, (error) => {
+      console.error('Error getting image size:', error);
+    });
+  };
+
+  // Calculate image height when component mounts or image URL changes
+  React.useEffect(() => {
+    if (item.imageUrl) {
+      calculateImageHeight(item.imageUrl);
+    }
+  }, [item.imageUrl]);
 
   const handleLike = async () => {
     const previousLiked = liked;
@@ -97,11 +124,11 @@ const FeedCard = ({ item, formatTime, onDelete, onReport, onComment, onShare, on
       {item.imageUrl && (
         <>
           <TouchableOpacity onPress={() => setModalVisible(true)}>
-          <Image
-            source={{ uri: item.imageUrl }}
-            style={styles.postImage}
-            resizeMode="cover" // or "cover"
-          />
+            <Image
+              source={{ uri: item.imageUrl }}
+              style={[styles.postImage, { height: imageHeight }]}
+              resizeMode="cover"
+            />
           </TouchableOpacity>
 
           <Modal
@@ -150,7 +177,7 @@ const FeedCard = ({ item, formatTime, onDelete, onReport, onComment, onShare, on
           <MessageCircle size={18} color="#666" />
           <Text style={styles.reactionText}> {item?.commentCount} Comments</Text>
         </TouchableOpacity>
-        </View>
+      </View>
     </View>
   );
 };
@@ -209,9 +236,9 @@ const styles = StyleSheet.create({
   },
   postImage: {
     width: '100%',
-    height: 280,
     borderRadius: 12,
     marginTop: 6,
+    // height is now dynamically set based on image aspect ratio
   },
   likeSummary: {
     marginTop: 8,
