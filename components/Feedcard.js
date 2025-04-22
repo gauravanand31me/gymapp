@@ -116,7 +116,7 @@ const FeedCard = ({ item, formatTime, onDelete, onReport, onComment, onShare, on
       {/* Gym Name */}
       {item.gym && (
         <TouchableOpacity onPress={() => navigation.navigate('GymDetails', { gym_id: item.gym.id })}>
-          <Text style={styles.gymName}>🏋️ {item.gym.name}</Text>
+          <Text style={styles.gymName}> {item.gym.name}</Text>
         </TouchableOpacity>
       )}
 
