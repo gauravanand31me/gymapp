@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, Animated } from 'react-native';
+import { View, Text, TouchableOpacity, Animated, StyleSheet } from 'react-native';
 import { MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import { useEffect, useRef } from 'react';
 
@@ -16,56 +16,57 @@ const StatsSection = ({ userData, totalWorkoutHours, navigation }) => {
   return (
     <View style={styles.statsContainer}>
       <TouchableOpacity
-        style={[styles.statItem, styles.statCard]}
+        style={styles.statItem}
         onPress={() => navigation.navigate("InviteFriendBuddy")}
       >
-        <FontAwesome5 name="user-friends" size={30} color="#FF9800" />
+        <FontAwesome5 name="user-friends" size={24} color="#FF9800" style={styles.icon} />
         <Text style={styles.statValue}>{userData?.followers_count || 0}</Text>
         <Text style={styles.statText}>Friends</Text>
       </TouchableOpacity>
 
-      <View style={[styles.statItem, styles.statCard]}>
-        <MaterialIcons name="fitness-center" size={30} color="#4CAF50" />
+      <View style={styles.statItem}>
+        <MaterialIcons name="fitness-center" size={24} color="#4CAF50" style={styles.icon} />
         <Text style={styles.statValue}>{Math.round(totalWorkoutHours)}</Text>
-        <Text style={styles.statText}>Workout Time</Text>
+        <Text style={styles.statText}>Workout Hours</Text>
       </View>
     </View>
   );
 };
 
-const styles = {
+const styles = StyleSheet.create({
   statsContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    padding: 15,
-    marginTop: 10,
+    justifyContent: 'space-evenly',
+    marginVertical: 10,
+    paddingHorizontal: 10,
   },
   statItem: {
     alignItems: 'center',
-    padding: 15,
-    width: 140,
-    borderRadius: 10,
     backgroundColor: '#fff',
-    elevation: 5,
-  },
-  statCard: {
+    paddingVertical: 4,
+    paddingHorizontal: 4,
+    borderRadius: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 5,
+    elevation: 3,
+    width: '40%',
+  },
+  icon: {
+    marginBottom: 6,
   },
   statValue: {
-    fontSize: 26,
-    fontWeight: 'bold',
-    color: '#4CAF50',
-    marginTop: 5,
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#333',
   },
   statText: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 5,
-    fontWeight: '600',
+    fontSize: 13,
+    color: '#777',
+    fontWeight: '500',
+    marginTop: 2,
   },
-};
+});
 
 export default StatsSection;

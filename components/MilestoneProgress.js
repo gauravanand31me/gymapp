@@ -1,4 +1,4 @@
-import { View, Text, Image, Animated } from 'react-native';
+import { View, Text, Image, Animated, StyleSheet } from 'react-native';
 import { ProgressBar } from 'react-native-paper';
 import ConfettiCannon from 'react-native-confetti-cannon';
 import { useEffect, useRef, useState } from 'react';
@@ -7,7 +7,6 @@ const MilestoneProgress = ({ progress, hoursToNextMilestone, nextMilestone }) =>
   const progressAnim = useRef(new Animated.Value(0)).current;
   const [showConfetti, setShowConfetti] = useState(false);
 
-  
   useEffect(() => {
     Animated.timing(progressAnim, {
       toValue: progress,
@@ -23,7 +22,7 @@ const MilestoneProgress = ({ progress, hoursToNextMilestone, nextMilestone }) =>
 
   return (
     <View style={styles.milestoneContainer}>
-      <Text style={styles.sectionTitle}>🎯 Milestone Progress</Text>
+      <Text style={styles.sectionTitle}>🎯 Your Milestone Journey</Text>
 
       <View style={styles.milestoneIcons}>
         <Image source={require('../assets/bronzemedal.jpg')} style={[styles.milestoneIcon, progress >= 0.25 && styles.glow]} />
@@ -32,13 +31,13 @@ const MilestoneProgress = ({ progress, hoursToNextMilestone, nextMilestone }) =>
         <Image source={require('../assets/diamondmedal.jpg')} style={[styles.milestoneIcon, progress >= 1 && styles.glow]} />
       </View>
 
-      <Animated.View>
+      <Animated.View style={styles.animatedProgressWrapper}>
         <ProgressBar
           progress={progress}
           width={null}
-          height={12}
-          color="#FFD700"
-          unfilledColor="#E0E0E0"
+          height={14}
+          color="#FFC107"
+          unfilledColor="#f0f0f0"
           borderColor="transparent"
           style={styles.progressBar}
         />
@@ -46,60 +45,67 @@ const MilestoneProgress = ({ progress, hoursToNextMilestone, nextMilestone }) =>
 
       <Text style={styles.milestoneText}>
         {hoursToNextMilestone > 0
-          ? `⏳ ${Math.floor(hoursToNextMilestone)} hours away from earning ${nextMilestone}! Keep going! 🚀`
-          : `🎉 Congratulations! You've reached the ${nextMilestone} milestone! 🏆`}
+          ? `⏳ ${Math.floor(hoursToNextMilestone)} hrs to ${nextMilestone} milestone. Push your limits! 💪`
+          : `🎉 Congrats! You hit the ${nextMilestone} milestone! 🔥`}
       </Text>
 
-      {showConfetti && <ConfettiCannon count={100} origin={{ x: 180, y: 0 }} />}
+      {showConfetti && <ConfettiCannon count={120} origin={{ x: 200, y: -10 }} fadeOut={true} explosionSpeed={300} fallSpeed={2500} />} 
     </View>
   );
 };
 
-const styles = {
+const styles = StyleSheet.create({
   milestoneContainer: {
-    marginTop: 20,
-    padding: 15,
     backgroundColor: '#fff',
-    borderRadius: 15,
-    elevation: 5,
+    padding: 10,
+    marginVertical: 10,
+    borderRadius: 18,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 6,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: 12,
+    fontWeight: '700',
     textAlign: 'center',
-    marginBottom: 10,
+    color: '#222',
+    marginBottom: 14,
   },
   milestoneIcons: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginBottom: 5,
     alignItems: 'center',
+    marginBottom: 5,
   },
   milestoneIcon: {
-    width: 50,
-    height: 50,
-    opacity: 0.5,
+    width: 40,
+    height: 40,
+    opacity: 0.4,
   },
   glow: {
     opacity: 1,
     shadowColor: '#FFD700',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 8,
+    shadowOpacity: 0.9,
+    shadowRadius: 10,
+  },
+  animatedProgressWrapper: {
+    paddingHorizontal: 4,
   },
   progressBar: {
-    marginTop: 10,
-    height: 10,
-    borderRadius: 10,
+    borderRadius: 8,
+    overflow: 'hidden',
+    height: 14,
   },
   milestoneText: {
-    marginTop: 10,
-    fontSize: 14,
-    color: '#333',
-    fontWeight: 'bold',
     textAlign: 'center',
+    fontSize: 14,
+    color: '#444',
+    marginTop: 14,
+    fontWeight: '600',
   },
-};
+});
 
 export default MilestoneProgress;
