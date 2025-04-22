@@ -24,14 +24,14 @@ const FeedCard = ({ item, formatTime, onDelete, onReport, onComment, onShare, on
   // Calculate the correct image height based on aspect ratio
   const calculateImageHeight = (uri) => {
     if (!uri) return;
-    
+
     Image.getSize(uri, (width, height) => {
       // Get the screen width (minus padding)
       const screenWidth = Dimensions.get('window').width - 28; // 14px padding on each side
       // Calculate the height based on the image aspect ratio
       const ratio = height / width;
       const calculatedHeight = screenWidth * ratio;
-      
+
       // Set a reasonable max height if needed
       const maxHeight = 500;
       setImageHeight(Math.min(calculatedHeight, maxHeight));
@@ -111,7 +111,9 @@ const FeedCard = ({ item, formatTime, onDelete, onReport, onComment, onShare, on
       </View>
 
       {/* Description */}
-      <Text style={styles.description}>{item.description}</Text>
+      <TouchableOpacity onPress={() => navigation.navigate('FeedDetailScreen', { feedId: item.id })}>
+        <Text style={styles.description}>{item.description}</Text>
+      </TouchableOpacity>
 
       {/* Gym Name */}
       {item.gym && (

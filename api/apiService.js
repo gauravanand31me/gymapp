@@ -197,6 +197,33 @@ export const verifyOtp = async (mobileNumber, otp) => {
 
 
 
+  export const getPostById = async (postId) => {
+    try {
+      const userToken = await AsyncStorage.getItem('authToken');
+  
+      const response = await fetch(`${BASE_URL}/users/feed/${postId}`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${userToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+  
+      const data = await response.json();
+  
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to fetch post');
+      }
+  
+      return { success: true, post: data };
+    } catch (error) {
+      console.error('Error fetching post:', error.message);
+      return { success: false, message: error.message };
+    }
+  };
+
+
+
   export const fetchUserFeed = async (page = 0, limit = 10) => {
     try {
       const userToken = await AsyncStorage.getItem('authToken');
