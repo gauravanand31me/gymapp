@@ -12,6 +12,7 @@ import {
   Platform,
 } from 'react-native';
 import { X } from 'lucide-react-native';
+
 import { fetchComments, addComment, deleteComment } from '../api/apiService'; // Adjust path
 
 export default function CommentScreen({ route, navigation }) {
@@ -34,6 +35,7 @@ export default function CommentScreen({ route, navigation }) {
     try {
         setLoading(true);
         const data = await fetchComments(postId);
+        console.log("data.comments", data.comments);
         setComments(data.comments || []);
     } catch (e) {
       console.error('Failed to fetch comments', e);
@@ -75,12 +77,14 @@ export default function CommentScreen({ route, navigation }) {
         contentContainerStyle={styles.commentList}
         renderItem={({ item }) => (
           <View style={styles.commentCard}>
-          <Image
-            source={{
-              uri: item.user?.profilePic || 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
-            }}
-            style={styles.commentAvatar}
-          />
+          <TouchableOpacity onPress={() => navigation.navigate('UserProfile', { userId: item.user?.id })}>
+  <Image
+    source={{
+      uri: item.user?.profilePic || 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
+    }}
+    style={styles.commentAvatar}
+  />
+</TouchableOpacity>
           <View style={styles.commentContent}>
             <View style={styles.commentTopRow}>
               <Text style={styles.commentUser}>{item.user?.name || 'User'}</Text>
@@ -162,10 +166,12 @@ const styles = StyleSheet.create({
       fontWeight: '600',
       marginBottom: 4,
       color: '#333',
+      marginLeft: 8
     },
     commentText: {
       fontSize: 14,
       color: '#444',
+      marginLeft: 12
     },
     emptyText: {
       textAlign: 'center',
@@ -214,5 +220,10 @@ const styles = StyleSheet.create({
       paddingHorizontal: 8,
       paddingVertical: 2,
     },
+    commentAvatar: {
+      width: 36,
+      height: 36,
+      
+    }
   });
   
