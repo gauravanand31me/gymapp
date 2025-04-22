@@ -250,25 +250,48 @@ export const verifyOtp = async (mobileNumber, otp) => {
   
 
 
-  export const uploadFeedAnswer = async (formData) => {
+  export const uploadFeedAnswer = async (formData, onProgress) => {
     try {
       const userToken = await AsyncStorage.getItem('authToken');
   
-      const response = await fetch(`${BASE_URL}/users/feed/upload`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${userToken}`,
-          // Don't set Content-Type explicitly, let fetch handle it for FormData
-        },
-        body: formData,
-      });
+      return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', `${BASE_URL}/users/feed/upload`);
   
-      const data = await response.json();
-      return data;
-    } catch (e) {
-
-  }
-}
+        xhr.setRequestHeader('Authorization', `Bearer ${userToken}`);
+  
+        // Track upload progress
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable && typeof onProgress === 'function') {
+            const percent = Math.round((event.loaded / event.total) * 100);
+            onProgress(percent);
+          }
+        };
+  
+        xhr.onload = () => {
+          try {
+            const responseData = JSON.parse(xhr.responseText);
+            if (xhr.status >= 200 && xhr.status < 300) {
+              resolve(responseData);
+            } else {
+              reject(new Error(responseData.message || 'Upload failed'));
+            }
+          } catch (err) {
+            reject(new Error('Invalid JSON response'));
+          }
+        };
+  
+        xhr.onerror = () => {
+          reject(new Error('Network error during upload'));
+        };
+  
+        xhr.send(formData);
+      });
+    } catch (err) {
+      console.error('Token or upload error:', err);
+      throw err;
+    }
+};
 
 
 export const fetchComments = async (postId) => {
@@ -914,4 +937,5 @@ export const deleteUserAccount = async () => {
     throw error;
   }
 }
+
 

@@ -152,6 +152,7 @@ const styles = StyleSheet.create({
   iconContainer: {
     alignItems: 'center',
     padding: 8, // Add padding for better touch area
+    marginBottom: 10,
   },
   iconText: {
     color: '#1c1c1c', // Change text color to a darker shade for contrast
