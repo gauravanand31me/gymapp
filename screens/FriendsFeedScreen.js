@@ -130,8 +130,7 @@ export default function YupluckFeedScreen({ navigation }) {
     }
   };
 
-  const handleAnswerSubmit = async (answer) => {
-    await uploadFeedAnswer(answer);
+  const handleAnswerSubmit = async () => {
     loadFeedData();
   };
 

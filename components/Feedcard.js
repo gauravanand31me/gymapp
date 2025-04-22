@@ -17,7 +17,7 @@ const { width, height } = Dimensions.get('window');
 
 const FeedCard = ({ item, formatTime, onDelete, onReport, onComment, onShare, onUserPress, navigation }) => {
   const [likeCount, setLikeCount] = useState(item.likeCount);
-  const [liked, setLiked] = useState(item.userReaction === 'like');
+  const [liked, setLiked] = useState(item.userLiked);
   const [modalVisible, setModalVisible] = useState(false);
 
   const handleLike = async () => {
@@ -97,7 +97,11 @@ const FeedCard = ({ item, formatTime, onDelete, onReport, onComment, onShare, on
       {item.imageUrl && (
         <>
           <TouchableOpacity onPress={() => setModalVisible(true)}>
-            <Image source={{ uri: item.imageUrl }} style={styles.postImage} />
+          <Image
+            source={{ uri: item.imageUrl }}
+            style={styles.postImage}
+            resizeMode="cover" // or "cover"
+          />
           </TouchableOpacity>
 
           <Modal
@@ -205,7 +209,7 @@ const styles = StyleSheet.create({
   },
   postImage: {
     width: '100%',
-    height: 180,
+    height: 280,
     borderRadius: 12,
     marginTop: 6,
   },
