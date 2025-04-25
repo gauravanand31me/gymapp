@@ -8,7 +8,7 @@ import { useFocusEffect } from '@react-navigation/native';
 const Footer = ({ navigation }) => {
   const [unreadCount, setUnreadCount] = useState(0);
   const currentRoute = navigation.getState()?.routes?.[navigation.getState().index]?.name;
-
+  
   const { notification } = useContext(NotificationContext)
   // Fetch notifications on component mount
 
@@ -16,7 +16,7 @@ const Footer = ({ navigation }) => {
   useFocusEffect(
     useCallback(() => {
       loadNotifications();
-      console.log("Footer Screen focused")
+      console.log("Footer Screen focused");
 
     }, []),
   )
@@ -32,7 +32,7 @@ const Footer = ({ navigation }) => {
   useEffect(() => {
     loadNotifications();
   }, [notification]);
-
+  
   return (
     <View style={styles.footer}>
       <TouchableOpacity onPress={() => navigation.navigate('FriendsFeedScreen')} style={[

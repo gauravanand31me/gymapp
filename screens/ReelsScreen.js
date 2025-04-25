@@ -4,41 +4,42 @@ import {
   Text,
   FlatList,
   StyleSheet,
-  Image,
   TouchableOpacity,
   Dimensions,
   Alert,
+  SafeAreaView,
+  Image,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { Video } from 'expo-av';
 import Footer from '../components/Footer';
 
+const screenHeight = Dimensions.get('window').height;
 const screenWidth = Dimensions.get('window').width;
+const HEADER_HEIGHT = 80; // approx
+const FOOTER_HEIGHT = 80; // adjust as per your Footer component
 
 const dummyReels = [
   {
     id: '1',
-    thumbnail: 'https://via.placeholder.com/300x500.png?text=Reel+1',
+    videoUri: 'https://www.sample-videos.com/video321/mp4/720/big_buck_bunny_720p_1mb.mp4',
     title: 'Reel 1',
+    user: { name: 'John Doe', profilePic: 'https://cdn-icons-png.flaticon.com/512/149/149071.png' },
+    likes: 122,
+    comments: 45,
   },
   {
     id: '2',
-    thumbnail: 'https://via.placeholder.com/300x500.png?text=Reel+2',
+    videoUri: 'https://www.sample-videos.com/video321/mp4/720/big_buck_bunny_720p_1mb.mp4',
     title: 'Reel 2',
-  },
-  {
-    id: '3',
-    thumbnail: 'https://via.placeholder.com/300x500.png?text=Reel+3',
-    title: 'Reel 3',
-  },
-  {
-    id: '4',
-    thumbnail: 'https://via.placeholder.com/300x500.png?text=Reel+4',
-    title: 'Reel 4',
+    user: { name: 'Jane Smith', profilePic: 'https://cdn-icons-png.flaticon.com/512/149/149071.png' },
+    likes: 90,
+    comments: 21,
   },
 ];
 
-const ReelsScreen = ({navigation}) => {
+const ReelsScreen = ({ navigation }) => {
   const [reels, setReels] = useState(dummyReels);
 
   const handleUploadReel = async () => {
@@ -57,100 +58,146 @@ const ReelsScreen = ({navigation}) => {
     if (!result.canceled && result.assets?.length > 0) {
       const newReel = {
         id: Date.now().toString(),
-        thumbnail: 'https://via.placeholder.com/300x500.png?text=New+Reel',
+        videoUri: result.assets[0].uri,
         title: 'Your Reel',
-        uri: result.assets[0].uri,
+        user: { name: 'You', profilePic: 'https://cdn-icons-png.flaticon.com/512/149/149071.png' },
+        likes: 0,
+        comments: 0,
       };
       setReels(prev => [newReel, ...prev]);
     }
   };
 
   const renderReel = ({ item }) => (
-    <TouchableOpacity style={styles.reelCard}>
-      <Image source={{ uri: item.thumbnail }} style={styles.reelImage} />
-      <Text style={styles.reelTitle} numberOfLines={1}>{item.title}</Text>
-    </TouchableOpacity>
+    <View style={styles.reelContainer}>
+      <Video
+        source={{ uri: item.videoUri }}
+        style={styles.reelVideo}
+        resizeMode="cover"
+        shouldPlay
+        isLooping
+        isMuted
+      />
+      <View style={styles.overlay}>
+        <View style={styles.userInfo}>
+          <Image source={{ uri: item.user.profilePic }} style={styles.profilePic} />
+          <Text style={styles.userName}>{item.user.name}</Text>
+        </View>
+
+        <View style={styles.reelActions}>
+          <TouchableOpacity style={styles.iconButton}>
+            <Icon name="heart" size={24} color="#fff" />
+            <Text style={styles.iconLabel}>{item.likes}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.iconButton}>
+            <Icon name="comment" size={24} color="#fff" />
+            <Text style={styles.iconLabel}>{item.comments}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.iconButton}>
+            <Icon name="share" size={24} color="#fff" />
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
   );
 
   return (
-    <View style={styles.container}>
-      <View style={styles.headerRow}>
-        <Text style={styles.header}>Reels</Text>
-        <TouchableOpacity onPress={handleUploadReel} style={styles.uploadButton}>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Reels</Text>
+        <TouchableOpacity style={styles.uploadBtn} onPress={handleUploadReel}>
           <Icon name="plus" size={16} color="#fff" />
-          <Text style={styles.uploadText}>Upload Reel</Text>
+          <Text style={styles.uploadText}>Upload</Text>
         </TouchableOpacity>
       </View>
 
-      <FlatList
-        data={reels}
-        renderItem={renderReel}
-        keyExtractor={item => item.id}
-        numColumns={2}
-        contentContainerStyle={styles.grid}
-        columnWrapperStyle={styles.column}
-        showsVerticalScrollIndicator={false}
-      />
+      <View style={{ flex: 1, marginBottom: FOOTER_HEIGHT }}>
+        <FlatList
+          data={reels}
+          renderItem={renderReel}
+          keyExtractor={item => item.id}
+          pagingEnabled
+          showsVerticalScrollIndicator={false}
+        />
+      </View>
+
       <Footer navigation={navigation} />
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    paddingHorizontal: 12,
-    paddingTop: 16,
-    marginTop: 20
-  },
-  headerRow: {
+  container: { flex: 1, backgroundColor: '#000' },
+  header: {
+    padding: 12,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 14,
+    backgroundColor: '#111',
   },
-  header: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#333',
-  },
-  uploadButton: {
+  headerTitle: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
+  uploadBtn: {
     flexDirection: 'row',
     backgroundColor: '#4CAF50',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
     borderRadius: 20,
     alignItems: 'center',
   },
   uploadText: {
     color: '#fff',
-    marginLeft: 8,
     fontSize: 13,
+    marginLeft: 6,
     fontWeight: '600',
   },
-  grid: {
-    paddingBottom: 100,
+  reelContainer: {
+    width: screenWidth,
+    height: screenHeight - HEADER_HEIGHT - FOOTER_HEIGHT,
+    position: 'relative',
   },
-  column: {
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  reelCard: {
-    width: (screenWidth - 36) / 2,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  reelImage: {
+  reelVideo: {
     width: '100%',
-    height: 220,
+    height: '100%',
   },
-  reelTitle: {
-    padding: 8,
-    fontSize: 13,
-    fontWeight: '500',
-    color: '#333',
+  overlay: {
+    position: 'absolute',
+    bottom: 100, // changed from 80 to 100
+    left: 12,
+    right: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    paddingBottom: 20, // extra padding
+  },
+  userInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  profilePic: {
+    height: 40,
+    width: 40,
+    borderRadius: 20,
+    marginRight: 10,
+    borderWidth: 1,
+    borderColor: '#fff',
+  },
+  userName: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  reelActions: {
+    alignItems: 'center',
+
+  },
+  iconButton: {
+    marginBottom: 20,
+    alignItems: 'center',
+  },
+  iconLabel: {
+    color: '#fff',
+    fontSize: 12,
+    marginTop: 4,
   },
 });
 
