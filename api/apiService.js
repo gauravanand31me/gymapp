@@ -241,7 +241,7 @@ export const verifyOtp = async (mobileNumber, otp) => {
       const data = await response.json();
   
       
-  
+      
       if (response.ok && data.feed) {
         return data.feed.map(item => ({
           id: item.id,
@@ -249,6 +249,7 @@ export const verifyOtp = async (mobileNumber, otp) => {
           canReport: item.canReport,
           type: item.activityType,
           title: item.title,
+          postType: item.postType,
           description: item.description,
           imageUrl: item.imageUrl,
           timestamp: item.timestamp,

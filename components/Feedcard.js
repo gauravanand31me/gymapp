@@ -65,6 +65,23 @@ const FeedCard = ({ item, formatTime, onDelete, onReport, onComment, onShare, on
     }
   };
 
+
+
+  const getPostTypeIcon = (type) => {
+    switch (type) {
+      case 'public':
+        return { icon: 'globe', label: 'Public' };
+      case 'private':
+        return { icon: 'users', label: 'Friends Only' };
+      case 'onlyme':
+        return { icon: 'lock', label: 'Only Me' };
+      default:
+        return null;
+    }
+  };
+  
+  
+
   const handleMenuPress = () => {
     const options = [{ text: 'Cancel', style: 'cancel' }];
 
@@ -87,7 +104,8 @@ const FeedCard = ({ item, formatTime, onDelete, onReport, onComment, onShare, on
       cancelable: true,
     });
   };
-
+  const postTypeInfo = getPostTypeIcon(item.postType);
+  
   return (
     <View style={styles.card}>
       {/* Header */}
