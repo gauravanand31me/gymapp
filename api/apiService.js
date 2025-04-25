@@ -224,6 +224,55 @@ export const verifyOtp = async (mobileNumber, otp) => {
 
 
 
+  export const fetchUserReels = async (page = 0, limit = 10) => {
+    try {
+      const userToken = await AsyncStorage.getItem('authToken');
+  
+      const endpoint = `${BASE_URL}/users/reel?offset=${page * limit}&limit=${limit}`;
+  
+      const response = await fetch(endpoint, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${userToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok && data.reels) {
+        return data.reels.map(item => ({
+          id: item.id,
+          userId: item.userId,
+          videoUrl: item.videoUrl,
+          thumbnailUrl: item.thumbnailUrl || '', // fallback if thumbnail not available
+          title: item.title || '',
+          description: item.description || '',
+          postType: item.postType,
+          timestamp: item.timestamp,
+          likeCount: item.like_count || 0,
+          commentCount: item.comment_count || 0,
+          shareCount: item.share_count || 0,
+          canDelete: item.canDelete || false,
+          canReport: item.canReport || false,
+          user: {
+            id: item.user?.id || '',
+            name: item.user?.full_name || 'Unknown',
+            profilePic: item.user?.profile_pic || 'https://via.placeholder.com/50'
+          }
+        }));
+      } else {
+        return [];
+      }
+  
+    } catch (error) {
+      console.error('Error fetching user reels:', error);
+      return [];
+    }
+  };
+
+
+
   export const fetchUserFeed = async (page = 0, limit = 10) => {
     try {
       const userToken = await AsyncStorage.getItem('authToken');
@@ -333,30 +382,77 @@ export const verifyOtp = async (mobileNumber, otp) => {
   };
 
 
-  export const uploadVideoToServer = async (videoUri) => {
-
-  }
-  
-
 
   export const uploadReelVideo = async (videoUri, onProgress) => {
     try {
       const userToken = await AsyncStorage.getItem('authToken');
   
       const formData = new FormData();
+      const fileExtension = videoUri.split('.').pop();
+  
       formData.append('video', {
         uri: videoUri,
-        type: 'video/mp4', // assuming mp4, you can dynamically detect
-        name: `reel_${Date.now()}.mp4`,
+        name: `reel-upload.${fileExtension}`,
+        type: `video/${fileExtension}`,
       });
   
       return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
-        xhr.open('POST', `${BASE_URL}/users/reels/upload`); // <-- your API endpoint
+        xhr.open('POST', `${BASE_URL}/users/reel/upload`); // your reels upload endpoint
   
         xhr.setRequestHeader('Authorization', `Bearer ${userToken}`);
   
-        // Progress event
+        // Track upload progress
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable && typeof onProgress === 'function') {
+            const percent = Math.round((event.loaded / event.total) * 100);
+            onProgress(percent);
+          }
+        };
+  
+        xhr.onload = () => {
+          try {
+            console.log("XHR raw response:", xhr.responseText); // 🛠 Important: always log this
+            const responseData = JSON.parse(xhr.responseText);
+            
+            if (xhr.status >= 200 && xhr.status < 300) {
+              resolve(responseData);
+            } else {
+              reject(new Error(responseData.message || 'Upload failed'));
+            }
+          } catch (err) {
+            console.log("JSON Parse Error:", err);
+            console.log("Server raw response:", xhr.responseText); // 🛠 Log the real server reply
+            reject(new Error('Invalid JSON response: ' + xhr.responseText)); // optional: pass it forward
+          }
+        };
+  
+        xhr.onerror = () => {
+          reject(new Error('Network error during upload'));
+        };
+  
+        xhr.send(formData);
+      });
+    } catch (err) {
+      console.error('Token or upload error:', err);
+      throw err;
+    }
+  };
+
+  
+
+
+  export const uploadFeedAnswer = async (formData, onProgress) => {
+    try {
+      const userToken = await AsyncStorage.getItem('authToken');
+  
+      return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', `${BASE_URL}/users/feed/upload`);
+  
+        xhr.setRequestHeader('Authorization', `Bearer ${userToken}`);
+  
+        // Track upload progress
         xhr.upload.onprogress = (event) => {
           if (event.lengthComputable && typeof onProgress === 'function') {
             const percent = Math.round((event.loaded / event.total) * 100);
@@ -387,7 +483,7 @@ export const verifyOtp = async (mobileNumber, otp) => {
       console.error('Token or upload error:', err);
       throw err;
     }
-  };
+};
 
 
 export const fetchComments = async (postId) => {

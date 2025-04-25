@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,41 +10,41 @@ import {
   SafeAreaView,
   Image,
   StatusBar,
+  ActivityIndicator,
 } from 'react-native';
 
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { Video } from 'expo-av';
 import Footer from '../components/Footer';
-import { uploadReelVideo } from '../api/apiService';
+import { uploadReelVideo, fetchUserReels } from '../api/apiService'; // ✅ import both
+// Make sure fetchUserReels is correctly created based on our previous function
 
 const screenHeight = Dimensions.get('window').height;
 const screenWidth = Dimensions.get('window').width;
-const HEADER_HEIGHT = 60; // fixed header height
-const FOOTER_HEIGHT = 70; // fixed footer height
-
-const dummyReels = [
-  {
-    id: '1',
-    videoUri: 'https://www.sample-videos.com/video321/mp4/720/big_buck_bunny_720p_1mb.mp4',
-    title: 'Reel 1',
-    user: { name: 'John Doe', profilePic: 'https://cdn-icons-png.flaticon.com/512/149/149071.png' },
-    likes: 122,
-    comments: 45,
-  },
-  {
-    id: '2',
-    videoUri: 'https://www.sample-videos.com/video321/mp4/720/big_buck_bunny_720p_1mb.mp4',
-    title: 'Reel 2',
-    user: { name: 'Jane Smith', profilePic: 'https://cdn-icons-png.flaticon.com/512/149/149071.png' },
-    likes: 90,
-    comments: 21,
-  },
-];
+const HEADER_HEIGHT = 60;
+const FOOTER_HEIGHT = 70;
 
 const ReelsScreen = ({ navigation }) => {
-  const [reels, setReels] = useState(dummyReels);
+  const [reels, setReels] = useState([]);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploading, setUploading] = useState(false);
+  const [loading, setLoading] = useState(true); // screen initial loading
+
+  useEffect(() => {
+    loadReels();
+  }, []);
+
+  const loadReels = async () => {
+    try {
+      setLoading(true);
+      const fetchedReels = await fetchUserReels(0, 10); // page=0, limit=10
+      setReels(fetchedReels);
+    } catch (error) {
+      console.error('Error loading reels:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleUploadReel = () => {
     navigation.navigate('UploadReelScreen', {
@@ -82,7 +82,7 @@ const ReelsScreen = ({ navigation }) => {
   const renderReel = ({ item }) => (
     <View style={styles.reelContainer}>
       <Video
-        source={{ uri: item.videoUri }}
+        source={{ uri: item.videoUrl || item.videoUri }}
         style={styles.reelVideo}
         resizeMode="cover"
         shouldPlay
@@ -91,18 +91,18 @@ const ReelsScreen = ({ navigation }) => {
       />
       <View style={styles.overlay}>
         <View style={styles.userInfo}>
-          <Image source={{ uri: item.user.profilePic }} style={styles.profilePic} />
-          <Text style={styles.userName}>{item.user.name}</Text>
+          <Image source={{ uri: item.user?.profilePic || 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }} style={styles.profilePic} />
+          <Text style={styles.userName}>{item.user?.name || 'Unknown'}</Text>
         </View>
 
         <View style={styles.reelActions}>
           <TouchableOpacity style={styles.iconButton}>
             <Icon name="heart" size={24} color="#fff" />
-            <Text style={styles.iconLabel}>{item.likes}</Text>
+            <Text style={styles.iconLabel}>{item.likeCount || 0}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.iconButton}>
             <Icon name="comment" size={24} color="#fff" />
-            <Text style={styles.iconLabel}>{item.comments}</Text>
+            <Text style={styles.iconLabel}>{item.commentCount || 0}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.iconButton}>
             <Icon name="share" size={24} color="#fff" />
@@ -117,13 +117,14 @@ const ReelsScreen = ({ navigation }) => {
       <StatusBar barStyle="light-content" />
 
       {uploading && (
-  <View style={styles.progressContainer}>
-    <View style={styles.progressBarBackground}>
-      <View style={[styles.progressBarFill, { width: `${uploadProgress}%` }]} />
-    </View>
-    <Text style={styles.progressText}>{uploadProgress}%</Text>
-  </View>
-)}
+        <View style={styles.progressContainer}>
+          <View style={styles.progressBarBackground}>
+            <View style={[styles.progressBarFill, { width: `${uploadProgress}%` }]} />
+          </View>
+          <Text style={styles.progressText}>{uploadProgress}%</Text>
+        </View>
+      )}
+
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Reels</Text>
@@ -134,15 +135,22 @@ const ReelsScreen = ({ navigation }) => {
       </View>
 
       {/* Reels */}
-      <FlatList
-        data={reels}
-        renderItem={renderReel}
-        keyExtractor={item => item.id}
-        pagingEnabled
-        showsVerticalScrollIndicator={false}
-        style={{ flex: 1 }}
-        contentContainerStyle={{ paddingBottom: FOOTER_HEIGHT }}
-      />
+      {loading ? (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color="#4CAF50" />
+          <Text style={{ color: '#fff', marginTop: 8 }}>Loading Reels...</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={reels}
+          renderItem={renderReel}
+          keyExtractor={item => item.id}
+          pagingEnabled
+          showsVerticalScrollIndicator={false}
+          style={{ flex: 1 }}
+          contentContainerStyle={{ paddingBottom: FOOTER_HEIGHT }}
+        />
+      )}
 
       {/* Footer */}
       <Footer navigation={navigation} />
