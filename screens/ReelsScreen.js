@@ -9,16 +9,18 @@ import {
   Alert,
   SafeAreaView,
   Image,
+  StatusBar,
 } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
+
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { Video } from 'expo-av';
 import Footer from '../components/Footer';
+import { uploadReelVideo } from '../api/apiService';
 
 const screenHeight = Dimensions.get('window').height;
 const screenWidth = Dimensions.get('window').width;
-const HEADER_HEIGHT = 80; // approx
-const FOOTER_HEIGHT = 80; // adjust as per your Footer component
+const HEADER_HEIGHT = 60; // fixed header height
+const FOOTER_HEIGHT = 70; // fixed footer height
 
 const dummyReels = [
   {
@@ -41,31 +43,40 @@ const dummyReels = [
 
 const ReelsScreen = ({ navigation }) => {
   const [reels, setReels] = useState(dummyReels);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploading, setUploading] = useState(false);
 
-  const handleUploadReel = async () => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permissionResult.granted) {
-      Alert.alert('Permission Denied', 'Please allow access to upload a reel.');
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Videos,
-      allowsEditing: false,
-      quality: 1,
+  const handleUploadReel = () => {
+    navigation.navigate('UploadReelScreen', {
+      onVideoSelected: async (videoUri) => {
+        try {
+          setUploading(true);
+          setUploadProgress(0);
+      
+          const result = await uploadReelVideo(videoUri, (progress) => {
+            setUploadProgress(progress);
+          });
+      
+          const uploadedUrl = result.fileUrl;
+      
+          const newReel = {
+            id: Date.now().toString(),
+            videoUri: uploadedUrl,
+            title: 'Your Reel',
+            user: { name: 'You', profilePic: 'https://cdn-icons-png.flaticon.com/512/149/149071.png' },
+            likes: 0,
+            comments: 0,
+          };
+          setReels(prev => [newReel, ...prev]);
+        } catch (error) {
+          console.error('Upload failed:', error);
+          Alert.alert('Upload Failed', 'Could not upload reel.');
+        } finally {
+          setUploading(false);
+          setUploadProgress(0);
+        }
+      }
     });
-
-    if (!result.canceled && result.assets?.length > 0) {
-      const newReel = {
-        id: Date.now().toString(),
-        videoUri: result.assets[0].uri,
-        title: 'Your Reel',
-        user: { name: 'You', profilePic: 'https://cdn-icons-png.flaticon.com/512/149/149071.png' },
-        likes: 0,
-        comments: 0,
-      };
-      setReels(prev => [newReel, ...prev]);
-    }
   };
 
   const renderReel = ({ item }) => (
@@ -103,6 +114,17 @@ const ReelsScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" />
+
+      {uploading && (
+  <View style={styles.progressContainer}>
+    <View style={styles.progressBarBackground}>
+      <View style={[styles.progressBarFill, { width: `${uploadProgress}%` }]} />
+    </View>
+    <Text style={styles.progressText}>{uploadProgress}%</Text>
+  </View>
+)}
+      {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Reels</Text>
         <TouchableOpacity style={styles.uploadBtn} onPress={handleUploadReel}>
@@ -111,16 +133,18 @@ const ReelsScreen = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
-      <View style={{ flex: 1, marginBottom: FOOTER_HEIGHT }}>
-        <FlatList
-          data={reels}
-          renderItem={renderReel}
-          keyExtractor={item => item.id}
-          pagingEnabled
-          showsVerticalScrollIndicator={false}
-        />
-      </View>
+      {/* Reels */}
+      <FlatList
+        data={reels}
+        renderItem={renderReel}
+        keyExtractor={item => item.id}
+        pagingEnabled
+        showsVerticalScrollIndicator={false}
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingBottom: FOOTER_HEIGHT }}
+      />
 
+      {/* Footer */}
       <Footer navigation={navigation} />
     </SafeAreaView>
   );
@@ -129,24 +153,26 @@ const ReelsScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#000' },
   header: {
-    padding: 12,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    height: HEADER_HEIGHT,
     backgroundColor: '#111',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    marginTop: 35
   },
-  headerTitle: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
+  headerTitle: { color: '#fff', fontSize: 20, fontWeight: 'bold' },
   uploadBtn: {
     flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#4CAF50',
     paddingVertical: 6,
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     borderRadius: 20,
-    alignItems: 'center',
   },
   uploadText: {
     color: '#fff',
-    fontSize: 13,
+    fontSize: 14,
     marginLeft: 6,
     fontWeight: '600',
   },
@@ -161,13 +187,12 @@ const styles = StyleSheet.create({
   },
   overlay: {
     position: 'absolute',
-    bottom: 100, // changed from 80 to 100
-    left: 12,
-    right: 12,
+    bottom: 90,
+    left: 16,
+    right: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-end',
-    paddingBottom: 20, // extra padding
   },
   userInfo: {
     flexDirection: 'row',
@@ -188,7 +213,6 @@ const styles = StyleSheet.create({
   },
   reelActions: {
     alignItems: 'center',
-
   },
   iconButton: {
     marginBottom: 20,
@@ -199,6 +223,31 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 4,
   },
+  progressContainer: {
+    width: '100%',
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    alignItems: 'center',
+    backgroundColor: '#000',
+  },
+  progressBarBackground: {
+    width: '100%',
+    height: 8,
+    backgroundColor: '#444',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: '#4CAF50', // green
+    borderRadius: 4,
+  },
+  progressText: {
+    color: '#fff',
+    fontSize: 12,
+    marginTop: 4,
+  },
+  
 });
 
 export default ReelsScreen;

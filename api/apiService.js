@@ -331,20 +331,32 @@ export const verifyOtp = async (mobileNumber, otp) => {
       return [];
     }
   };
+
+
+  export const uploadVideoToServer = async (videoUri) => {
+
+  }
   
 
 
-  export const uploadFeedAnswer = async (formData, onProgress) => {
+  export const uploadReelVideo = async (videoUri, onProgress) => {
     try {
       const userToken = await AsyncStorage.getItem('authToken');
   
+      const formData = new FormData();
+      formData.append('video', {
+        uri: videoUri,
+        type: 'video/mp4', // assuming mp4, you can dynamically detect
+        name: `reel_${Date.now()}.mp4`,
+      });
+  
       return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
-        xhr.open('POST', `${BASE_URL}/users/feed/upload`);
+        xhr.open('POST', `${BASE_URL}/users/reels/upload`); // <-- your API endpoint
   
         xhr.setRequestHeader('Authorization', `Bearer ${userToken}`);
   
-        // Track upload progress
+        // Progress event
         xhr.upload.onprogress = (event) => {
           if (event.lengthComputable && typeof onProgress === 'function') {
             const percent = Math.round((event.loaded / event.total) * 100);
@@ -375,7 +387,7 @@ export const verifyOtp = async (mobileNumber, otp) => {
       console.error('Token or upload error:', err);
       throw err;
     }
-};
+  };
 
 
 export const fetchComments = async (postId) => {
