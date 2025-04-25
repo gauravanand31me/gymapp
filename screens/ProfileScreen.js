@@ -25,10 +25,12 @@ import {
   getVisitedGyms,
   getVisitedBuddies,
   deleteProfileImage,
+  fetchMyFeed
 } from '../api/apiService';
 import MilestoneProgress from '../components/MilestoneProgress';
 import StatsSection from '../components/StatsSelection';
 import ProfileSection from '../components/ProfileSection';
+
 
 const milestones = {
   bronze: 50,
@@ -58,12 +60,16 @@ export default function ProfileScreen({ navigation, route }) {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [visitedGyms, setVisitedGyms] = useState([]);
-  const [selectedTab, setSelectedTab] = useState('Visited Gym');
+  const [selectedTab, setSelectedTab] = useState('Posts');
   const [visitedBuddies, setVisitedBuddies] = useState([]);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isImageOptionsVisible, setIsImageOptionsVisible] = useState(false);
+  const [userPosts, setUserPosts] = useState([]);
+const [feedLoading, setFeedLoading] = useState(false);
+const [page, setPage] = useState(0);
+const [hasMore, setHasMore] = useState(true);
 
   const fetchUserData = async () => {
     try {
@@ -77,6 +83,7 @@ export default function ProfileScreen({ navigation, route }) {
       setLoading(false);
     }
   };
+
 
   useEffect(() => {
     fetchUserData();
@@ -107,6 +114,44 @@ export default function ProfileScreen({ navigation, route }) {
     fetchVisitedGyms();
     fetchVisitedBuddies();
   }, []);
+
+  useEffect(() => {
+    if (selectedTab === 'Posts') {
+      setUserPosts([]);
+      setPage(0);
+      setHasMore(true);
+      loadUserPosts(0);
+    }
+  }, [selectedTab]);
+
+  const loadUserPosts = async (nextPage = 0) => {
+    if (!hasMore || feedLoading) return;
+  
+    try {
+      setFeedLoading(true);
+      const feed = await fetchMyFeed(nextPage, 10);
+
+      if (feed.length === 0) {
+        setHasMore(false);
+      } else {
+        setUserPosts(prev => {
+          const existingIds = new Set(prev.map(p => p.id));
+          const newPosts = feed.filter(post => !existingIds.has(post.id));
+          return [...prev, ...newPosts];
+        });
+        setPage(nextPage);
+      }
+  
+      if (feed.length < 10) {
+        setHasMore(false);
+      }
+    } catch (error) {
+      console.error('Failed to fetch user posts:', error);
+    } finally {
+      setFeedLoading(false);
+    }
+  };
+  
 
   const toggleModal = () => {
     setIsModalVisible(!isModalVisible);
@@ -219,6 +264,21 @@ export default function ProfileScreen({ navigation, route }) {
     </TouchableOpacity>
   );
 
+  const renderPostItem = ({ item }) => (
+    <TouchableOpacity
+      onPress={() => navigation.navigate('FeedDetailScreen', { feedId: item.id })}
+      style={{ paddingVertical: 12 }}
+    >
+      <Text style={{ fontWeight: 'bold', color: '#4CAF50', fontSize: 15 }}>
+        {item.title || 'Untitled'}
+      </Text>
+      <Text style={{ color: '#555', marginTop: 4 }}>
+        {item.description?.slice(0, 100)}...
+      </Text>
+      
+    </TouchableOpacity>
+  );
+
   if (loading) {
     return (
       <View style={styles.loader}>
@@ -269,6 +329,14 @@ export default function ProfileScreen({ navigation, route }) {
 
         <View style={styles.tabContainer}>
           <TouchableOpacity
+            style={[styles.tabButton, selectedTab === 'Posts' && styles.activeTab]}
+            onPress={() => setSelectedTab('Posts')}
+          >
+            <Text style={[styles.tabText, selectedTab === 'Posts' && styles.activeTabText]}>
+              Posts
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
             style={[styles.tabButton, selectedTab === 'Visited Gym' && styles.activeTab]}
             onPress={() => setSelectedTab('Visited Gym')}
           >
@@ -286,12 +354,27 @@ export default function ProfileScreen({ navigation, route }) {
           </TouchableOpacity>
         </View>
 
-        
+
         <View style={styles.listContainer}>
           {selectedTab === 'Visited Gym' && visitedGyms.length === 0 ? (
             <Text style={styles.noDataText}>No visited gyms yet</Text>
           ) : selectedTab === 'Gym Buddies' && visitedBuddies.length === 0 ? (
             <Text style={styles.noDataText}>No gym buddies yet</Text>
+          ) : selectedTab === 'Posts' ? (
+            feedLoading ? (
+              <ActivityIndicator size="small" color="#4CAF50" />
+            ) : userPosts.length === 0 ? (
+              <Text style={styles.noDataText}>No posts yet</Text>
+            ) : (
+              <FlatList
+                data={userPosts}
+                renderItem={renderPostItem}
+                keyExtractor={(item) => item.id}
+                contentContainerStyle={styles.listContent}
+                nestedScrollEnabled={true}
+                showsVerticalScrollIndicator={false}
+              />
+            )
           ) : (
             <FlatList
               data={selectedTab === 'Visited Gym' ? visitedGyms : visitedBuddies}
@@ -305,6 +388,7 @@ export default function ProfileScreen({ navigation, route }) {
             />
           )}
         </View>
+
 
       </ScrollView>
       <View style={styles.footerContainer}>
@@ -352,26 +436,30 @@ const styles = StyleSheet.create({
 
   tabContainer: {
     flexDirection: 'row',
+    justifyContent: 'space-around',
     marginTop: 20,
-    backgroundColor: '#fff',
-    borderRadius: 25,
-    overflow: 'hidden',
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
   },
+
   tabButton: {
-    flex: 1,
-    paddingVertical: 15,
-    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
   },
+
   activeTab: {
-    backgroundColor: '#4CAF50',
+    borderBottomWidth: 2,
+    borderBottomColor: '#4CAF50',
   },
+
   tabText: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '600',
-    color: '#666',
+    color: '#888',
   },
+
   activeTabText: {
-    color: '#fff',
+    color: '#4CAF50',
   },
   listContainer: {
     //backgroundColor: '#fff',
@@ -502,13 +590,13 @@ const styles = StyleSheet.create({
     padding: 15,
     backgroundColor: '#fff',
   },
-  
+
   headerText: {
     fontSize: 14,
     fontWeight: 'bold',
     color: '#333',
   },
-  
+
   floatingButton: {
     position: 'absolute',
     bottom: 20,
@@ -521,6 +609,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     elevation: 5,
   },
-  
+
 
 });

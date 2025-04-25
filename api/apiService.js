@@ -275,6 +275,62 @@ export const verifyOtp = async (mobileNumber, otp) => {
       return [];
     }
   };
+
+
+
+
+  
+  export const fetchMyFeed = async (page = 0, limit = 10) => {
+    try {
+      const userToken = await AsyncStorage.getItem('authToken');
+  
+      const endpoint = `${BASE_URL}/users/my-feed?offset=${page * limit}&limit=${limit}`;
+  
+      const response = await fetch(endpoint, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${userToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+  
+      const data = await response.json();
+  
+      
+      
+      if (response.ok && data.feed) {
+        return data.feed.map(item => ({
+          id: item.id,
+          canDelete: item.canDelete,
+          canReport: item.canReport,
+          type: item.activityType,
+          title: item.title,
+          postType: item.postType,
+          description: item.description,
+          imageUrl: item.imageUrl,
+          timestamp: item.timestamp,
+          userId: item.userId,
+          likeCount: item.likeCount || item.like_count || 0,       // ✅ Added like count
+          commentCount: item.commentCount || item.comment_count || 0, // ✅ Added comment count
+          userLiked: item.userLiked || false, // ✅ Shows if current user has liked
+          user: {
+            id: item.user?.id,
+            name: item.user?.full_name,
+            profilePic: item.user?.profile_pic || 'https://via.placeholder.com/50'
+          },
+          gym: item.gym,
+          userReaction: item.userReaction || null,
+          reactionsBreakdown: item.reactionsBreakdown || []
+        }));
+      } else {
+        return [];
+      }
+
+    } catch (error) {
+      console.error('Error fetching user feed:', error);
+      return [];
+    }
+  };
   
 
 
