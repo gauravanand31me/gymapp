@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { MoreVertical, MessageCircle, Share2 } from 'lucide-react-native';
 import { reactToPost } from '../api/apiService';
+import { Feather } from '@expo/vector-icons';
 
 const { width, height } = Dimensions.get('window');
 
@@ -120,7 +121,15 @@ const FeedCard = ({ item, formatTime, onDelete, onReport, onComment, onShare, on
           />
           <View style={styles.userInfo}>
             <Text style={styles.username}>{item.user?.name || 'Anonymous'}</Text>
-            <Text style={styles.timestamp}>{formatTime(item.timestamp)}</Text>
+            <View style={styles.postMetaRow}>
+  {postTypeInfo && (
+    <View style={styles.privacyBadge}>
+      <Feather name={postTypeInfo.icon} size={12} color="#888" />
+      <Text style={styles.privacyLabel}>{postTypeInfo.label}</Text>
+    </View>
+  )}
+  <Text style={styles.timestamp}>· {formatTime(item.timestamp)}</Text>
+</View>
           </View>
         </TouchableOpacity>
         <TouchableOpacity style={styles.menuButton} onPress={handleMenuPress}>
@@ -323,6 +332,25 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  postMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 2,
+    gap: 6,
+  },
+  privacyBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F1F1F1',
+    paddingVertical: 2,
+    paddingHorizontal: 6,
+    borderRadius: 10,
+    gap: 4,
+  },
+  privacyLabel: {
+    fontSize: 11,
+    color: '#666',
   },
 });
 
