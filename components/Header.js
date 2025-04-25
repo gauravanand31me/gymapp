@@ -11,9 +11,14 @@ const Header = ({ navigation }) => {
 
       <View style={styles.headerContent}>
         <Text style={styles.title}>Yupluck</Text>
-        <TouchableOpacity onPress={() => navigation.navigate("Profile")}>
-          <Icon name="user-circle" size={24} color="#43A047" />
-        </TouchableOpacity>
+        <View style={styles.rightActions}>
+          <TouchableOpacity onPress={() => navigation.navigate("InviteBuddy")}>
+            <Text style={styles.linkText}>Leaderboard</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate("Profile")} style={{ marginLeft: 12 }}>
+            <Icon name="user-circle" size={24} color="#43A047" />
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -41,6 +46,16 @@ const styles = StyleSheet.create({
     color: "#43A047",
     fontSize: 20,
     fontWeight: "bold",
+  },
+  rightActions: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  linkText: {
+    color: "#4CAF50",
+    fontSize: 14,
+    fontWeight: "600",
+    textDecorationLine: "underline",
   },
 });
 

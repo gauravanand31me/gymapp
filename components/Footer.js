@@ -54,25 +54,29 @@ const Footer = ({ navigation }) => {
         <Text style={[styles.iconText, currentRoute === 'GymList' && styles.activeText]}>Gyms</Text>
       </TouchableOpacity>
 
+      
+
       <TouchableOpacity
-        onPress={() => navigation.navigate('InviteBuddy')}
-        style={[
-          styles.iconContainer,
-          currentRoute === 'InviteBuddy' && styles.activeLink
-        ]}
-      >
-        <Icon
-          name="trophy"
-          size={22}
-          color={currentRoute === 'InviteBuddy' ? '#4CAF50' : '#808080'}
-        />
-        <Text style={[
-          styles.iconText,
-          currentRoute === 'InviteBuddy' && styles.activeText
-        ]}>
-          Leaderboard
-        </Text>
-      </TouchableOpacity>
+  onPress={() => navigation.navigate('ReelsScreen')}
+  style={[
+    styles.iconContainer,
+    currentRoute === 'ReelsScreen' && styles.activeLink
+  ]}
+>
+  <Icon
+    name="video-camera"
+    size={22}
+    color={currentRoute === 'ReelsScreen' ? '#4CAF50' : '#808080'}
+  />
+  <Text
+    style={[
+      styles.iconText,
+      currentRoute === 'ReelsScreen' && styles.activeText
+    ]}
+  >
+    Reels
+  </Text>
+</TouchableOpacity>
 
       <TouchableOpacity
         onPress={() => navigation.navigate('MyBookings')}
