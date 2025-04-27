@@ -87,6 +87,7 @@ export default function YupluckFeedScreen({ navigation }) {
     switch (item.type) {
       case 'general':
       case 'questionPrompt':
+      case 'aiPromo': 
         return (
           <FeedCard
             navigation={navigation}
