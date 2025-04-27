@@ -281,6 +281,7 @@ export const verifyOtp = async (mobileNumber, otp) => {
   
 
   export const deleteReel = async (reelId) => {
+    
     try {
       const userToken = await AsyncStorage.getItem('authToken');
   
@@ -291,15 +292,16 @@ export const verifyOtp = async (mobileNumber, otp) => {
           'Content-Type': 'application/json',
         },
       });
-  
+      console.log("Respon se received", response);
       const data = await response.json();
-  
+      
       if (response.ok) {
         return { success: true, message: data.message || 'Reel deleted successfully' };
       } else {
         throw new Error(data.message || 'Failed to delete reel');
       }
     } catch (error) {
+     
       console.error('Error deleting reel:', error.message);
       return { success: false, message: error.message };
     }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import {
   StatusBar,
   ActivityIndicator,
   TouchableWithoutFeedback,
+  Platform,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { Video } from 'expo-av';
@@ -22,6 +23,7 @@ const screenHeight = Dimensions.get('window').height;
 const screenWidth = Dimensions.get('window').width;
 const HEADER_HEIGHT = 50;
 const FOOTER_HEIGHT = 50;
+const LIMIT = 3;
 
 const ReelsScreen = ({ route, navigation }) => {
   const [reels, setReels] = useState([]);
@@ -31,7 +33,9 @@ const ReelsScreen = ({ route, navigation }) => {
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [showFooter, setShowFooter] = useState(false);
-  const LIMIT = 10;
+  const [videoProgress, setVideoProgress] = useState({}); // 👈 new state
+  const videoRefs = useRef({}); // 👈 ref for multiple videos
+
   const { reelId, userId } = route.params || {};
 
   useEffect(() => {
@@ -47,7 +51,7 @@ const ReelsScreen = ({ route, navigation }) => {
 
   const loadReels = async (pageNumber = 0) => {
     if (!hasMore && pageNumber !== 0) return;
-
+ 
     let queryParams = { page: pageNumber, limit: LIMIT };
     if (reelId) queryParams.reelId = reelId;
     if (userId) queryParams.userId = userId;
@@ -62,6 +66,8 @@ const ReelsScreen = ({ route, navigation }) => {
       }
       if (fetchedReels.length < LIMIT) {
         setHasMore(false);
+      } else {
+        setHasMore(true);
       }
     } catch (error) {
       console.error('Error loading reels:', error);
@@ -71,6 +77,7 @@ const ReelsScreen = ({ route, navigation }) => {
   };
 
   const loadMoreReels = () => {
+  
     if (!loading && hasMore) {
       const nextPage = page + 1;
       setPage(nextPage);
@@ -91,15 +98,13 @@ const ReelsScreen = ({ route, navigation }) => {
 
   const confirmDeleteReel = async (reelId) => {
     try {
-      const result = await deleteReel(reelId); // 👈 call real API
-  
+      const result = await deleteReel(reelId);
       if (result.success) {
-        setReels(prev => prev.filter(r => r.id !== reelId)); // Remove deleted reel from list
+        setReels(prev => prev.filter(r => r.id !== reelId));
         Alert.alert('Deleted', result.message || 'Reel deleted successfully!');
       } else {
         Alert.alert('Error', result.message || 'Failed to delete reel.');
       }
-  
     } catch (error) {
       console.error('Error deleting reel:', error);
       Alert.alert('Error', 'Something went wrong. Please try again.');
@@ -124,7 +129,6 @@ const ReelsScreen = ({ route, navigation }) => {
           const { uri, title, description, postType } = videoData;
           setUploading(true);
           setUploadProgress(0);
-
           const result = await uploadReelVideo(uri, { title, description, postType }, (progress) => {
             setUploadProgress(progress);
           });
@@ -154,15 +158,30 @@ const ReelsScreen = ({ route, navigation }) => {
     <TouchableWithoutFeedback onPress={handleScreenTap}>
       <View style={styles.reelContainer}>
         <Video
+          ref={(ref) => (videoRefs.current[item.id] = ref)}
           source={{ uri: item.videoUrl || item.videoUri }}
           style={styles.reelVideo}
           resizeMode="cover"
           shouldPlay
           isLooping
-          isMuted
+          isMuted={false}
+          onPlaybackStatusUpdate={(status) => {
+            if (status.isLoaded && status.durationMillis) {
+              setVideoProgress((prev) => ({
+                ...prev,
+                [item.id]: status.positionMillis / status.durationMillis,
+              }));
+            }
+          }}
         />
+
+        {/* Progress Bar */}
+        <View style={styles.progressBarWrapper}>
+          <View style={[styles.progressBarFill, { width: `${(videoProgress[item.id] || 0) * 100}%` }]} />
+        </View>
+
+        {/* Overlay Content */}
         <View style={styles.overlay}>
-          {/* Left side: Profile + Title + Description */}
           <View style={styles.leftContent}>
             <View style={styles.userInfo}>
               <Image
@@ -174,16 +193,10 @@ const ReelsScreen = ({ route, navigation }) => {
               </TouchableOpacity>
             </View>
 
-            {item.title ? (
-              <Text style={styles.reelTitle}>{item.title}</Text>
-            ) : null}
-
-            {item.description ? (
-              <Text style={styles.reelDescription}>{item.description}</Text>
-            ) : null}
+            {item.title ? <Text style={styles.reelTitle}>{item.title}</Text> : null}
+            {item.description ? <Text style={styles.reelDescription}>{item.description}</Text> : null}
           </View>
 
-          {/* Right side: Actions */}
           <View style={styles.reelActions}>
             <TouchableOpacity style={styles.iconButton}>
               <Icon name="heart" size={30} color="#fff" />
@@ -197,7 +210,6 @@ const ReelsScreen = ({ route, navigation }) => {
               <Icon name="share" size={30} color="#fff" />
             </TouchableOpacity>
 
-            {/* Delete or Report button based on permissions */}
             {item.canDelete ? (
               <TouchableOpacity style={styles.iconButton} onPress={() => handleDeleteReel(item.id)}>
                 <Icon name="trash" size={30} color="#ff4d4d" />
@@ -209,7 +221,6 @@ const ReelsScreen = ({ route, navigation }) => {
                 <Text style={styles.iconLabel}>Report</Text>
               </TouchableOpacity>
             ) : null}
-
           </View>
         </View>
       </View>
@@ -219,7 +230,6 @@ const ReelsScreen = ({ route, navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" />
-
       {uploading && (
         <View style={styles.uploadOverlay}>
           <View style={styles.uploadCard}>
@@ -241,7 +251,7 @@ const ReelsScreen = ({ route, navigation }) => {
         </TouchableOpacity>
       </View>
 
-      {/* Reels */}
+      {/* Reels List */}
       {loading ? (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <ActivityIndicator size="large" color="#4CAF50" />
@@ -259,12 +269,10 @@ const ReelsScreen = ({ route, navigation }) => {
           snapToAlignment="start"
           onEndReached={loadMoreReels}
           onEndReachedThreshold={0.5}
-          contentContainerStyle={{}}
           style={{ flex: 1 }}
         />
       )}
 
-      {/* Footer */}
       {showFooter && <Footer navigation={navigation} />}
     </SafeAreaView>
   );
@@ -279,7 +287,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    marginTop: 30
+    marginTop: 30,
   },
   headerTitle: { color: '#fff', fontSize: 20, fontWeight: 'bold' },
   uploadBtn: {
@@ -290,18 +298,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     borderRadius: 20,
   },
-  uploadText: {
-    color: '#fff',
-    fontSize: 14,
-    marginLeft: 6,
-    fontWeight: '600',
-  },
-  reelContainer: {
-    width: screenWidth,
-    height: screenHeight,
-    position: 'relative',
-  },
+  uploadText: { color: '#fff', fontSize: 14, marginLeft: 6, fontWeight: '600' },
+  reelContainer: { width: screenWidth, height: screenHeight, position: 'relative' },
   reelVideo: { width: '100%', height: '100%' },
+  progressBarWrapper: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    height: 4,
+    width: '100%',
+    backgroundColor: '#333',
+  },
+  progressBarFill: {
+    height: 4,
+    backgroundColor: '#00ff88',
+  },
   overlay: {
     position: 'absolute',
     bottom: 100,
@@ -329,7 +340,6 @@ const styles = StyleSheet.create({
   uploadCard: { backgroundColor: '#1c1c1e', padding: 20, borderRadius: 20, width: '80%', alignItems: 'center', elevation: 8 },
   uploadingLabel: { color: '#aaa', fontSize: 16, marginBottom: 16, fontWeight: '500', letterSpacing: 1 },
   progressBarBackground: { width: '100%', height: 12, backgroundColor: '#333', borderRadius: 6, overflow: 'hidden' },
-  progressBarFill: { height: '100%', backgroundColor: '#00d4ff', borderRadius: 6 },
   progressText: { marginTop: 12, fontSize: 18, fontWeight: 'bold', color: '#00ff88' },
 });
 
