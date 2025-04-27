@@ -17,6 +17,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import { Video } from 'expo-av';
 import Footer from '../components/Footer';
 import { uploadReelVideo, fetchUserReels } from '../api/apiService'; // ✅ import both
+import { TouchableWithoutFeedback, Keyboard } from 'react-native';
 // Make sure fetchUserReels is correctly created based on our previous function
 
 const screenHeight = Dimensions.get('window').height;
@@ -33,10 +34,21 @@ const ReelsScreen = ({ route, navigation }) => {
   const [hasMore, setHasMore] = useState(true); // if more reels are available
   const LIMIT = 10; // you can change to any number like 5, 10, 15
   const { reelId, userId } = route.params || {}; // 👈 get reelId and userId if passed
+  const [showFooter, setShowFooter] = useState(false);
 
   useEffect(() => {
     loadReels();
   }, []);
+
+  const handleScreenTap = () => {
+    setShowFooter(true);
+  
+    // Optional: Hide Footer after 3 seconds automatically
+    setTimeout(() => {
+      setShowFooter(false);
+    }, 3000);
+  };
+
 
   const loadReels = async (pageNumber = 0) => {
     let queryParams = { page: pageNumber, limit: LIMIT };
@@ -65,10 +77,6 @@ const ReelsScreen = ({ route, navigation }) => {
     }
   };
 
-
-
-
-  
 
   const handleUploadReel = () => {
     navigation.navigate('UploadReelScreen', {
@@ -114,6 +122,7 @@ const ReelsScreen = ({ route, navigation }) => {
   };
 
   const renderReel = ({ item }) => (
+    
     <View style={styles.reelContainer}>
       <Video
         source={{ uri: item.videoUrl || item.videoUri }}
@@ -166,6 +175,7 @@ const ReelsScreen = ({ route, navigation }) => {
   
 
   return (
+    <TouchableWithoutFeedback onPress={handleScreenTap}>
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" />
 
@@ -216,9 +226,11 @@ const ReelsScreen = ({ route, navigation }) => {
       )}
 
       {/* Footer */}
-      <Footer navigation={navigation} />
+      {showFooter && <Footer navigation={navigation} />}
     </SafeAreaView>
+    </TouchableWithoutFeedback>
   );
+  
 };
 
 const styles = StyleSheet.create({
@@ -230,7 +242,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    marginTop: 35
+    
   },
   headerTitle: { color: '#fff', fontSize: 20, fontWeight: 'bold' },
   uploadBtn: {
