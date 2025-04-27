@@ -383,7 +383,7 @@ export const verifyOtp = async (mobileNumber, otp) => {
 
 
 
-  export const uploadReelVideo = async (videoUri, onProgress) => {
+  export const uploadReelVideo = async (videoUri, { title = '', description = '', postType = 'public' }, onProgress) => {
     try {
       const userToken = await AsyncStorage.getItem('authToken');
   
@@ -395,6 +395,11 @@ export const verifyOtp = async (mobileNumber, otp) => {
         name: `reel-upload.${fileExtension}`,
         type: `video/${fileExtension}`,
       });
+
+      // 👇 Add title, description, postType
+      formData.append('title', title);
+      formData.append('description', description);
+      formData.append('postType', postType);
   
       return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();

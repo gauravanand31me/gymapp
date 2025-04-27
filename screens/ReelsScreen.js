@@ -48,21 +48,23 @@ const ReelsScreen = ({ navigation }) => {
 
   const handleUploadReel = () => {
     navigation.navigate('UploadReelScreen', {
-      onVideoSelected: async (videoUri) => {
+      onVideoSelected: async (videoData) => {
         try {
+          const { uri, title, description, postType } = videoData;
           setUploading(true);
           setUploadProgress(0);
-      
-          const result = await uploadReelVideo(videoUri, (progress) => {
+
+          const result = await uploadReelVideo(uri, { title, description, postType }, (progress) => {
             setUploadProgress(progress);
           });
-      
-          const uploadedUrl = result.fileUrl;
-      
+
+          console.log("result", result);
+          const uploadedUrl = result.reel;
+
           const newReel = {
             id: Date.now().toString(),
-            videoUri: uploadedUrl,
-            title: 'Your Reel',
+            videoUri: uploadedUrl.videoUrl,
+            title: uploadedUrl?.title,
             user: { name: 'You', profilePic: 'https://cdn-icons-png.flaticon.com/512/149/149071.png' },
             likes: 0,
             comments: 0,
@@ -90,11 +92,34 @@ const ReelsScreen = ({ navigation }) => {
         isMuted
       />
       <View style={styles.overlay}>
-        <View style={styles.userInfo}>
-          <Image source={{ uri: item.user?.profilePic || 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }} style={styles.profilePic} />
-          <Text style={styles.userName}>{item.user?.name || 'Unknown'}</Text>
+        <View style={{ flex: 1 }}>
+          <View style={styles.userInfo}>
+            <Image
+              source={{ uri: item.user?.profilePic || 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }}
+              style={styles.profilePic}
+            />
+            <TouchableOpacity onPress={() => navigation.navigate('UserProfile', { userId: item?.userId })}>
+              <Text style={styles.userName}>
+                {item.user?.name || 'Unknown'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+  
+          {/* Title */}
+          {item.title ? (
+            <Text style={styles.reelTitle}>
+              {item.title}
+            </Text>
+          ) : null}
+  
+          {/* Description */}
+          {item.description ? (
+            <Text style={styles.reelDescription}>
+              {item.description}
+            </Text>
+          ) : null}
         </View>
-
+  
         <View style={styles.reelActions}>
           <TouchableOpacity style={styles.iconButton}>
             <Icon name="heart" size={24} color="#fff" />
@@ -111,17 +136,23 @@ const ReelsScreen = ({ navigation }) => {
       </View>
     </View>
   );
+  
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" />
 
       {uploading && (
-        <View style={styles.progressContainer}>
-          <View style={styles.progressBarBackground}>
-            <View style={[styles.progressBarFill, { width: `${uploadProgress}%` }]} />
+        <View style={styles.uploadOverlay}>
+          <View style={styles.uploadCard}>
+            <Text style={styles.uploadingLabel}>Uploading...</Text>
+
+            <View style={styles.progressBarBackground}>
+              <View style={[styles.progressBarFill, { width: `${uploadProgress}%` }]} />
+            </View>
+
+            <Text style={styles.progressText}>{uploadProgress}%</Text>
           </View>
-          <Text style={styles.progressText}>{uploadProgress}%</Text>
         </View>
       )}
 
@@ -231,31 +262,76 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 4,
   },
-  progressContainer: {
-    width: '100%',
-    paddingHorizontal: 16,
-    paddingTop: 12,
+
+  uploadOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)', // black transparent overlay
+    justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#000',
+    zIndex: 100, // ensure it overlays everything
   },
+
+  uploadCard: {
+    backgroundColor: '#1c1c1e', // nice dark card
+    padding: 20,
+    borderRadius: 20,
+    width: '80%',
+    alignItems: 'center',
+    shadowColor: '#00ff88',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 8, // for Android shadow
+  },
+
+  uploadingLabel: {
+    color: '#aaa',
+    fontSize: 16,
+    marginBottom: 16,
+    fontWeight: '500',
+    letterSpacing: 1,
+  },
+
   progressBarBackground: {
     width: '100%',
-    height: 8,
-    backgroundColor: '#444',
-    borderRadius: 4,
+    height: 12,
+    backgroundColor: '#333',
+    borderRadius: 6,
     overflow: 'hidden',
   },
+
   progressBarFill: {
     height: '100%',
-    backgroundColor: '#4CAF50', // green
-    borderRadius: 4,
+    backgroundColor: 'linear-gradient(90deg, #00ff88, #00d4ff)', // use expo-linear-gradient if you want real gradient
+    backgroundColor: '#00d4ff', // fallback solid if linear gradient not used
+    borderRadius: 6,
   },
+
   progressText: {
+    marginTop: 12,
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#00ff88',
+  },
+  reelTitle: {
     color: '#fff',
-    fontSize: 12,
-    marginTop: 4,
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginTop: 6,
+    marginLeft: 50,
   },
   
+  reelDescription: {
+    color: '#ccc',
+    fontSize: 13,
+    marginTop: 4,
+    marginLeft: 50,
+  },
+
 });
 
 export default ReelsScreen;
