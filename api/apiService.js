@@ -224,9 +224,10 @@ export const verifyOtp = async (mobileNumber, otp) => {
 
 
 
-  export const fetchUserReels = async (page = 0, limit = 10) => {
+  export const fetchUserReels = async (queryParams) => {
     try {
       const userToken = await AsyncStorage.getItem('authToken');
+      const {page, limit} = queryParams;
   
       const endpoint = `${BASE_URL}/users/reel?offset=${page * limit}&limit=${limit}`;
   

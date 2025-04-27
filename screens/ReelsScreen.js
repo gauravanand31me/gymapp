@@ -24,7 +24,7 @@ const screenWidth = Dimensions.get('window').width;
 const HEADER_HEIGHT = 50;
 const FOOTER_HEIGHT = 50;
 
-const ReelsScreen = ({ navigation }) => {
+const ReelsScreen = ({ route, navigation }) => {
   const [reels, setReels] = useState([]);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploading, setUploading] = useState(false);
@@ -32,17 +32,22 @@ const ReelsScreen = ({ navigation }) => {
   const [page, setPage] = useState(0);        // current page
   const [hasMore, setHasMore] = useState(true); // if more reels are available
   const LIMIT = 10; // you can change to any number like 5, 10, 15
+  const { reelId, userId } = route.params || {}; // 👈 get reelId and userId if passed
 
   useEffect(() => {
     loadReels();
   }, []);
 
   const loadReels = async (pageNumber = 0) => {
+    let queryParams = { page: pageNumber, limit: LIMIT };
+
+    if (reelId) queryParams.reelId = reelId;     // 👈 if reelId available
+    if (userId) queryParams.userId = userId;     // 👈 if userId available
     if (!hasMore && pageNumber !== 0) return; // no more reels to load
   
     try {
       setLoading(true);
-      const fetchedReels = await fetchUserReels(pageNumber, LIMIT);
+      const fetchedReels = await fetchUserReels(queryParams);
   
       if (pageNumber === 0) {
         setReels(fetchedReels); // first load, replace
