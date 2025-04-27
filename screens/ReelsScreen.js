@@ -29,22 +29,41 @@ const ReelsScreen = ({ navigation }) => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true); // screen initial loading
+  const [page, setPage] = useState(0);        // current page
+  const [hasMore, setHasMore] = useState(true); // if more reels are available
+  const LIMIT = 10; // you can change to any number like 5, 10, 15
 
   useEffect(() => {
     loadReels();
   }, []);
 
-  const loadReels = async () => {
+  const loadReels = async (pageNumber = 0) => {
+    if (!hasMore && pageNumber !== 0) return; // no more reels to load
+  
     try {
       setLoading(true);
-      const fetchedReels = await fetchUserReels(0, 10); // page=0, limit=10
-      setReels(fetchedReels);
+      const fetchedReels = await fetchUserReels(pageNumber, LIMIT);
+  
+      if (pageNumber === 0) {
+        setReels(fetchedReels); // first load, replace
+      } else {
+        setReels(prevReels => [...prevReels, ...fetchedReels]); // next loads, append
+      }
+  
+      if (fetchedReels.length < LIMIT) {
+        setHasMore(false); // no more data
+      }
     } catch (error) {
       console.error('Error loading reels:', error);
     } finally {
       setLoading(false);
     }
   };
+
+
+
+
+  
 
   const handleUploadReel = () => {
     navigation.navigate('UploadReelScreen', {
@@ -79,6 +98,14 @@ const ReelsScreen = ({ navigation }) => {
         }
       }
     });
+  };
+
+  const loadMoreReels = () => {
+    if (!loading && hasMore) {
+      const nextPage = page + 1;
+      setPage(nextPage);
+      loadReels(nextPage);
+    }
   };
 
   const renderReel = ({ item }) => (
@@ -173,9 +200,11 @@ const ReelsScreen = ({ navigation }) => {
   keyExtractor={(item) => item.id}
   pagingEnabled
   showsVerticalScrollIndicator={false}
-  snapToInterval={screenHeight}    // 👈 This line is very important
-  decelerationRate="fast"           // 👈 Smooth fast scroll like Reels
+  snapToInterval={screenHeight}
+  decelerationRate="fast"
   snapToAlignment="start"
+  onEndReached={loadMoreReels}    // 👈 trigger when end is reached
+  onEndReachedThreshold={0.5}     // 👈 when 50% from bottom
   contentContainerStyle={{}}
   style={{ flex: 1 }}
 />
