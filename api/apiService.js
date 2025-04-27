@@ -227,16 +227,23 @@ export const verifyOtp = async (mobileNumber, otp) => {
   export const fetchUserReels = async (queryParams) => {
     try {
       const userToken = await AsyncStorage.getItem('authToken');
-      const {page, limit} = queryParams;
+      const { page, limit, userId, reelId } = queryParams; // 👈 also accept userId and reelId
   
-      const endpoint = `${BASE_URL}/users/reel?offset=${page * limit}&limit=${limit}`;
+      let endpoint = `${BASE_URL}/users/reel?offset=${page * limit}&limit=${limit}`;
+  
+      if (userId) {
+        endpoint += `&userId=${userId}`; // 👈 append userId if available
+      }
+      if (reelId) {
+        endpoint += `&reelId=${reelId}`; // 👈 append reelId if available
+      }
   
       const response = await fetch(endpoint, {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${userToken}`,
-          'Content-Type': 'application/json'
-        }
+          'Content-Type': 'application/json',
+        },
       });
   
       const data = await response.json();
@@ -246,7 +253,7 @@ export const verifyOtp = async (mobileNumber, otp) => {
           id: item.id,
           userId: item.userId,
           videoUrl: item.videoUrl,
-          thumbnailUrl: item.thumbnailUrl || '', // fallback if thumbnail not available
+          thumbnailUrl: item.thumbnailUrl || '',
           title: item.title || '',
           description: item.description || '',
           postType: item.postType,
@@ -271,6 +278,7 @@ export const verifyOtp = async (mobileNumber, otp) => {
       return [];
     }
   };
+  
 
 
 
