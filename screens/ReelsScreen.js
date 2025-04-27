@@ -21,8 +21,8 @@ import { uploadReelVideo, fetchUserReels } from '../api/apiService'; // ✅ impo
 
 const screenHeight = Dimensions.get('window').height;
 const screenWidth = Dimensions.get('window').width;
-const HEADER_HEIGHT = 60;
-const FOOTER_HEIGHT = 70;
+const HEADER_HEIGHT = 50;
+const FOOTER_HEIGHT = 50;
 
 const ReelsScreen = ({ navigation }) => {
   const [reels, setReels] = useState([]);
@@ -58,7 +58,7 @@ const ReelsScreen = ({ navigation }) => {
             setUploadProgress(progress);
           });
 
-          console.log("result", result);
+          
           const uploadedUrl = result.reel;
 
           const newReel = {
@@ -92,50 +92,45 @@ const ReelsScreen = ({ navigation }) => {
         isMuted
       />
       <View style={styles.overlay}>
-        <View style={{ flex: 1 }}>
+        {/* Left side: Profile + Title + Description */}
+        <View style={styles.leftContent}>
           <View style={styles.userInfo}>
             <Image
               source={{ uri: item.user?.profilePic || 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }}
               style={styles.profilePic}
             />
             <TouchableOpacity onPress={() => navigation.navigate('UserProfile', { userId: item?.userId })}>
-              <Text style={styles.userName}>
-                {item.user?.name || 'Unknown'}
-              </Text>
+              <Text style={styles.userName}>{item.user?.name || 'Unknown'}</Text>
             </TouchableOpacity>
           </View>
   
-          {/* Title */}
           {item.title ? (
-            <Text style={styles.reelTitle}>
-              {item.title}
-            </Text>
+            <Text style={styles.reelTitle}>{item.title}</Text>
           ) : null}
   
-          {/* Description */}
           {item.description ? (
-            <Text style={styles.reelDescription}>
-              {item.description}
-            </Text>
+            <Text style={styles.reelDescription}>{item.description}</Text>
           ) : null}
         </View>
   
+        {/* Right side: Actions */}
         <View style={styles.reelActions}>
           <TouchableOpacity style={styles.iconButton}>
-            <Icon name="heart" size={24} color="#fff" />
+            <Icon name="heart" size={30} color="#fff" />
             <Text style={styles.iconLabel}>{item.likeCount || 0}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.iconButton}>
-            <Icon name="comment" size={24} color="#fff" />
+            <Icon name="comment" size={30} color="#fff" />
             <Text style={styles.iconLabel}>{item.commentCount || 0}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.iconButton}>
-            <Icon name="share" size={24} color="#fff" />
+            <Icon name="share" size={30} color="#fff" />
           </TouchableOpacity>
         </View>
       </View>
     </View>
   );
+  
   
 
   return (
@@ -173,14 +168,17 @@ const ReelsScreen = ({ navigation }) => {
         </View>
       ) : (
         <FlatList
-          data={reels}
-          renderItem={renderReel}
-          keyExtractor={item => item.id}
-          pagingEnabled
-          showsVerticalScrollIndicator={false}
-          style={{ flex: 1 }}
-          contentContainerStyle={{ paddingBottom: FOOTER_HEIGHT }}
-        />
+  data={reels}
+  renderItem={renderReel}
+  keyExtractor={(item) => item.id}
+  pagingEnabled
+  showsVerticalScrollIndicator={false}
+  snapToInterval={screenHeight}    // 👈 This line is very important
+  decelerationRate="fast"           // 👈 Smooth fast scroll like Reels
+  snapToAlignment="start"
+  contentContainerStyle={{}}
+  style={{ flex: 1 }}
+/>
       )}
 
       {/* Footer */}
@@ -217,7 +215,7 @@ const styles = StyleSheet.create({
   },
   reelContainer: {
     width: screenWidth,
-    height: screenHeight - HEADER_HEIGHT - FOOTER_HEIGHT,
+    height: screenHeight,
     position: 'relative',
   },
   reelVideo: {
@@ -226,17 +224,27 @@ const styles = StyleSheet.create({
   },
   overlay: {
     position: 'absolute',
-    bottom: 90,
+    bottom: 100,  // leave space for footer
     left: 16,
     right: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-end',
+    paddingHorizontal: 10,
+    paddingBottom: 10,
   },
+  
+  leftContent: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  
   userInfo: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: 8,
   },
+  
   profilePic: {
     height: 40,
     width: 40,
@@ -245,14 +253,51 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#fff',
   },
+  
   userName: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
+    textShadowColor: '#000',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
+  
+  reelTitle: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 4,
+    textShadowColor: '#000',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  
+  reelDescription: {
+    color: '#ddd',
+    fontSize: 13,
+    marginBottom: 8,
+    textShadowColor: '#000',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  
   reelActions: {
     alignItems: 'center',
+    justifyContent: 'flex-end',
   },
+  
+  iconButton: {
+    marginBottom: 20,
+    alignItems: 'center',
+  },
+  
+  iconLabel: {
+    color: '#fff',
+    fontSize: 14,
+    marginTop: 4,
+  },
+  
   iconButton: {
     marginBottom: 20,
     alignItems: 'center',
