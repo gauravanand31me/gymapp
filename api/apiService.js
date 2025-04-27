@@ -197,6 +197,82 @@ export const verifyOtp = async (mobileNumber, otp) => {
 
 
 
+  export const getPostById = async (postId) => {
+    try {
+      const userToken = await AsyncStorage.getItem('authToken');
+  
+      const response = await fetch(`${BASE_URL}/users/feed/${postId}`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${userToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+  
+      const data = await response.json();
+  
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to fetch post');
+      }
+  
+      return { success: true, post: data };
+    } catch (error) {
+      console.error('Error fetching post:', error.message);
+      return { success: false, message: error.message };
+    }
+  };
+
+
+
+  export const fetchUserReels = async (page = 0, limit = 10) => {
+    try {
+      const userToken = await AsyncStorage.getItem('authToken');
+  
+      const endpoint = `${BASE_URL}/users/reel?offset=${page * limit}&limit=${limit}`;
+  
+      const response = await fetch(endpoint, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${userToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok && data.reels) {
+        return data.reels.map(item => ({
+          id: item.id,
+          userId: item.userId,
+          videoUrl: item.videoUrl,
+          thumbnailUrl: item.thumbnailUrl || '', // fallback if thumbnail not available
+          title: item.title || '',
+          description: item.description || '',
+          postType: item.postType,
+          timestamp: item.timestamp,
+          likeCount: item.like_count || 0,
+          commentCount: item.comment_count || 0,
+          shareCount: item.share_count || 0,
+          canDelete: item.canDelete || false,
+          canReport: item.canReport || false,
+          user: {
+            id: item.user?.id || '',
+            name: item.user?.full_name || 'Unknown',
+            profilePic: item.user?.profile_pic || 'https://via.placeholder.com/50'
+          }
+        }));
+      } else {
+        return [];
+      }
+  
+    } catch (error) {
+      console.error('Error fetching user reels:', error);
+      return [];
+    }
+  };
+
+
+
   export const fetchUserFeed = async (page = 0, limit = 10) => {
     try {
       const userToken = await AsyncStorage.getItem('authToken');
@@ -214,7 +290,7 @@ export const verifyOtp = async (mobileNumber, otp) => {
       const data = await response.json();
   
       
-  
+      
       if (response.ok && data.feed) {
         return data.feed.map(item => ({
           id: item.id,
@@ -222,6 +298,7 @@ export const verifyOtp = async (mobileNumber, otp) => {
           canReport: item.canReport,
           type: item.activityType,
           title: item.title,
+          postType: item.postType,
           description: item.description,
           imageUrl: item.imageUrl,
           timestamp: item.timestamp,
@@ -247,6 +324,126 @@ export const verifyOtp = async (mobileNumber, otp) => {
       return [];
     }
   };
+
+
+
+
+  
+  export const fetchMyFeed = async (page = 0, limit = 10) => {
+    try {
+      const userToken = await AsyncStorage.getItem('authToken');
+  
+      const endpoint = `${BASE_URL}/users/my-feed?offset=${page * limit}&limit=${limit}`;
+  
+      const response = await fetch(endpoint, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${userToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+  
+      const data = await response.json();
+  
+      
+      
+      if (response.ok && data.feed) {
+        return data.feed.map(item => ({
+          id: item.id,
+          canDelete: item.canDelete,
+          canReport: item.canReport,
+          type: item.activityType,
+          title: item.title,
+          postType: item.postType,
+          description: item.description,
+          imageUrl: item.imageUrl,
+          timestamp: item.timestamp,
+          userId: item.userId,
+          likeCount: item.likeCount || item.like_count || 0,       // ✅ Added like count
+          commentCount: item.commentCount || item.comment_count || 0, // ✅ Added comment count
+          userLiked: item.userLiked || false, // ✅ Shows if current user has liked
+          user: {
+            id: item.user?.id,
+            name: item.user?.full_name,
+            profilePic: item.user?.profile_pic || 'https://via.placeholder.com/50'
+          },
+          gym: item.gym,
+          userReaction: item.userReaction || null,
+          reactionsBreakdown: item.reactionsBreakdown || []
+        }));
+      } else {
+        return [];
+      }
+
+    } catch (error) {
+      console.error('Error fetching user feed:', error);
+      return [];
+    }
+  };
+
+
+
+  export const uploadReelVideo = async (videoUri, { title = '', description = '', postType = 'public' }, onProgress) => {
+    try {
+      const userToken = await AsyncStorage.getItem('authToken');
+  
+      const formData = new FormData();
+      const fileExtension = videoUri.split('.').pop();
+  
+      formData.append('video', {
+        uri: videoUri,
+        name: `reel-upload.${fileExtension}`,
+        type: `video/${fileExtension}`,
+      });
+
+      // 👇 Add title, description, postType
+      formData.append('title', title);
+      formData.append('description', description);
+      formData.append('postType', postType);
+  
+      return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', `${BASE_URL}/users/reel/upload`); // your reels upload endpoint
+  
+        xhr.setRequestHeader('Authorization', `Bearer ${userToken}`);
+  
+        // Track upload progress
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable && typeof onProgress === 'function') {
+            const percent = Math.round((event.loaded / event.total) * 100);
+            onProgress(percent);
+          }
+        };
+  
+        xhr.onload = () => {
+          try {
+            console.log("XHR raw response:", xhr.responseText); // 🛠 Important: always log this
+            const responseData = JSON.parse(xhr.responseText);
+            
+            if (xhr.status >= 200 && xhr.status < 300) {
+              resolve(responseData);
+            } else {
+              reject(new Error(responseData.message || 'Upload failed'));
+            }
+          } catch (err) {
+            console.log("JSON Parse Error:", err);
+            console.log("Server raw response:", xhr.responseText); // 🛠 Log the real server reply
+            reject(new Error('Invalid JSON response: ' + xhr.responseText)); // optional: pass it forward
+          }
+        };
+  
+        xhr.onerror = () => {
+          reject(new Error('Network error during upload'));
+        };
+  
+        xhr.send(formData);
+      });
+    } catch (err) {
+      console.error('Token or upload error:', err);
+      throw err;
+    }
+  };
+
   
 
 

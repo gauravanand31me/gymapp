@@ -45,7 +45,8 @@ export default function YupluckFeedScreen({ navigation }) {
     if (data.length < limit) {
       setHasMore(false); // No more data to load
     }
-  
+    
+    
     const newData = nextPage === 0 ? data : [...feedData, ...data];
   
     // if (nextPage === 0) newData.push(ads);

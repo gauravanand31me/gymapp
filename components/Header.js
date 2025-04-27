@@ -1,83 +1,62 @@
-import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Platform } from "react-native"
-import Icon from "react-native-vector-icons/FontAwesome"
+import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Platform } from "react-native";
+import Icon from "react-native-vector-icons/FontAwesome";
 
 const Header = ({ navigation }) => {
-  // Get status bar height based on platform
-  const STATUSBAR_HEIGHT = Platform.OS === "ios" ? 44 : StatusBar.currentHeight || 0
+  const STATUSBAR_HEIGHT = Platform.OS === "ios" ? 44 : StatusBar.currentHeight || 0;
 
   return (
     <View style={styles.container}>
-      {/* Configure the status bar */}
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" translucent={true} />
+      <View style={{ height: STATUSBAR_HEIGHT }} />
 
-      {/* Add a spacer for the status bar */}
-      <View style={[styles.statusBarSpacer, { height: STATUSBAR_HEIGHT }]} />
-
-      <Text style={styles.title}>Yupluck</Text>
-
-      <Text style={styles.subtitle}>Book gyms, track your fitness, celebrate milestones, and grow with friends.</Text>
-
-      <TouchableOpacity style={styles.profileSection} onPress={() => navigation.navigate("Profile")}>
-        <Icon name="user-circle" size={20} color="#43A047" style={styles.profileIcon} />
-        <Text style={styles.profileText}>View Profile</Text>
-      </TouchableOpacity>
+      <View style={styles.headerContent}>
+        <Text style={styles.title}>Yupluck</Text>
+        <View style={styles.rightActions}>
+          <TouchableOpacity onPress={() => navigation.navigate("InviteBuddy")}>
+            <Text style={styles.linkText}>Leaderboard</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate("Profile")} style={{ marginLeft: 12 }}>
+            <Icon name="user-circle" size={24} color="#43A047" />
+          </TouchableOpacity>
+        </View>
+      </View>
     </View>
-  )
-}
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
     backgroundColor: "#FFFFFF",
     paddingHorizontal: 16,
     paddingBottom: 10,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-    elevation: 4,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    elevation: 2,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    marginBottom: 16,
-    paddingTop: 0, // Remove paddingTop as we'll use the spacer
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
   },
-  statusBarSpacer: {
-    width: "100%",
-    backgroundColor: "transparent",
+  headerContent: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   title: {
     color: "#43A047",
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: "bold",
-    textAlign: "left",
-    marginBottom: 12,
-    marginTop: 10, // Reduced from 35 since we now have the status bar spacer
   },
-  subtitle: {
-    color: "#666666",
-    fontSize: 14,
-    textAlign: "center",
-    lineHeight: 20,
-    marginBottom: 16,
-  },
-  profileSection: {
-    alignSelf: "center",
+  rightActions: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F5F5F5",
-    borderColor: "#E0E0E0",
-    borderWidth: 1,
-    borderRadius: 50,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
   },
-  profileIcon: {
-    marginRight: 8,
-  },
-  profileText: {
-    color: "#43A047",
+  linkText: {
+    color: "#4CAF50",
     fontSize: 14,
     fontWeight: "600",
+    textDecorationLine: "underline",
   },
-})
+});
 
-export default Header
+export default Header;

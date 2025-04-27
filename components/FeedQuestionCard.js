@@ -14,23 +14,23 @@ import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { uploadFeedAnswer } from '../api/apiService';
 
-
 export default function FeedQuestion({ question, onSubmit }) {
   const [answer, setAnswer] = useState('');
-  const [media, setMedia] = useState(null); // { uri, type: 'image' }
+  const [media, setMedia] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploading, setUploading] = useState(false);
-
+  const [postType, setPostType] = useState('public'); // Default privacy
 
   useEffect(() => {
     setUploading(false);
-  }, [])
+  }, []);
 
   const handleShare = async () => {
     if (answer.trim() || media) {
       try {
         const formData = new FormData();
         formData.append('answer', answer);
+        formData.append('postType', postType); // Add postType
 
         if (media?.uri) {
           const fileExtension = media.uri.split('.').pop();
@@ -43,16 +43,14 @@ export default function FeedQuestion({ question, onSubmit }) {
 
         setUploading(true);
         setUploadProgress(0);
-
         setAnswer('');
         setMedia(null);
-
 
         await uploadFeedAnswer(formData, (progress) => {
           setUploadProgress(progress);
         });
-  
-        onSubmit()
+
+        onSubmit();
         setUploading(false);
       } catch (err) {
         console.error('Upload Error:', err);
@@ -68,24 +66,22 @@ export default function FeedQuestion({ question, onSubmit }) {
       allowsEditing: true,
       quality: 1,
     });
-  
+
     if (!result.canceled) {
       const image = result.assets[0];
-  
-      // Compress the image (reduce size and quality)
+
       const compressed = await ImageManipulator.manipulateAsync(
         image.uri,
-        [{ resize: { width: 800 } }], // Resize to max width 800px
+        [{ resize: { width: 800 } }],
         {
-          compress: 0.8, // Compression quality (0 to 1)
+          compress: 0.8,
           format: ImageManipulator.SaveFormat.JPEG,
         }
       );
-  
+
       setMedia({ uri: compressed.uri, type: 'image' });
     }
   };
-  
 
   return (
     <KeyboardAvoidingView
@@ -106,6 +102,39 @@ export default function FeedQuestion({ question, onSubmit }) {
           multiline
           maxLength={1000}
         />
+
+        {/* Privacy Selector */}
+        <View style={styles.privacySelector}>
+          {[
+            { label: 'Public', value: 'public', icon: 'globe' },
+            { label: 'Friends Only', value: 'private', icon: 'users' },
+            { label: 'Only Me', value: 'onlyme', icon: 'lock' },
+          ].map((item) => (
+            <TouchableOpacity
+              key={item.value}
+              style={[
+                styles.privacyOption,
+                postType === item.value && styles.privacyOptionSelected,
+              ]}
+              onPress={() => setPostType(item.value)}
+            >
+              <Feather
+                name={item.icon}
+                size={14}
+                color={postType === item.value ? '#fff' : '#555'}
+                style={{ marginRight: 6 }}
+              />
+              <Text
+                style={[
+                  styles.privacyText,
+                  postType === item.value && styles.privacyTextSelected,
+                ]}
+              >
+                {item.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
 
         {media && (
           <View style={styles.mediaPreview}>
@@ -182,6 +211,40 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     fontSize: 14,
     color: '#333',
+  },
+  privacySelector: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 12,
+    marginBottom: 12,
+  },
+  
+  privacyOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    backgroundColor: '#F0F0F0',
+    marginRight: 6,
+  },
+  
+  privacyOptionSelected: {
+    backgroundColor: '#0044CC',
+    borderColor: '#0044CC',
+  },
+  
+  privacyText: {
+    fontSize: 13,
+    color: '#444',
+  },
+  
+  privacyTextSelected: {
+    color: '#fff',
+    fontWeight: '600',
   },
   uploadOptions: {
     flexDirection: 'row',

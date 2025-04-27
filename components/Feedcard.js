@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { MoreVertical, MessageCircle, Share2 } from 'lucide-react-native';
 import { reactToPost } from '../api/apiService';
+import { Feather } from '@expo/vector-icons';
 
 const { width, height } = Dimensions.get('window');
 
@@ -24,14 +25,14 @@ const FeedCard = ({ item, formatTime, onDelete, onReport, onComment, onShare, on
   // Calculate the correct image height based on aspect ratio
   const calculateImageHeight = (uri) => {
     if (!uri) return;
-    
+
     Image.getSize(uri, (width, height) => {
       // Get the screen width (minus padding)
       const screenWidth = Dimensions.get('window').width - 28; // 14px padding on each side
       // Calculate the height based on the image aspect ratio
       const ratio = height / width;
       const calculatedHeight = screenWidth * ratio;
-      
+
       // Set a reasonable max height if needed
       const maxHeight = 500;
       setImageHeight(Math.min(calculatedHeight, maxHeight));
@@ -65,6 +66,23 @@ const FeedCard = ({ item, formatTime, onDelete, onReport, onComment, onShare, on
     }
   };
 
+
+
+  const getPostTypeIcon = (type) => {
+    switch (type) {
+      case 'public':
+        return { icon: 'globe', label: 'Public' };
+      case 'private':
+        return { icon: 'users', label: 'Friends Only' };
+      case 'onlyme':
+        return { icon: 'lock', label: 'Only Me' };
+      default:
+        return null;
+    }
+  };
+  
+  
+
   const handleMenuPress = () => {
     const options = [{ text: 'Cancel', style: 'cancel' }];
 
@@ -87,7 +105,8 @@ const FeedCard = ({ item, formatTime, onDelete, onReport, onComment, onShare, on
       cancelable: true,
     });
   };
-
+  const postTypeInfo = getPostTypeIcon(item.postType);
+  
   return (
     <View style={styles.card}>
       {/* Header */}
@@ -102,7 +121,15 @@ const FeedCard = ({ item, formatTime, onDelete, onReport, onComment, onShare, on
           />
           <View style={styles.userInfo}>
             <Text style={styles.username}>{item.user?.name || 'Anonymous'}</Text>
-            <Text style={styles.timestamp}>{formatTime(item.timestamp)}</Text>
+            <View style={styles.postMetaRow}>
+  {postTypeInfo && (
+    <View style={styles.privacyBadge}>
+      <Feather name={postTypeInfo.icon} size={12} color="#888" />
+      <Text style={styles.privacyLabel}>{postTypeInfo.label}</Text>
+    </View>
+  )}
+  <Text style={styles.timestamp}>· {formatTime(item.timestamp)}</Text>
+</View>
           </View>
         </TouchableOpacity>
         <TouchableOpacity style={styles.menuButton} onPress={handleMenuPress}>
@@ -111,7 +138,9 @@ const FeedCard = ({ item, formatTime, onDelete, onReport, onComment, onShare, on
       </View>
 
       {/* Description */}
-      <Text style={styles.description}>{item.description}</Text>
+      <TouchableOpacity onPress={() => navigation.navigate('FeedDetailScreen', { feedId: item.id })}>
+        <Text style={styles.description}>{item.description}</Text>
+      </TouchableOpacity>
 
       {/* Gym Name */}
       {item.gym && (
@@ -303,6 +332,25 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  postMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 2,
+    gap: 6,
+  },
+  privacyBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F1F1F1',
+    paddingVertical: 2,
+    paddingHorizontal: 6,
+    borderRadius: 10,
+    gap: 4,
+  },
+  privacyLabel: {
+    fontSize: 11,
+    color: '#666',
   },
 });
 
