@@ -11,14 +11,12 @@ import {
   Image,
   StatusBar,
   ActivityIndicator,
+  TouchableWithoutFeedback,
 } from 'react-native';
-
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { Video } from 'expo-av';
 import Footer from '../components/Footer';
-import { uploadReelVideo, fetchUserReels } from '../api/apiService'; // ✅ import both
-import { TouchableWithoutFeedback, Keyboard } from 'react-native';
-// Make sure fetchUserReels is correctly created based on our previous function
+import { uploadReelVideo, fetchUserReels } from '../api/apiService';
 
 const screenHeight = Dimensions.get('window').height;
 const screenWidth = Dimensions.get('window').width;
@@ -29,12 +27,12 @@ const ReelsScreen = ({ route, navigation }) => {
   const [reels, setReels] = useState([]);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploading, setUploading] = useState(false);
-  const [loading, setLoading] = useState(true); // screen initial loading
-  const [page, setPage] = useState(0);        // current page
-  const [hasMore, setHasMore] = useState(true); // if more reels are available
-  const LIMIT = 10; // you can change to any number like 5, 10, 15
-  const { reelId, userId } = route.params || {}; // 👈 get reelId and userId if passed
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
   const [showFooter, setShowFooter] = useState(false);
+  const LIMIT = 10;
+  const { reelId, userId } = route.params || {};
 
   useEffect(() => {
     loadReels();
@@ -42,33 +40,28 @@ const ReelsScreen = ({ route, navigation }) => {
 
   const handleScreenTap = () => {
     setShowFooter(true);
-
-    // Optional: Hide Footer after 3 seconds automatically
     setTimeout(() => {
       setShowFooter(false);
     }, 3000);
   };
 
-
   const loadReels = async (pageNumber = 0) => {
-    let queryParams = { page: pageNumber, limit: LIMIT };
+    if (!hasMore && pageNumber !== 0) return;
 
-    if (reelId) queryParams.reelId = reelId;     // 👈 if reelId available
-    if (userId) queryParams.userId = userId;     // 👈 if userId available
-    if (!hasMore && pageNumber !== 0) return; // no more reels to load
+    let queryParams = { page: pageNumber, limit: LIMIT };
+    if (reelId) queryParams.reelId = reelId;
+    if (userId) queryParams.userId = userId;
 
     try {
       setLoading(true);
       const fetchedReels = await fetchUserReels(queryParams);
-
       if (pageNumber === 0) {
-        setReels(fetchedReels); // first load, replace
+        setReels(fetchedReels);
       } else {
-        setReels(prevReels => [...prevReels, ...fetchedReels]); // next loads, append
+        setReels(prev => [...prev, ...fetchedReels]);
       }
-
       if (fetchedReels.length < LIMIT) {
-        setHasMore(false); // no more data
+        setHasMore(false);
       }
     } catch (error) {
       console.error('Error loading reels:', error);
@@ -77,6 +70,49 @@ const ReelsScreen = ({ route, navigation }) => {
     }
   };
 
+  const loadMoreReels = () => {
+    if (!loading && hasMore) {
+      const nextPage = page + 1;
+      setPage(nextPage);
+      loadReels(nextPage);
+    }
+  };
+
+  const handleDeleteReel = (reelId) => {
+    Alert.alert(
+      'Delete Reel',
+      'Are you sure you want to delete this reel?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Delete', style: 'destructive', onPress: () => confirmDeleteReel(reelId) }
+      ]
+    );
+  };
+
+  const confirmDeleteReel = async (reelId) => {
+    try {
+      // Fake API call simulation
+      console.log('Deleting reel:', reelId);
+      await new Promise(resolve => setTimeout(resolve, 1000)); // simulate delay
+
+      setReels(prev => prev.filter(r => r.id !== reelId));
+      Alert.alert('Deleted', 'Reel deleted successfully!');
+    } catch (error) {
+      console.error('Error deleting reel:', error);
+      Alert.alert('Error', 'Failed to delete reel.');
+    }
+  };
+
+  const handleReportReel = (reelId) => {
+    Alert.alert(
+      'Report Reel',
+      'Are you sure you want to report this reel?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Report', style: 'destructive', onPress: () => console.log('Reported reel:', reelId) }
+      ]
+    );
+  };
 
   const handleUploadReel = () => {
     navigation.navigate('UploadReelScreen', {
@@ -90,9 +126,7 @@ const ReelsScreen = ({ route, navigation }) => {
             setUploadProgress(progress);
           });
 
-
           const uploadedUrl = result.reel;
-
           const newReel = {
             id: Date.now().toString(),
             videoUri: uploadedUrl.videoUrl,
@@ -111,14 +145,6 @@ const ReelsScreen = ({ route, navigation }) => {
         }
       }
     });
-  };
-
-  const loadMoreReels = () => {
-    if (!loading && hasMore) {
-      const nextPage = page + 1;
-      setPage(nextPage);
-      loadReels(nextPage);
-    }
   };
 
   const renderReel = ({ item }) => (
@@ -167,16 +193,27 @@ const ReelsScreen = ({ route, navigation }) => {
             <TouchableOpacity style={styles.iconButton}>
               <Icon name="share" size={30} color="#fff" />
             </TouchableOpacity>
+
+            {/* Delete or Report button based on permissions */}
+            {item.canDelete ? (
+              <TouchableOpacity style={styles.iconButton} onPress={() => handleDeleteReel(item.id)}>
+                <Icon name="trash" size={30} color="#ff4d4d" />
+                <Text style={styles.iconLabel}>Delete</Text>
+              </TouchableOpacity>
+            ) : item.canReport ? (
+              <TouchableOpacity style={styles.iconButton} onPress={() => handleReportReel(item.id)}>
+                <Icon name="flag" size={30} color="#ffcc00" />
+                <Text style={styles.iconLabel}>Report</Text>
+              </TouchableOpacity>
+            ) : null}
+
           </View>
         </View>
       </View>
     </TouchableWithoutFeedback>
   );
 
-
-
   return (
-
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" />
 
@@ -184,11 +221,9 @@ const ReelsScreen = ({ route, navigation }) => {
         <View style={styles.uploadOverlay}>
           <View style={styles.uploadCard}>
             <Text style={styles.uploadingLabel}>Uploading...</Text>
-
             <View style={styles.progressBarBackground}>
               <View style={[styles.progressBarFill, { width: `${uploadProgress}%` }]} />
             </View>
-
             <Text style={styles.progressText}>{uploadProgress}%</Text>
           </View>
         </View>
@@ -217,10 +252,10 @@ const ReelsScreen = ({ route, navigation }) => {
           pagingEnabled
           showsVerticalScrollIndicator={false}
           snapToInterval={screenHeight}
-          decelerationRate="fast"
+          decelerationRate="normal"
           snapToAlignment="start"
-          onEndReached={loadMoreReels}    // 👈 trigger when end is reached
-          onEndReachedThreshold={0.5}     // 👈 when 50% from bottom
+          onEndReached={loadMoreReels}
+          onEndReachedThreshold={0.5}
           contentContainerStyle={{}}
           style={{ flex: 1 }}
         />
@@ -229,9 +264,7 @@ const ReelsScreen = ({ route, navigation }) => {
       {/* Footer */}
       {showFooter && <Footer navigation={navigation} />}
     </SafeAreaView>
-
   );
-
 };
 
 const styles = StyleSheet.create({
@@ -243,7 +276,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-
+    marginTop: 30
   },
   headerTitle: { color: '#fff', fontSize: 20, fontWeight: 'bold' },
   uploadBtn: {
@@ -265,13 +298,10 @@ const styles = StyleSheet.create({
     height: screenHeight,
     position: 'relative',
   },
-  reelVideo: {
-    width: '100%',
-    height: '100%',
-  },
+  reelVideo: { width: '100%', height: '100%' },
   overlay: {
     position: 'absolute',
-    bottom: 100,  // leave space for footer
+    bottom: 100,
     left: 16,
     right: 16,
     flexDirection: 'row',
@@ -280,150 +310,24 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingBottom: 10,
   },
-
-  leftContent: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-
-  userInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-
-  profilePic: {
-    height: 40,
-    width: 40,
-    borderRadius: 20,
-    marginRight: 10,
-    borderWidth: 1,
-    borderColor: '#fff',
-  },
-
-  userName: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '700',
-    textShadowColor: '#000',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
-  },
-
-  reelTitle: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 4,
-    textShadowColor: '#000',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
-  },
-
-  reelDescription: {
-    color: '#ddd',
-    fontSize: 13,
-    marginBottom: 8,
-    textShadowColor: '#000',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
-  },
-
-  reelActions: {
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-  },
-
-  iconButton: {
-    marginBottom: 20,
-    alignItems: 'center',
-  },
-
-  iconLabel: {
-    color: '#fff',
-    fontSize: 14,
-    marginTop: 4,
-  },
-
-  iconButton: {
-    marginBottom: 20,
-    alignItems: 'center',
-  },
-  iconLabel: {
-    color: '#fff',
-    fontSize: 12,
-    marginTop: 4,
-  },
-
+  leftContent: { flex: 1, justifyContent: 'flex-end' },
+  userInfo: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
+  profilePic: { height: 40, width: 40, borderRadius: 20, marginRight: 10, borderWidth: 1, borderColor: '#fff' },
+  userName: { color: '#fff', fontSize: 16, fontWeight: '700', textShadowColor: '#000', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 2 },
+  reelTitle: { color: '#fff', fontSize: 16, fontWeight: 'bold', marginBottom: 4 },
+  reelDescription: { color: '#ddd', fontSize: 13, marginBottom: 8 },
+  reelActions: { alignItems: 'center', justifyContent: 'flex-end' },
+  iconButton: { marginBottom: 20, alignItems: 'center' },
+  iconLabel: { color: '#fff', fontSize: 12, marginTop: 4 },
   uploadOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)', // black transparent overlay
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 100, // ensure it overlays everything
+    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'center', alignItems: 'center', zIndex: 100,
   },
-
-  uploadCard: {
-    backgroundColor: '#1c1c1e', // nice dark card
-    padding: 20,
-    borderRadius: 20,
-    width: '80%',
-    alignItems: 'center',
-    shadowColor: '#00ff88',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 8, // for Android shadow
-  },
-
-  uploadingLabel: {
-    color: '#aaa',
-    fontSize: 16,
-    marginBottom: 16,
-    fontWeight: '500',
-    letterSpacing: 1,
-  },
-
-  progressBarBackground: {
-    width: '100%',
-    height: 12,
-    backgroundColor: '#333',
-    borderRadius: 6,
-    overflow: 'hidden',
-  },
-
-  progressBarFill: {
-    height: '100%',
-    backgroundColor: 'linear-gradient(90deg, #00ff88, #00d4ff)', // use expo-linear-gradient if you want real gradient
-    backgroundColor: '#00d4ff', // fallback solid if linear gradient not used
-    borderRadius: 6,
-  },
-
-  progressText: {
-    marginTop: 12,
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#00ff88',
-  },
-  reelTitle: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginTop: 6,
-    marginLeft: 50,
-  },
-
-  reelDescription: {
-    color: '#ccc',
-    fontSize: 13,
-    marginTop: 4,
-    marginLeft: 50,
-  },
-
+  uploadCard: { backgroundColor: '#1c1c1e', padding: 20, borderRadius: 20, width: '80%', alignItems: 'center', elevation: 8 },
+  uploadingLabel: { color: '#aaa', fontSize: 16, marginBottom: 16, fontWeight: '500', letterSpacing: 1 },
+  progressBarBackground: { width: '100%', height: 12, backgroundColor: '#333', borderRadius: 6, overflow: 'hidden' },
+  progressBarFill: { height: '100%', backgroundColor: '#00d4ff', borderRadius: 6 },
+  progressText: { marginTop: 12, fontSize: 18, fontWeight: 'bold', color: '#00ff88' },
 });
 
 export default ReelsScreen;
