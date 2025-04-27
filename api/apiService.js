@@ -280,6 +280,30 @@ export const verifyOtp = async (mobileNumber, otp) => {
   };
   
 
+  export const deleteReel = async (reelId) => {
+    try {
+      const userToken = await AsyncStorage.getItem('authToken');
+  
+      const response = await fetch(`${BASE_URL}/users/reel/${reelId}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${userToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        return { success: true, message: data.message || 'Reel deleted successfully' };
+      } else {
+        throw new Error(data.message || 'Failed to delete reel');
+      }
+    } catch (error) {
+      console.error('Error deleting reel:', error.message);
+      return { success: false, message: error.message };
+    }
+  };
 
 
   export const fetchUserFeed = async (page = 0, limit = 10) => {

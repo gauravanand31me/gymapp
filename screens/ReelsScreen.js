@@ -16,7 +16,7 @@ import {
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { Video } from 'expo-av';
 import Footer from '../components/Footer';
-import { uploadReelVideo, fetchUserReels } from '../api/apiService';
+import { uploadReelVideo, fetchUserReels, deleteReel } from '../api/apiService';
 
 const screenHeight = Dimensions.get('window').height;
 const screenWidth = Dimensions.get('window').width;
@@ -91,15 +91,18 @@ const ReelsScreen = ({ route, navigation }) => {
 
   const confirmDeleteReel = async (reelId) => {
     try {
-      // Fake API call simulation
-      console.log('Deleting reel:', reelId);
-      await new Promise(resolve => setTimeout(resolve, 1000)); // simulate delay
-
-      setReels(prev => prev.filter(r => r.id !== reelId));
-      Alert.alert('Deleted', 'Reel deleted successfully!');
+      const result = await deleteReel(reelId); // 👈 call real API
+  
+      if (result.success) {
+        setReels(prev => prev.filter(r => r.id !== reelId)); // Remove deleted reel from list
+        Alert.alert('Deleted', result.message || 'Reel deleted successfully!');
+      } else {
+        Alert.alert('Error', result.message || 'Failed to delete reel.');
+      }
+  
     } catch (error) {
       console.error('Error deleting reel:', error);
-      Alert.alert('Error', 'Failed to delete reel.');
+      Alert.alert('Error', 'Something went wrong. Please try again.');
     }
   };
 
