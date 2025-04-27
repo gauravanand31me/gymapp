@@ -51,7 +51,7 @@ const ReelsScreen = ({ route, navigation }) => {
 
   const loadReels = async (pageNumber = 0) => {
     if (!hasMore && pageNumber !== 0) return;
- 
+
     let queryParams = { page: pageNumber, limit: LIMIT };
     if (reelId) queryParams.reelId = reelId;
     if (userId) queryParams.userId = userId;
@@ -77,7 +77,7 @@ const ReelsScreen = ({ route, navigation }) => {
   };
 
   const loadMoreReels = () => {
-  
+
     if (!loading && hasMore) {
       const nextPage = page + 1;
       setPage(nextPage);
@@ -244,9 +244,9 @@ const ReelsScreen = ({ route, navigation }) => {
 
       {/* Header */}
       <View style={styles.header}>
-      <TouchableOpacity onPress={() => navigation.navigate('FriendsFeedScreen')}>
-    <Icon name="close" size={24} color="#fff" />
-  </TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('FriendsFeedScreen')}>
+          <Icon name="close" size={24} color="#fff" />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Reels</Text>
         <TouchableOpacity style={styles.uploadBtn} onPress={handleUploadReel}>
           <Icon name="plus" size={16} color="#fff" />
