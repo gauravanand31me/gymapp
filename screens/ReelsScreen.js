@@ -244,6 +244,9 @@ const ReelsScreen = ({ route, navigation }) => {
 
       {/* Header */}
       <View style={styles.header}>
+      <TouchableOpacity onPress={() => navigation.navigate('FriendsFeedScreen')}>
+    <Icon name="close" size={24} color="#fff" />
+  </TouchableOpacity>
         <Text style={styles.headerTitle}>Reels</Text>
         <TouchableOpacity style={styles.uploadBtn} onPress={handleUploadReel}>
           <Icon name="plus" size={16} color="#fff" />
