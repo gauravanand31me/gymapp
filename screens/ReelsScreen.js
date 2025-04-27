@@ -42,7 +42,7 @@ const ReelsScreen = ({ route, navigation }) => {
 
   const handleScreenTap = () => {
     setShowFooter(true);
-  
+
     // Optional: Hide Footer after 3 seconds automatically
     setTimeout(() => {
       setShowFooter(false);
@@ -56,17 +56,17 @@ const ReelsScreen = ({ route, navigation }) => {
     if (reelId) queryParams.reelId = reelId;     // 👈 if reelId available
     if (userId) queryParams.userId = userId;     // 👈 if userId available
     if (!hasMore && pageNumber !== 0) return; // no more reels to load
-  
+
     try {
       setLoading(true);
       const fetchedReels = await fetchUserReels(queryParams);
-  
+
       if (pageNumber === 0) {
         setReels(fetchedReels); // first load, replace
       } else {
         setReels(prevReels => [...prevReels, ...fetchedReels]); // next loads, append
       }
-  
+
       if (fetchedReels.length < LIMIT) {
         setHasMore(false); // no more data
       }
@@ -90,7 +90,7 @@ const ReelsScreen = ({ route, navigation }) => {
             setUploadProgress(progress);
           });
 
-          
+
           const uploadedUrl = result.reel;
 
           const newReel = {
@@ -122,60 +122,61 @@ const ReelsScreen = ({ route, navigation }) => {
   };
 
   const renderReel = ({ item }) => (
-    
-    <View style={styles.reelContainer}>
-      <Video
-        source={{ uri: item.videoUrl || item.videoUri }}
-        style={styles.reelVideo}
-        resizeMode="cover"
-        shouldPlay
-        isLooping
-        isMuted
-      />
-      <View style={styles.overlay}>
-        {/* Left side: Profile + Title + Description */}
-        <View style={styles.leftContent}>
-          <View style={styles.userInfo}>
-            <Image
-              source={{ uri: item.user?.profilePic || 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }}
-              style={styles.profilePic}
-            />
-            <TouchableOpacity onPress={() => navigation.navigate('UserProfile', { userId: item?.userId })}>
-              <Text style={styles.userName}>{item.user?.name || 'Unknown'}</Text>
+    <TouchableWithoutFeedback onPress={handleScreenTap}>
+      <View style={styles.reelContainer}>
+        <Video
+          source={{ uri: item.videoUrl || item.videoUri }}
+          style={styles.reelVideo}
+          resizeMode="cover"
+          shouldPlay
+          isLooping
+          isMuted
+        />
+        <View style={styles.overlay}>
+          {/* Left side: Profile + Title + Description */}
+          <View style={styles.leftContent}>
+            <View style={styles.userInfo}>
+              <Image
+                source={{ uri: item.user?.profilePic || 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }}
+                style={styles.profilePic}
+              />
+              <TouchableOpacity onPress={() => navigation.navigate('UserProfile', { userId: item?.userId })}>
+                <Text style={styles.userName}>{item.user?.name || 'Unknown'}</Text>
+              </TouchableOpacity>
+            </View>
+
+            {item.title ? (
+              <Text style={styles.reelTitle}>{item.title}</Text>
+            ) : null}
+
+            {item.description ? (
+              <Text style={styles.reelDescription}>{item.description}</Text>
+            ) : null}
+          </View>
+
+          {/* Right side: Actions */}
+          <View style={styles.reelActions}>
+            <TouchableOpacity style={styles.iconButton}>
+              <Icon name="heart" size={30} color="#fff" />
+              <Text style={styles.iconLabel}>{item.likeCount || 0}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.iconButton}>
+              <Icon name="comment" size={30} color="#fff" />
+              <Text style={styles.iconLabel}>{item.commentCount || 0}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.iconButton}>
+              <Icon name="share" size={30} color="#fff" />
             </TouchableOpacity>
           </View>
-  
-          {item.title ? (
-            <Text style={styles.reelTitle}>{item.title}</Text>
-          ) : null}
-  
-          {item.description ? (
-            <Text style={styles.reelDescription}>{item.description}</Text>
-          ) : null}
-        </View>
-  
-        {/* Right side: Actions */}
-        <View style={styles.reelActions}>
-          <TouchableOpacity style={styles.iconButton}>
-            <Icon name="heart" size={30} color="#fff" />
-            <Text style={styles.iconLabel}>{item.likeCount || 0}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.iconButton}>
-            <Icon name="comment" size={30} color="#fff" />
-            <Text style={styles.iconLabel}>{item.commentCount || 0}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.iconButton}>
-            <Icon name="share" size={30} color="#fff" />
-          </TouchableOpacity>
         </View>
       </View>
-    </View>
+    </TouchableWithoutFeedback>
   );
-  
-  
+
+
 
   return (
-    <TouchableWithoutFeedback onPress={handleScreenTap}>
+
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" />
 
@@ -210,27 +211,27 @@ const ReelsScreen = ({ route, navigation }) => {
         </View>
       ) : (
         <FlatList
-  data={reels}
-  renderItem={renderReel}
-  keyExtractor={(item) => item.id}
-  pagingEnabled
-  showsVerticalScrollIndicator={false}
-  snapToInterval={screenHeight}
-  decelerationRate="fast"
-  snapToAlignment="start"
-  onEndReached={loadMoreReels}    // 👈 trigger when end is reached
-  onEndReachedThreshold={0.5}     // 👈 when 50% from bottom
-  contentContainerStyle={{}}
-  style={{ flex: 1 }}
-/>
+          data={reels}
+          renderItem={renderReel}
+          keyExtractor={(item) => item.id}
+          pagingEnabled
+          showsVerticalScrollIndicator={false}
+          snapToInterval={screenHeight}
+          decelerationRate="fast"
+          snapToAlignment="start"
+          onEndReached={loadMoreReels}    // 👈 trigger when end is reached
+          onEndReachedThreshold={0.5}     // 👈 when 50% from bottom
+          contentContainerStyle={{}}
+          style={{ flex: 1 }}
+        />
       )}
 
       {/* Footer */}
       {showFooter && <Footer navigation={navigation} />}
     </SafeAreaView>
-    </TouchableWithoutFeedback>
+
   );
-  
+
 };
 
 const styles = StyleSheet.create({
@@ -242,7 +243,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    
+
   },
   headerTitle: { color: '#fff', fontSize: 20, fontWeight: 'bold' },
   uploadBtn: {
@@ -279,18 +280,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingBottom: 10,
   },
-  
+
   leftContent: {
     flex: 1,
     justifyContent: 'flex-end',
   },
-  
+
   userInfo: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 8,
   },
-  
+
   profilePic: {
     height: 40,
     width: 40,
@@ -299,7 +300,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#fff',
   },
-  
+
   userName: {
     color: '#fff',
     fontSize: 16,
@@ -308,7 +309,7 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
   },
-  
+
   reelTitle: {
     color: '#fff',
     fontSize: 16,
@@ -318,7 +319,7 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
   },
-  
+
   reelDescription: {
     color: '#ddd',
     fontSize: 13,
@@ -327,23 +328,23 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
   },
-  
+
   reelActions: {
     alignItems: 'center',
     justifyContent: 'flex-end',
   },
-  
+
   iconButton: {
     marginBottom: 20,
     alignItems: 'center',
   },
-  
+
   iconLabel: {
     color: '#fff',
     fontSize: 14,
     marginTop: 4,
   },
-  
+
   iconButton: {
     marginBottom: 20,
     alignItems: 'center',
@@ -415,7 +416,7 @@ const styles = StyleSheet.create({
     marginTop: 6,
     marginLeft: 50,
   },
-  
+
   reelDescription: {
     color: '#ccc',
     fontSize: 13,
