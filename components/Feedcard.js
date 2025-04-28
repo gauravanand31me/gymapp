@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,13 +6,13 @@ import {
   StyleSheet,
   TouchableOpacity,
   Alert,
-  Share,
   Modal,
-  Dimensions
+  Dimensions,
 } from 'react-native';
-import { MoreVertical, MessageCircle, Share2 } from 'lucide-react-native';
+import { MoreVertical, MessageCircle } from 'lucide-react-native';
 import { reactToPost } from '../api/apiService';
 import { Feather } from '@expo/vector-icons';
+import { Video } from 'expo-av'; // 👈 Add Video import here
 
 const { width, height } = Dimensions.get('window');
 
@@ -22,18 +22,13 @@ const FeedCard = ({ item, formatTime, onDelete, onReport, onComment, onShare, on
   const [modalVisible, setModalVisible] = useState(false);
   const [imageHeight, setImageHeight] = useState(280);
 
-  // Calculate the correct image height based on aspect ratio
   const calculateImageHeight = (uri) => {
     if (!uri) return;
 
     Image.getSize(uri, (width, height) => {
-      // Get the screen width (minus padding)
-      const screenWidth = Dimensions.get('window').width - 28; // 14px padding on each side
-      // Calculate the height based on the image aspect ratio
+      const screenWidth = Dimensions.get('window').width - 28;
       const ratio = height / width;
       const calculatedHeight = screenWidth * ratio;
-
-      // Set a reasonable max height if needed
       const maxHeight = 500;
       setImageHeight(Math.min(calculatedHeight, maxHeight));
     }, (error) => {
@@ -41,8 +36,7 @@ const FeedCard = ({ item, formatTime, onDelete, onReport, onComment, onShare, on
     });
   };
 
-  // Calculate image height when component mounts or image URL changes
-  React.useEffect(() => {
+  useEffect(() => {
     if (item.imageUrl) {
       calculateImageHeight(item.imageUrl);
     }
@@ -52,21 +46,17 @@ const FeedCard = ({ item, formatTime, onDelete, onReport, onComment, onShare, on
     const previousLiked = liked;
     const previousCount = likeCount;
 
-    // Optimistic UI update
     setLiked(!liked);
     setLikeCount(prev => (liked ? prev - 1 : prev + 1));
 
     try {
-      await reactToPost(item.id, liked ? null : 'like'); // null to remove like
+      await reactToPost(item.id, liked ? null : 'like');
     } catch (error) {
-      // Rollback on error
       setLiked(previousLiked);
       setLikeCount(previousCount);
       console.error('Reaction error:', error);
     }
   };
-
-
 
   const getPostTypeIcon = (type) => {
     switch (type) {
@@ -80,8 +70,6 @@ const FeedCard = ({ item, formatTime, onDelete, onReport, onComment, onShare, on
         return null;
     }
   };
-  
-  
 
   const handleMenuPress = () => {
     const options = [{ text: 'Cancel', style: 'cancel' }];
@@ -105,16 +93,14 @@ const FeedCard = ({ item, formatTime, onDelete, onReport, onComment, onShare, on
       cancelable: true,
     });
   };
+
   const postTypeInfo = getPostTypeIcon(item.postType);
-  
+
   return (
     <View style={styles.card}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.userContainer}
-          onPress={() => onUserPress?.(item)}
-        >
+        <TouchableOpacity style={styles.userContainer} onPress={() => onUserPress?.(item)}>
           <Image
             source={{ uri: item.user?.profilePic || 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }}
             style={styles.avatar}
@@ -122,14 +108,14 @@ const FeedCard = ({ item, formatTime, onDelete, onReport, onComment, onShare, on
           <View style={styles.userInfo}>
             <Text style={styles.username}>{item.user?.name || 'Anonymous'}</Text>
             <View style={styles.postMetaRow}>
-  {postTypeInfo && (
-    <View style={styles.privacyBadge}>
-      <Feather name={postTypeInfo.icon} size={12} color="#888" />
-      <Text style={styles.privacyLabel}>{postTypeInfo.label}</Text>
-    </View>
-  )}
-  <Text style={styles.timestamp}>· {formatTime(item.timestamp)}</Text>
-</View>
+              {postTypeInfo && (
+                <View style={styles.privacyBadge}>
+                  <Feather name={postTypeInfo.icon} size={12} color="#888" />
+                  <Text style={styles.privacyLabel}>{postTypeInfo.label}</Text>
+                </View>
+              )}
+              <Text style={styles.timestamp}>· {formatTime(item.timestamp)}</Text>
+            </View>
           </View>
         </TouchableOpacity>
         <TouchableOpacity style={styles.menuButton} onPress={handleMenuPress}>
@@ -145,47 +131,61 @@ const FeedCard = ({ item, formatTime, onDelete, onReport, onComment, onShare, on
       {/* Gym Name */}
       {item.gym && (
         <TouchableOpacity onPress={() => navigation.navigate('GymDetails', { gym_id: item.gym.id })}>
-          <Text style={styles.gymName}> {item.gym.name}</Text>
+          <Text style={styles.gymName}>{item.gym.name}</Text>
         </TouchableOpacity>
       )}
 
-      {/* Image Preview */}
+      {/* Media (Image or Video) */}
       {item.imageUrl && (
         <>
-          <TouchableOpacity onPress={() => setModalVisible(true)}>
-            <Image
-              source={{ uri: item.imageUrl }}
-              style={[styles.postImage, { height: imageHeight }]}
-              resizeMode="cover"
-            />
-          </TouchableOpacity>
-
-          <Modal
-            visible={modalVisible}
-            transparent={true}
-            animationType="fade"
-            onRequestClose={() => setModalVisible(false)}
-          >
-            <View style={styles.modalContainer}>
-              {/* Close Button */}
-              <TouchableOpacity
-                onPress={() => setModalVisible(false)}
-                style={styles.closeButton}
-              >
-                <Text style={styles.closeText}>✕</Text>
+          {item.type === 'aiPromo' ? (
+            <TouchableOpacity onPress={() => navigation.navigate('ReelsScreen', { reelId: item.id })}>
+              <Video
+                source={{ uri: item.imageUrl }}
+                style={[styles.postVideo, { height: imageHeight }]}
+                resizeMode="cover"
+                shouldPlay={false}
+                isMuted
+                useNativeControls
+              />
+            </TouchableOpacity>
+          ) : (
+            <>
+              <TouchableOpacity onPress={() => setModalVisible(true)}>
+                <Image
+                  source={{ uri: item.imageUrl }}
+                  style={[styles.postImage, { height: imageHeight }]}
+                  resizeMode="cover"
+                />
               </TouchableOpacity>
 
-              <Image
-                source={{ uri: item.imageUrl }}
-                style={styles.fullscreenImage}
-                resizeMode="contain"
-              />
-            </View>
-          </Modal>
+              <Modal
+                visible={modalVisible}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={() => setModalVisible(false)}
+              >
+                <View style={styles.modalContainer}>
+                  <TouchableOpacity
+                    onPress={() => setModalVisible(false)}
+                    style={styles.closeButton}
+                  >
+                    <Text style={styles.closeText}>✕</Text>
+                  </TouchableOpacity>
+
+                  <Image
+                    source={{ uri: item.imageUrl }}
+                    style={styles.fullscreenImage}
+                    resizeMode="contain"
+                  />
+                </View>
+              </Modal>
+            </>
+          )}
         </>
       )}
 
-      {/* Like Count */}
+      {/* Like Summary */}
       {likeCount > 0 && (
         <View style={styles.likeSummary}>
           <Text style={styles.reactionText}>👍 {likeCount}</Text>
@@ -267,7 +267,12 @@ const styles = StyleSheet.create({
     width: '100%',
     borderRadius: 12,
     marginTop: 6,
-    // height is now dynamically set based on image aspect ratio
+  },
+  postVideo: { // 👈 New video style
+    width: '100%',
+    borderRadius: 12,
+    marginTop: 6,
+    backgroundColor: '#000',
   },
   likeSummary: {
     marginTop: 8,
