@@ -94,6 +94,8 @@ const FeedCard = ({ item, formatTime, onDelete, onReport, onComment, onShare, on
     });
   };
 
+  
+
   const postTypeInfo = getPostTypeIcon(item.postType);
 
   return (

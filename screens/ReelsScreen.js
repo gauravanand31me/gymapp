@@ -17,7 +17,7 @@ import {
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { Video } from 'expo-av';
 import Footer from '../components/Footer';
-import { uploadReelVideo, fetchUserReels, deleteReel } from '../api/apiService';
+import { uploadReelVideo, fetchUserReels, deleteReel, reactToPost } from '../api/apiService';
 
 const screenHeight = Dimensions.get('window').height;
 const screenWidth = Dimensions.get('window').width;
@@ -27,6 +27,8 @@ const LIMIT = 3;
 
 const ReelsScreen = ({ route, navigation }) => {
   const [reels, setReels] = useState([]);
+  const [likeCount, setLikeCount] = useState(0);
+  const [liked, setLiked] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -49,6 +51,27 @@ const ReelsScreen = ({ route, navigation }) => {
     }, 3000);
   };
 
+
+  const handleLike = async (item) => {
+    const previousLiked = liked;
+    const previousCount = likeCount;
+  
+    // Optimistic Update (immediately show in UI)
+    setLiked(!liked);
+    setLikeCount(prev => (liked ? prev - 1 : prev + 1));
+  
+    try {
+      // If previously liked, remove like by sending null
+      // Otherwise, send 'like' reaction
+      await reactToPost(item.id, liked ? null : 'like');
+    } catch (error) {
+      // Rollback if API call fails
+      setLiked(previousLiked);
+      setLikeCount(previousCount);
+      console.error('❌ Reaction error:', error);
+    }
+  };
+
   const loadReels = async (pageNumber = 0) => {
     if (!hasMore && pageNumber !== 0) return;
 
@@ -64,6 +87,7 @@ const ReelsScreen = ({ route, navigation }) => {
       } else {
         setReels(prev => [...prev, ...fetchedReels]);
       }
+      
       if (fetchedReels.length < LIMIT) {
         setHasMore(false);
       } else {
@@ -111,6 +135,8 @@ const ReelsScreen = ({ route, navigation }) => {
     }
   };
 
+  
+
   const handleReportReel = (reelId) => {
     Alert.alert(
       'Report Reel',
@@ -155,77 +181,72 @@ const ReelsScreen = ({ route, navigation }) => {
   };
 
   const renderReel = ({ item }) => (
-    <TouchableWithoutFeedback onPress={handleScreenTap}>
-      <View style={styles.reelContainer}>
-        <Video
-          ref={(ref) => (videoRefs.current[item.id] = ref)}
-          source={{ uri: item.videoUrl || item.videoUri }}
-          style={styles.reelVideo}
-          resizeMode="cover"
-          shouldPlay
-          isLooping
-          isMuted={false}
-          onPlaybackStatusUpdate={(status) => {
-            if (status.isLoaded && status.durationMillis) {
-              setVideoProgress((prev) => ({
-                ...prev,
-                [item.id]: status.positionMillis / status.durationMillis,
-              }));
-            }
-          }}
-        />
-
-        {/* Progress Bar */}
-        <View style={styles.progressBarWrapper}>
-          <View style={[styles.progressBarFill, { width: `${(videoProgress[item.id] || 0) * 100}%` }]} />
+    <View style={styles.reelContainer}>
+      <Video
+        source={{ uri: item.videoUrl || item.videoUri }}
+        style={styles.reelVideo}
+        resizeMode="cover"
+        shouldPlay
+        isLooping
+        isMuted
+      />
+  
+      <View style={styles.overlay}>
+        <View style={{ flex: 1 }}>
+          {/* User Info */}
+          <View style={styles.userInfo}>
+            <Image
+              source={{ uri: item.user?.profilePic || 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }}
+              style={styles.profilePic}
+            />
+            <TouchableOpacity onPress={() => navigation.navigate('UserProfile', { userId: item?.userId })}>
+              <Text style={styles.userName}>{item.user?.name || 'Unknown'}</Text>
+            </TouchableOpacity>
+          </View>
+  
+          {/* Title */}
+          {item.title ? (
+            <Text style={styles.reelTitle}>
+              {item.title}
+            </Text>
+          ) : null}
+  
+          {/* Description */}
+          {item.description ? (
+            <Text style={styles.reelDescription}>
+              {item.description}
+            </Text>
+          ) : null}
         </View>
-
-        {/* Overlay Content */}
-        <View style={styles.overlay}>
-          <View style={styles.leftContent}>
-            <View style={styles.userInfo}>
-              <Image
-                source={{ uri: item.user?.profilePic || 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }}
-                style={styles.profilePic}
-              />
-              <TouchableOpacity onPress={() => navigation.navigate('UserProfile', { userId: item?.userId })}>
-                <Text style={styles.userName}>{item.user?.name || 'Unknown'}</Text>
-              </TouchableOpacity>
-            </View>
-
-            {item.title ? <Text style={styles.reelTitle}>{item.title}</Text> : null}
-            {item.description ? <Text style={styles.reelDescription}>{item.description}</Text> : null}
-          </View>
-
-          <View style={styles.reelActions}>
-            <TouchableOpacity style={styles.iconButton}>
-              <Icon name="heart" size={30} color="#fff" />
-              <Text style={styles.iconLabel}>{item.likeCount || 0}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.iconButton}>
-              <Icon name="comment" size={30} color="#fff" />
-              <Text style={styles.iconLabel}>{item.commentCount || 0}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.iconButton}>
-              <Icon name="share" size={30} color="#fff" />
-            </TouchableOpacity>
-
-            {item.canDelete ? (
-              <TouchableOpacity style={styles.iconButton} onPress={() => handleDeleteReel(item.id)}>
-                <Icon name="trash" size={30} color="#ff4d4d" />
-                <Text style={styles.iconLabel}>Delete</Text>
-              </TouchableOpacity>
-            ) : item.canReport ? (
-              <TouchableOpacity style={styles.iconButton} onPress={() => handleReportReel(item.id)}>
-                <Icon name="flag" size={30} color="#ffcc00" />
-                <Text style={styles.iconLabel}>Report</Text>
-              </TouchableOpacity>
-            ) : null}
-          </View>
+  
+        {/* Actions */}
+        <View style={styles.reelActions}>
+        <TouchableOpacity style={styles.iconButton} onPress={() => handleLike(item)}>
+        <Icon
+          name={liked ? 'heart' : 'heart-o'}
+          size={24}
+          color={liked ? 'red' : '#fff'}
+        />
+        <Text style={styles.iconLabel}>{likeCount}</Text>
+      </TouchableOpacity>
+  
+          {/* ⬇️ Navigate to Comments on clicking comment icon */}
+          <TouchableOpacity
+            style={styles.iconButton}
+            onPress={() => navigation.navigate('CommentScreen', { postId: item.id })}
+          >
+            <Icon name="comment" size={24} color="#fff" />
+            <Text style={styles.iconLabel}>{item.commentCount || 0}</Text>
+          </TouchableOpacity>
+  
+          <TouchableOpacity style={styles.iconButton}>
+            <Icon name="share" size={24} color="#fff" />
+          </TouchableOpacity>
         </View>
       </View>
-    </TouchableWithoutFeedback>
+    </View>
   );
+  
 
   return (
     <SafeAreaView style={styles.container}>
