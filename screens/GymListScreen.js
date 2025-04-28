@@ -132,7 +132,6 @@ export default function GymListScreen({ navigation }) {
       fetchGyms(12.9124, 77.6416);
       fetchAddress(12.9124, 77.6416);
       setIsLocation(false);
-      //Alert.alert("Error", "Could not retrieve location. Please try again later.")
     }
   };
 
