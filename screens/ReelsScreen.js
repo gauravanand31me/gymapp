@@ -17,7 +17,7 @@ import {
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { Video } from 'expo-av';
 import Footer from '../components/Footer';
-import { uploadReelVideo, fetchUserReels, deleteReel } from '../api/apiService';
+import { uploadReelVideo, fetchUserReels, deleteReel, reactToPost } from '../api/apiService';
 
 const screenHeight = Dimensions.get('window').height;
 const screenWidth = Dimensions.get('window').width;
@@ -27,6 +27,8 @@ const LIMIT = 3;
 
 const ReelsScreen = ({ route, navigation }) => {
   const [reels, setReels] = useState([]);
+  const [likeCount, setLikeCount] = useState(0);
+  const [liked, setLiked] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -49,6 +51,27 @@ const ReelsScreen = ({ route, navigation }) => {
     }, 3000);
   };
 
+
+  const handleLike = async (item) => {
+    const previousLiked = liked;
+    const previousCount = likeCount;
+  
+    // Optimistic Update (immediately show in UI)
+    setLiked(!liked);
+    setLikeCount(prev => (liked ? prev - 1 : prev + 1));
+  
+    try {
+      // If previously liked, remove like by sending null
+      // Otherwise, send 'like' reaction
+      await reactToPost(item.id, liked ? null : 'like');
+    } catch (error) {
+      // Rollback if API call fails
+      setLiked(previousLiked);
+      setLikeCount(previousCount);
+      console.error('❌ Reaction error:', error);
+    }
+  };
+
   const loadReels = async (pageNumber = 0) => {
     if (!hasMore && pageNumber !== 0) return;
 
@@ -64,6 +87,7 @@ const ReelsScreen = ({ route, navigation }) => {
       } else {
         setReels(prev => [...prev, ...fetchedReels]);
       }
+      
       if (fetchedReels.length < LIMIT) {
         setHasMore(false);
       } else {
@@ -197,10 +221,14 @@ const ReelsScreen = ({ route, navigation }) => {
   
         {/* Actions */}
         <View style={styles.reelActions}>
-          <TouchableOpacity style={styles.iconButton}>
-            <Icon name="heart" size={24} color="#fff" />
-            <Text style={styles.iconLabel}>{item.likeCount || 0}</Text>
-          </TouchableOpacity>
+        <TouchableOpacity style={styles.iconButton} onPress={() => handleLike(item)}>
+        <Icon
+          name={liked ? 'heart' : 'heart-o'}
+          size={24}
+          color={liked ? 'red' : '#fff'}
+        />
+        <Text style={styles.iconLabel}>{likeCount}</Text>
+      </TouchableOpacity>
   
           {/* ⬇️ Navigate to Comments on clicking comment icon */}
           <TouchableOpacity

@@ -247,6 +247,7 @@ export const verifyOtp = async (mobileNumber, otp) => {
       });
   
       const data = await response.json();
+      console.log("Data received", data);
   
       if (response.ok && data.reels) {
         return data.reels.map(item => ({
