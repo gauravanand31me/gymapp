@@ -37,8 +37,8 @@ const FeedCard = ({ item, formatTime, onDelete, onReport, onComment, onShare, on
   };
 
   useEffect(() => {
-    if (item.imageUrl) {
-      calculateImageHeight(item.imageUrl);
+    if (item.imageUrl && item.type !== "aiPromo") {
+        calculateImageHeight(item.imageUrl);
     }
   }, [item.imageUrl]);
 
