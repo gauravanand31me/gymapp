@@ -28,6 +28,7 @@ import {
   deleteProfileImage,
   fetchMyFeed,
   fetchUserReels,
+  deletePost,
 } from "../api/apiService";
 import MilestoneProgress from "../components/MilestoneProgress";
 
@@ -176,6 +177,37 @@ export default function ProfileScreen({ navigation, route }) {
     return [];
   };
 
+
+  const handleDeletePost = (post) => {
+    Alert.alert(
+      'Delete Post',
+      'Are you sure you want to delete this post?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const result = await deletePost(post.id);
+              if (result.success) {
+                // Remove deleted post from posts state
+                setPosts(prev => prev.filter(p => p.id !== post.id));
+                Alert.alert('Success', 'Post deleted successfully!');
+              } else {
+                Alert.alert('Error', result.message || 'Could not delete post.');
+              }
+            } catch (error) {
+              console.error('Delete error:', error);
+              Alert.alert('Error', 'Server error.');
+            }
+          },
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
   const renderItem = ({ item }) => {
     if (selectedTab === "Reels") {
       // Reel view (thumbnail grid)
@@ -192,23 +224,31 @@ export default function ProfileScreen({ navigation, route }) {
       );
     } else if (selectedTab === "Posts") {
       return (
-        <TouchableOpacity
-          style={styles.postCard}
-          onPress={() => navigation.navigate("FeedDetailScreen", { feedId: item.id })}
-        >
-          <Text style={styles.postCardTitle}>
-            {item.title || "Untitled Post"}
-          </Text>
-          {item.description ? (
-            <Text style={styles.postCardDescription}>
-              {item.description.slice(0, 120)}...
+        <View style={styles.postCard}>
+          <TouchableOpacity
+            style={styles.deleteButton}
+            onPress={() => handleDeletePost(item)}
+          >
+            <Icon name="delete" size={20} color="#FF3B30" />
+          </TouchableOpacity>
+    
+          <TouchableOpacity
+            onPress={() => navigation.navigate("FeedDetailScreen", { feedId: item.id })}
+          >
+            <Text style={styles.postCardTitle}>
+              {item.title || "Untitled Post"}
             </Text>
-          ) : (
-            <Text style={styles.postCardDescription}>
-              (No description)
-            </Text>
-          )}
-        </TouchableOpacity>
+            {item.description ? (
+              <Text style={styles.postCardDescription}>
+                {item.description.slice(0, 120)}...
+              </Text>
+            ) : (
+              <Text style={styles.postCardDescription}>
+                (No description)
+              </Text>
+            )}
+          </TouchableOpacity>
+        </View>
       );
     } else {
       // For Visited Gym or Gym Buddies
@@ -515,6 +555,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#666",
     marginTop: 8,
+  },
+  deleteButton: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    zIndex: 2,
   },
   
 });
