@@ -15,13 +15,15 @@ import {
 import { Video } from 'expo-av';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Footer from '../components/Footer';
-import { fetchUserReels, deleteReel } from '../api/apiService';
+import { fetchUserReels, deleteReel, uploadReelVideo } from '../api/apiService';
 import * as ImagePicker from 'expo-image-picker'; // ✅ Added for selecting video
 
 const { height: screenHeight, width: screenWidth } = Dimensions.get('window');
 
 export default function ReelsScreen({ navigation, route }) {
   const [reels, setReels] = useState([]);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploading, setUploading] = useState(false);
   const [currentVisibleIndex, setCurrentVisibleIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [playVideoIndex, setPlayVideoIndex] = useState(null);
@@ -53,27 +55,39 @@ export default function ReelsScreen({ navigation, route }) {
   const viewabilityConfig = { itemVisiblePercentThreshold: 80 };
 
   // ✅ Upload new Reel
-  const onVideoSelected = async () => {
-    try {
-      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!permission.granted) {
-        Alert.alert('Permission required', 'Please allow media access to upload a reel.');
-        return;
-      }
+  const handleUploadReel = () => {
+    navigation.navigate('UploadReelScreen', {
+      onVideoSelected: async (videoData) => {
+        try {
+          const { uri, title, description, postType } = videoData;
+          setUploading(true);
+          setUploadProgress(0);
 
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Videos,
-        quality: 1,
-      });
+          const result = await uploadReelVideo(uri, { title, description, postType }, (progress) => {
+            setUploadProgress(progress);
+          });
 
-      if (!result.canceled) {
-        const videoUri = result.assets[0].uri;
-        navigation.navigate('UploadReelScreen', { videoUri }); // ✅ Pass to Upload Reel Screen
+          
+          const uploadedUrl = result.reel;
+
+          const newReel = {
+            id: Date.now().toString(),
+            videoUri: uploadedUrl.videoUrl,
+            title: uploadedUrl?.title,
+            user: { name: 'You', profilePic: 'https://cdn-icons-png.flaticon.com/512/149/149071.png' },
+            likes: 0,
+            comments: 0,
+          };
+          setReels(prev => [newReel, ...prev]);
+        } catch (error) {
+          console.error('Upload failed:', error);
+          Alert.alert('Upload Failed', 'Could not upload reel.');
+        } finally {
+          setUploading(false);
+          setUploadProgress(0);
+        }
       }
-    } catch (error) {
-      console.error('Error selecting video:', error);
-      Alert.alert('Error', 'Could not open gallery.');
-    }
+    });
   };
 
   const handleDeleteReel = (reel) => {
@@ -178,6 +192,19 @@ export default function ReelsScreen({ navigation, route }) {
 
   return (
     <SafeAreaView style={styles.container}>
+        {uploading && (
+        <View style={styles.uploadOverlay}>
+          <View style={styles.uploadCard}>
+            <Text style={styles.uploadingLabel}>Uploading...</Text>
+
+            <View style={styles.progressBarBackground}>
+              <View style={[styles.progressBarFill, { width: `${uploadProgress}%` }]} />
+            </View>
+
+            <Text style={styles.progressText}>{uploadProgress}%</Text>
+          </View>
+        </View>
+      )}
       <StatusBar barStyle="light-content" />
       {loading ? (
         <View style={styles.loader}>
@@ -207,7 +234,7 @@ export default function ReelsScreen({ navigation, route }) {
           {/* ✅ Floating Upload Reel Button */}
           <TouchableOpacity
             style={styles.uploadButton}
-            onPress={onVideoSelected} // ✅ Pick video when pressed
+            onPress={handleUploadReel} // ✅ Pick video when pressed
           >
             <Icon name="plus" size={24} color="#fff" />
           </TouchableOpacity>
@@ -243,4 +270,57 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     elevation: 5,
   },
+  uploadOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.6)', // semi-transparent black
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10, // very high to stay above everything
+  },
+  
+  uploadCard: {
+    backgroundColor: '#fff',
+    paddingVertical: 20,
+    paddingHorizontal: 30,
+    borderRadius: 12,
+    alignItems: 'center',
+    width: 250,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 8, // Android shadow
+  },
+  
+  uploadingLabel: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 20,
+  },
+  
+  progressBarBackground: {
+    width: '100%',
+    height: 10,
+    backgroundColor: '#eee',
+    borderRadius: 5,
+    overflow: 'hidden',
+    marginBottom: 10,
+  },
+  
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: '#4CAF50', // Green
+  },
+  
+  progressText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+  },
+  
 });
