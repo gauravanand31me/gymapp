@@ -185,8 +185,7 @@ export default function FeedQuestion({ question, onSubmit }) {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 16,
-    marginBottom: 12,
+    
   },
   card: {
     backgroundColor: '#fff',
@@ -208,7 +207,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F3F4F6',
     borderRadius: 12,
     paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingVertical: 17,
     fontSize: 14,
     color: '#333',
   },
