@@ -10,11 +10,13 @@ import {
   StatusBar,
   ActivityIndicator,
   Image,
+  Alert,
 } from 'react-native';
 import { Video } from 'expo-av';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Footer from '../components/Footer';
-import { fetchUserReels } from '../api/apiService';
+import { fetchUserReels, deleteReel } from '../api/apiService';
+import * as ImagePicker from 'expo-image-picker'; // ✅ Added for selecting video
 
 const { height: screenHeight, width: screenWidth } = Dimensions.get('window');
 
@@ -22,7 +24,7 @@ export default function ReelsScreen({ navigation, route }) {
   const [reels, setReels] = useState([]);
   const [currentVisibleIndex, setCurrentVisibleIndex] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [playVideoIndex, setPlayVideoIndex] = useState(null); // 👈 play only selected video
+  const [playVideoIndex, setPlayVideoIndex] = useState(null);
   const { reelId, userId } = route.params || {};
   const videoRefs = useRef([]);
 
@@ -33,7 +35,7 @@ export default function ReelsScreen({ navigation, route }) {
   const loadReels = async () => {
     try {
       setLoading(true);
-      const data = await fetchUserReels({ page: 0, limit: 10 });
+      const data = await fetchUserReels({ page: 0, limit: 10, reelId, userId });
       setReels(data || []);
     } catch (err) {
       console.error('Error fetching reels:', err);
@@ -49,6 +51,64 @@ export default function ReelsScreen({ navigation, route }) {
   }).current;
 
   const viewabilityConfig = { itemVisiblePercentThreshold: 80 };
+
+  // ✅ Upload new Reel
+  const onVideoSelected = async () => {
+    try {
+      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permission.granted) {
+        Alert.alert('Permission required', 'Please allow media access to upload a reel.');
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+        quality: 1,
+      });
+
+      if (!result.canceled) {
+        const videoUri = result.assets[0].uri;
+        navigation.navigate('UploadReelScreen', { videoUri }); // ✅ Pass to Upload Reel Screen
+      }
+    } catch (error) {
+      console.error('Error selecting video:', error);
+      Alert.alert('Error', 'Could not open gallery.');
+    }
+  };
+
+  const handleDeleteReel = (reel) => {
+    Alert.alert(
+      'Delete Reel',
+      'Are you sure you want to delete this reel?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const result = await deleteReel(reel.id);
+              if (result.success) {
+                setReels(prev => prev.filter(r => r.id !== reel.id));
+                Alert.alert('Success', 'Reel deleted successfully.');
+              } else {
+                Alert.alert('Error', result.message || 'Could not delete reel.');
+              }
+            } catch (err) {
+              console.error('Delete error:', err);
+              Alert.alert('Error', 'Server error.');
+            }
+          },
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
+  const handleReportReel = (reel) => {
+    Alert.alert('Reported', 'Reel has been reported.');
+    // You can add API call for reporting later
+  };
 
   const renderItem = ({ item, index }) => (
     <TouchableOpacity
@@ -83,6 +143,7 @@ export default function ReelsScreen({ navigation, route }) {
           />
           <Text style={styles.userName}>{item.user?.name || 'Unknown'}</Text>
         </View>
+
         {item.title && <Text style={styles.title}>{item.title}</Text>}
         {item.description && <Text style={styles.description}>{item.description}</Text>}
 
@@ -90,12 +151,26 @@ export default function ReelsScreen({ navigation, route }) {
           <TouchableOpacity style={styles.iconButton}>
             <Icon name="heart" size={24} color="#fff" />
           </TouchableOpacity>
+
           <TouchableOpacity style={styles.iconButton}>
             <Icon name="comment" size={24} color="#fff" />
           </TouchableOpacity>
+
           <TouchableOpacity style={styles.iconButton}>
             <Icon name="share" size={24} color="#fff" />
           </TouchableOpacity>
+
+          {item.canDelete && (
+            <TouchableOpacity style={styles.iconButton} onPress={() => handleDeleteReel(item)}>
+              <Icon name="trash" size={24} color="#FF3B30" />
+            </TouchableOpacity>
+          )}
+
+          {item.canReport && (
+            <TouchableOpacity style={styles.iconButton} onPress={() => handleReportReel(item)}>
+              <Icon name="flag" size={24} color="#FFC107" />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     </TouchableOpacity>
@@ -110,23 +185,33 @@ export default function ReelsScreen({ navigation, route }) {
           <Text style={{ color: '#aaa', marginTop: 8 }}>Loading Reels...</Text>
         </View>
       ) : (
-        <FlatList
-          data={reels}
-          renderItem={renderItem}
-          keyExtractor={(item) => item.id.toString()}
-          pagingEnabled
-          showsVerticalScrollIndicator={false}
-          snapToInterval={screenHeight}
-          snapToAlignment="start"
-          decelerationRate="fast"
-          onViewableItemsChanged={onViewableItemsChanged}
-          viewabilityConfig={viewabilityConfig}
-          getItemLayout={(data, index) => ({
-            length: screenHeight,
-            offset: screenHeight * index,
-            index,
-          })}
-        />
+        <>
+          <FlatList
+            data={reels}
+            renderItem={renderItem}
+            keyExtractor={(item) => item.id.toString()}
+            pagingEnabled
+            showsVerticalScrollIndicator={false}
+            snapToInterval={screenHeight}
+            snapToAlignment="start"
+            decelerationRate="fast"
+            onViewableItemsChanged={onViewableItemsChanged}
+            viewabilityConfig={viewabilityConfig}
+            getItemLayout={(data, index) => ({
+              length: screenHeight,
+              offset: screenHeight * index,
+              index,
+            })}
+          />
+
+          {/* ✅ Floating Upload Reel Button */}
+          <TouchableOpacity
+            style={styles.uploadButton}
+            onPress={onVideoSelected} // ✅ Pick video when pressed
+          >
+            <Icon name="plus" size={24} color="#fff" />
+          </TouchableOpacity>
+        </>
       )}
       <Footer navigation={navigation} />
     </SafeAreaView>
@@ -146,4 +231,16 @@ const styles = StyleSheet.create({
   description: { color: '#ccc', fontSize: 14, marginBottom: 10 },
   actions: { position: 'absolute', right: 10, bottom: 20, alignItems: 'center' },
   iconButton: { marginBottom: 20 },
+  uploadButton: {
+    position: 'absolute',
+    bottom: 90,
+    right: 20,
+    backgroundColor: '#4CAF50',
+    width: 55,
+    height: 55,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 5,
+  },
 });
