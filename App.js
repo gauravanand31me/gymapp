@@ -36,6 +36,10 @@ import LandingScreen from './screens/LandingScreen';
 import CouponListScreen from './screens/CouponListScreen';
 import UserRatingsScreen from './screens/RatingScreen';
 import FriendsFeedScreen from './screens/FriendsFeedScreen';
+import CommentScreen from './screens/CommentScreen';
+import FeedDetailScreen from './screens/FeedDetailsScreen';
+import ReelsScreen from './screens/ReelsScreen';
+import UploadReelScreen from './screens/UploadReelScreen';
 
 const Stack = createStackNavigator();
 
@@ -239,6 +243,10 @@ export default function App() {
           <Stack.Screen name="CouponListScreen" component={CouponListScreen} />
           <Stack.Screen name="UserRatingsScreen" component={UserRatingsScreen} />
           <Stack.Screen name="FriendsFeedScreen" component={FriendsFeedScreen} />
+          <Stack.Screen name="CommentScreen" component={CommentScreen} />
+          <Stack.Screen name="FeedDetailScreen" component={FeedDetailScreen} />
+          <Stack.Screen name="ReelsScreen" component={ReelsScreen} />
+          <Stack.Screen name="UploadReelScreen" component={UploadReelScreen} />
           <Stack.Screen name="VisitedGymScreen" component={VisitedGymScreen} options={{ title: 'Visited Gyms' }} />
         </Stack.Navigator>
       </NavigationContainer>
