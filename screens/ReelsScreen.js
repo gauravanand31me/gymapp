@@ -55,11 +55,11 @@ const ReelsScreen = ({ route, navigation }) => {
   const handleLike = async (item) => {
     const previousLiked = liked;
     const previousCount = likeCount;
-  
+
     // Optimistic Update (immediately show in UI)
     setLiked(!liked);
     setLikeCount(prev => (liked ? prev - 1 : prev + 1));
-  
+
     try {
       // If previously liked, remove like by sending null
       // Otherwise, send 'like' reaction
@@ -87,7 +87,7 @@ const ReelsScreen = ({ route, navigation }) => {
       } else {
         setReels(prev => [...prev, ...fetchedReels]);
       }
-      
+
       if (fetchedReels.length < LIMIT) {
         setHasMore(false);
       } else {
@@ -135,7 +135,7 @@ const ReelsScreen = ({ route, navigation }) => {
     }
   };
 
-  
+
 
   const handleReportReel = (reelId) => {
     Alert.alert(
@@ -190,7 +190,7 @@ const ReelsScreen = ({ route, navigation }) => {
         isLooping
         isMuted
       />
-  
+
       <View style={styles.overlay}>
         <View style={{ flex: 1 }}>
           {/* User Info */}
@@ -203,14 +203,14 @@ const ReelsScreen = ({ route, navigation }) => {
               <Text style={styles.userName}>{item.user?.name || 'Unknown'}</Text>
             </TouchableOpacity>
           </View>
-  
+
           {/* Title */}
           {item.title ? (
             <Text style={styles.reelTitle}>
               {item.title}
             </Text>
           ) : null}
-  
+
           {/* Description */}
           {item.description ? (
             <Text style={styles.reelDescription}>
@@ -218,18 +218,18 @@ const ReelsScreen = ({ route, navigation }) => {
             </Text>
           ) : null}
         </View>
-  
+
         {/* Actions */}
         <View style={styles.reelActions}>
-        <TouchableOpacity style={styles.iconButton} onPress={() => handleLike(item)}>
-        <Icon
-          name={liked ? 'heart' : 'heart-o'}
-          size={24}
-          color={liked ? 'red' : '#fff'}
-        />
-        <Text style={styles.iconLabel}>{likeCount}</Text>
-      </TouchableOpacity>
-  
+          <TouchableOpacity style={styles.iconButton} onPress={() => handleLike(item)}>
+            <Icon
+              name={liked ? 'heart' : 'heart-o'}
+              size={24}
+              color={liked ? 'red' : '#fff'}
+            />
+            <Text style={styles.iconLabel}>{likeCount}</Text>
+          </TouchableOpacity>
+
           {/* ⬇️ Navigate to Comments on clicking comment icon */}
           <TouchableOpacity
             style={styles.iconButton}
@@ -238,7 +238,7 @@ const ReelsScreen = ({ route, navigation }) => {
             <Icon name="comment" size={24} color="#fff" />
             <Text style={styles.iconLabel}>{item.commentCount || 0}</Text>
           </TouchableOpacity>
-  
+
           <TouchableOpacity style={styles.iconButton}>
             <Icon name="share" size={24} color="#fff" />
           </TouchableOpacity>
@@ -246,7 +246,7 @@ const ReelsScreen = ({ route, navigation }) => {
       </View>
     </View>
   );
-  
+
 
   return (
     <SafeAreaView style={styles.container}>
@@ -285,14 +285,20 @@ const ReelsScreen = ({ route, navigation }) => {
         <FlatList
           data={reels}
           renderItem={renderReel}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item.id?.toString()}
           pagingEnabled
+          horizontal={false}
           showsVerticalScrollIndicator={false}
-          snapToInterval={screenHeight}
-          decelerationRate="normal"
           snapToAlignment="start"
+          decelerationRate={Platform.OS === 'ios' ? 'fast' : 0.9}
+          snapToInterval={screenHeight}  // 🔥 Important for 1 full screen snap
           onEndReached={loadMoreReels}
           onEndReachedThreshold={0.5}
+          getItemLayout={(data, index) => ({
+            length: screenHeight,
+            offset: screenHeight * index,
+            index,
+          })}
           style={{ flex: 1 }}
         />
       )}
