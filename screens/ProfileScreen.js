@@ -25,7 +25,8 @@ import {
   getVisitedGyms,
   getVisitedBuddies,
   deleteProfileImage,
-  fetchMyFeed
+  fetchMyFeed,
+  fetchUserReels
 } from '../api/apiService';
 import MilestoneProgress from '../components/MilestoneProgress';
 import StatsSection from '../components/StatsSelection';
@@ -60,20 +61,25 @@ export default function ProfileScreen({ navigation, route }) {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [visitedGyms, setVisitedGyms] = useState([]);
-  const [selectedTab, setSelectedTab] = useState('Posts');
+  const [selectedTab, setSelectedTab] = useState('Reels');
   const [visitedBuddies, setVisitedBuddies] = useState([]);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isImageOptionsVisible, setIsImageOptionsVisible] = useState(false);
   const [userPosts, setUserPosts] = useState([]);
-const [feedLoading, setFeedLoading] = useState(false);
-const [page, setPage] = useState(0);
-const [hasMore, setHasMore] = useState(true);
+  const [feedLoading, setFeedLoading] = useState(false);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [reels, setReels] = useState([]);
+  const [loadingReels, setLoadingReels] = useState(false);
+  const LIMIT = 10; // You can adjust as needed
+
 
   const fetchUserData = async () => {
     try {
       const data = await userDetails();
+
       setUserData(data);
       setProfileImage(data.profile_pic || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png');
     } catch (error) {
@@ -89,6 +95,9 @@ const [hasMore, setHasMore] = useState(true);
     fetchUserData();
   }, [route.params]);
 
+
+
+
   useEffect(() => {
     const fetchVisitedGyms = async () => {
       try {
@@ -99,6 +108,9 @@ const [hasMore, setHasMore] = useState(true);
         Alert.alert('Error', 'Could not fetch visited gyms. Please try again later.');
       }
     };
+
+
+
 
     const fetchVisitedBuddies = async () => {
       try {
@@ -113,7 +125,41 @@ const [hasMore, setHasMore] = useState(true);
     fetchUserData();
     fetchVisitedGyms();
     fetchVisitedBuddies();
+    loadReels();
   }, []);
+
+  const loadReels = async (pageNumber = 0) => {
+
+    let queryParams = { page: pageNumber, limit: LIMIT };
+
+
+
+    queryParams.userId = userData.id;
+
+
+
+    try {
+      setLoading(true);
+
+      const fetchedReels = await fetchUserReels(queryParams);
+      console.log("fetchedReels", fetchedReels);
+      if (pageNumber === 0) {
+        setReels(fetchedReels);
+      } else {
+        setReels(prev => [...prev, ...fetchedReels]);
+      }
+
+      if (fetchedReels.length < LIMIT) {
+        setHasMore(false);
+      } else {
+        setHasMore(true);
+      }
+    } catch (error) {
+      console.error('Error loading reels:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (selectedTab === 'Posts') {
@@ -126,7 +172,7 @@ const [hasMore, setHasMore] = useState(true);
 
   const loadUserPosts = async (nextPage = 0) => {
     if (!hasMore || feedLoading) return;
-  
+
     try {
       setFeedLoading(true);
       const feed = await fetchMyFeed(nextPage, 10);
@@ -141,7 +187,7 @@ const [hasMore, setHasMore] = useState(true);
         });
         setPage(nextPage);
       }
-  
+
       if (feed.length < 10) {
         setHasMore(false);
       }
@@ -151,7 +197,7 @@ const [hasMore, setHasMore] = useState(true);
       setFeedLoading(false);
     }
   };
-  
+
 
   const toggleModal = () => {
     setIsModalVisible(!isModalVisible);
@@ -275,7 +321,7 @@ const [hasMore, setHasMore] = useState(true);
       <Text style={{ color: '#555', marginTop: 4 }}>
         {item.description?.slice(0, 100)}...
       </Text>
-      
+
     </TouchableOpacity>
   );
 
@@ -329,6 +375,14 @@ const [hasMore, setHasMore] = useState(true);
 
         <View style={styles.tabContainer}>
           <TouchableOpacity
+            style={[styles.tabButton, selectedTab === 'Reels' && styles.activeTab]}
+            onPress={() => setSelectedTab('Reels')}
+          >
+            <Text style={[styles.tabText, selectedTab === 'Posts' && styles.activeTabText]}>
+              Reels
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
             style={[styles.tabButton, selectedTab === 'Posts' && styles.activeTab]}
             onPress={() => setSelectedTab('Posts')}
           >
@@ -371,7 +425,32 @@ const [hasMore, setHasMore] = useState(true);
                 renderItem={renderPostItem}
                 keyExtractor={(item) => item.id}
                 contentContainerStyle={styles.listContent}
-                nestedScrollEnabled={true}
+                nestedScrollEnabled
+                showsVerticalScrollIndicator={false}
+              />
+            )
+          ) : selectedTab === 'Reels' ? (
+            loadingReels ? (
+              <ActivityIndicator size="small" color="#4CAF50" />
+            ) : reels.length === 0 ? (
+              <Text style={styles.noDataText}>No reels yet</Text>
+            ) : (
+              <FlatList
+                data={reels}
+                numColumns={3} // 👈 3 thumbnails in a row
+                keyExtractor={(item) => item.id}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    onPress={() => navigation.navigate('ReelPlayerScreen', { reelId: item.id })}
+                    style={{ flex: 1 / 3, margin: 5 }}
+                  >
+                    <Image
+                      source={{ uri: item.thumbnailUrl || 'https://via.placeholder.com/150' }}
+                      style={{ width: '100%', height: 120, borderRadius: 8 }}
+                    />
+                  </TouchableOpacity>
+                )}
+                contentContainerStyle={{ paddingBottom: 80 }}
                 showsVerticalScrollIndicator={false}
               />
             )
@@ -380,14 +459,15 @@ const [hasMore, setHasMore] = useState(true);
               data={selectedTab === 'Visited Gym' ? visitedGyms : visitedBuddies}
               renderItem={renderListItem}
               keyExtractor={(item) =>
-                selectedTab === 'Visited Gym' ? item.gymId.toString() : item?.buddyName.toString()
+                selectedTab === 'Visited Gym' ? item.gymId.toString() : item?.buddyName?.toString()
               }
               contentContainerStyle={styles.listContent}
-              nestedScrollEnabled={true}
+              nestedScrollEnabled
               showsVerticalScrollIndicator={false}
             />
           )}
         </View>
+
 
 
       </ScrollView>
