@@ -1,4 +1,6 @@
-import React, { useEffect, useState } from 'react';
+"use client";
+
+import { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -8,16 +10,15 @@ import {
   Alert,
   ActivityIndicator,
   FlatList,
-  ScrollView,
   Modal,
-  StatusBar,
-} from 'react-native';
-import { ProgressBar } from 'react-native-paper';
-import * as ImagePicker from 'expo-image-picker';
-import Footer from '../components/Footer';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import * as ImageManipulator from 'expo-image-manipulator';
-import { Linking } from 'react-native';
+  ScrollView,
+} from "react-native";
+import * as ImagePicker from "expo-image-picker";
+import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import * as ImageManipulator from "expo-image-manipulator";
+import Footer from "../components/Footer";
+import ProfileSection from '../components/ProfileSection';
+
 
 import {
   userDetails,
@@ -26,315 +27,259 @@ import {
   getVisitedBuddies,
   deleteProfileImage,
   fetchMyFeed,
-  fetchUserReels
-} from '../api/apiService';
-import MilestoneProgress from '../components/MilestoneProgress';
-import StatsSection from '../components/StatsSelection';
-import ProfileSection from '../components/ProfileSection';
+  fetchUserReels,
+  deletePost,
+} from "../api/apiService";
+import MilestoneProgress from "../components/MilestoneProgress";
 
-
-const milestones = {
-  bronze: 50,
-  silver: 100,
-  gold: 200,
-  diamond: 300,
-};
-
-const getCurrentMilestone = (hours) => {
-  if (parseInt(hours) >= milestones.diamond) return 'diamond';
-  if (parseInt(hours) >= milestones.gold) return 'gold';
-  if (parseInt(hours) >= milestones.silver) return 'silver';
-  if (parseInt(hours) >= milestones.bronze) return 'bronze';
-  return null;
-};
-
-const getProgress = (hours) => {
-  if (hours >= 300) return 1; // Full progress for Diamond milestone
-  if (hours >= 200) return (hours - 200) / 100 + 0.75; // Progress towards Diamond (200-300 hours)
-  if (hours >= 100) return (hours - 100) / 100 + 0.5; // Progress towards Gold (100-200 hours)
-  if (hours >= 50) return (hours - 50) / 50 + 0.25; // Progress towards Silver (50-100 hours)
-  return hours / 50 * 0.25; // Progress towards Bronze (0-50 hours)
-};
+const milestones = { bronze: 50, silver: 100, gold: 200, diamond: 300 };
 
 export default function ProfileScreen({ navigation, route }) {
-  const [profileImage, setProfileImage] = useState('https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png');
+  const [profileImage, setProfileImage] = useState("https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png");
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [selectedTab, setSelectedTab] = useState("Reels");
+
+  const [reels, setReels] = useState([]);
+  const [posts, setPosts] = useState([]);
   const [visitedGyms, setVisitedGyms] = useState([]);
-  const [selectedTab, setSelectedTab] = useState('Reels');
   const [visitedBuddies, setVisitedBuddies] = useState([]);
+
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
-  const [isModalVisible, setIsModalVisible] = useState(false);
   const [isImageOptionsVisible, setIsImageOptionsVisible] = useState(false);
-  const [userPosts, setUserPosts] = useState([]);
-  const [feedLoading, setFeedLoading] = useState(false);
-  const [page, setPage] = useState(0);
-  const [hasMore, setHasMore] = useState(true);
-  const [reels, setReels] = useState([]);
-  const [loadingReels, setLoadingReels] = useState(false);
-  const LIMIT = 10; // You can adjust as needed
+  const totalWorkoutHours = (userData?.total_work_out_time || 0) / 60;
+  const currentMilestone = getCurrentMilestone(totalWorkoutHours);
 
 
-  const fetchUserData = async () => {
+  function getCurrentMilestone(hours) {
+    if (parseInt(hours) >= milestones.diamond) return "Diamond";
+    if (parseInt(hours) >= milestones.gold) return "Gold";
+    if (parseInt(hours) >= milestones.silver) return "Silver";
+    if (parseInt(hours) >= milestones.bronze) return "Bronze";
+    return "Newbie";
+  }
+
+
+  const getProgress = (hours) => {
+    if (hours >= 300) return 1; // Full progress for Diamond milestone
+    if (hours >= 200) return (hours - 200) / 100 + 0.75; // Progress towards Diamond (200-300 hours)
+    if (hours >= 100) return (hours - 100) / 100 + 0.5; // Progress towards Gold (100-200 hours)
+    if (hours >= 50) return (hours - 50) / 50 + 0.25; // Progress towards Silver (50-100 hours)
+    return hours / 50 * 0.25; // Progress towards Bronze (0-50 hours)
+  };
+
+  const fetchUser = async () => {
     try {
       const data = await userDetails();
-
       setUserData(data);
-      setProfileImage(data.profile_pic || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png');
+      setProfileImage(data?.profile_pic || profileImage);
     } catch (error) {
-      console.error('Error fetching user data:', error);
-      Alert.alert('Error', 'Could not fetch user data. Please try again later.');
+      Alert.alert("Error", "Failed to load user details.");
+    }
+  };
+
+  const loadInitialData = async () => {
+    try {
+      const [reelsData, postsData, gymsData, buddiesData] = await Promise.all([
+        fetchUserReels({ page: 0, limit: 30 }),
+        fetchMyFeed(0, 30),
+        getVisitedGyms(),
+        getVisitedBuddies(),
+      ]);
+      setReels(reelsData || []);
+      setPosts(postsData || []);
+      setVisitedGyms(gymsData?.visitedGyms || []);
+      setVisitedBuddies(buddiesData?.buddiesWithWorkoutHours || []);
+    } catch (error) {
+      console.error(error);
     } finally {
       setLoading(false);
     }
   };
 
-
   useEffect(() => {
-    fetchUserData();
+    fetchUser();
+    loadInitialData();
   }, [route.params]);
 
-
-
-
-  useEffect(() => {
-    const fetchVisitedGyms = async () => {
-      try {
-        const response = await getVisitedGyms();
-        setVisitedGyms(response.visitedGyms || []);
-      } catch (error) {
-        console.error('Error fetching visited gyms:', error);
-        Alert.alert('Error', 'Could not fetch visited gyms. Please try again later.');
-      }
-    };
-
-
-
-
-    const fetchVisitedBuddies = async () => {
-      try {
-        const response = await getVisitedBuddies();
-        setVisitedBuddies(response.buddiesWithWorkoutHours || []);
-      } catch (error) {
-        console.error('Error fetching gym buddies:', error);
-        Alert.alert('Error', 'Could not fetch gym buddies.');
-      }
-    };
-
-    fetchUserData();
-    fetchVisitedGyms();
-    fetchVisitedBuddies();
-    loadReels();
-  }, []);
-
-  const loadReels = async (pageNumber = 0) => {
-
-    let queryParams = { page: pageNumber, limit: LIMIT };
-
-
-
-    queryParams.userId = userData.id;
-
-
-
+  const processAndUploadImage = async (uri) => {
     try {
-      setLoading(true);
-
-      const fetchedReels = await fetchUserReels(queryParams);
-      console.log("fetchedReels", fetchedReels);
-      if (pageNumber === 0) {
-        setReels(fetchedReels);
-      } else {
-        setReels(prev => [...prev, ...fetchedReels]);
-      }
-
-      if (fetchedReels.length < LIMIT) {
-        setHasMore(false);
-      } else {
-        setHasMore(true);
-      }
-    } catch (error) {
-      console.error('Error loading reels:', error);
+      setUploadingImage(true);
+      const manipulated = await ImageManipulator.manipulateAsync(uri, [{ resize: { width: 800 } }], {
+        compress: 0.7,
+        format: ImageManipulator.SaveFormat.JPEG,
+      });
+      setProfileImage(manipulated.uri);
+      await uploadProfileImage(manipulated.uri);
+      setUploadSuccess(true);
+      setTimeout(() => setUploadSuccess(false), 3000);
+      setIsImageOptionsVisible(false);
+    } catch (err) {
+      console.error(err);
     } finally {
-      setLoading(false);
+      setUploadingImage(false);
     }
   };
 
-  useEffect(() => {
-    if (selectedTab === 'Posts') {
-      setUserPosts([]);
-      setPage(0);
-      setHasMore(true);
-      loadUserPosts(0);
-    }
-  }, [selectedTab]);
-
-  const loadUserPosts = async (nextPage = 0) => {
-    if (!hasMore || feedLoading) return;
-
-    try {
-      setFeedLoading(true);
-      const feed = await fetchMyFeed(nextPage, 10);
-
-      if (feed.length === 0) {
-        setHasMore(false);
-      } else {
-        setUserPosts(prev => {
-          const existingIds = new Set(prev.map(p => p.id));
-          const newPosts = feed.filter(post => !existingIds.has(post.id));
-          return [...prev, ...newPosts];
-        });
-        setPage(nextPage);
+  const handleSelectImage = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (permission.granted) {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 1,
+      });
+      if (!result.canceled) {
+        await processAndUploadImage(result.assets[0].uri);
       }
-
-      if (feed.length < 10) {
-        setHasMore(false);
-      }
-    } catch (error) {
-      console.error('Failed to fetch user posts:', error);
-    } finally {
-      setFeedLoading(false);
+    } else {
+      Alert.alert("Permission required", "Please enable gallery permissions.");
     }
   };
 
+  const handleTakePhoto = async () => {
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
+    if (permission.granted) {
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 1,
+      });
+      if (!result.canceled) {
+        await processAndUploadImage(result.assets[0].uri);
+      }
+    } else {
+      Alert.alert("Permission required", "Please enable camera permissions.");
+    }
+  };
 
-  const toggleModal = () => {
-    setIsModalVisible(!isModalVisible);
+  const handleDeleteProfileImage = async () => {
+    try {
+      await deleteProfileImage();
+      setProfileImage("https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png");
+      setUploadSuccess(true);
+      setTimeout(() => setUploadSuccess(false), 3000);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const toggleImageOptions = () => {
     setIsImageOptionsVisible(!isImageOptionsVisible);
   };
 
-  const takePhoto = async () => {
-    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
-    if (permissionResult.granted === false) {
-      Alert.alert("Permission required", "Camera access is required to take a photo.");
-      return;
-    }
-
-    const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      await processAndUploadImage(result.assets[0].uri);
-    }
-    toggleImageOptions();
+  const getDataToShow = () => {
+   
+    if (selectedTab === "Reels") return reels;
+    if (selectedTab === "Posts") return posts;
+    if (selectedTab === "Visited Gym") return visitedGyms;
+    if (selectedTab === "Gym Buddies") return visitedBuddies;
+    return [];
   };
 
-  const selectFromGallery = async () => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-    if (permissionResult.granted === false) {
-      Alert.alert(
-        "Permission Denied",
-        "Gallery access is required to select a photo. Please grant the permission from your device settings if you'd like to use this feature."
+  const handleDeletePost = (post) => {
+    Alert.alert(
+      'Delete Post',
+      'Are you sure you want to delete this post?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const result = await deletePost(post.id);
+              if (result.success) {
+                // Remove deleted post from posts state
+                setPosts(prev => prev.filter(p => p.id !== post.id));
+                Alert.alert('Success', 'Post deleted successfully!');
+              } else {
+                Alert.alert('Error', result.message || 'Could not delete post.');
+              }
+            } catch (error) {
+              console.error('Delete error:', error);
+              Alert.alert('Error', 'Server error.');
+            }
+          },
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
+  const renderItem = ({ item }) => {
+    if (selectedTab === "Reels") {
+      // Reel view (thumbnail grid)
+      return (
+        <TouchableOpacity
+          style={styles.gridItem}
+          onPress={() => navigation.navigate("ReelPlayerScreen", { reelId: item.id })}
+        >
+          <Image
+            source={{ uri: item.thumbnailUrl || "https://via.placeholder.com/150" }}
+            style={styles.gridImage}
+          />
+        </TouchableOpacity>
       );
-      return; // Do nothing if permission is denied
-    }
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      await processAndUploadImage(result.assets[0].uri);
-    }
-    toggleImageOptions();
-  };
-
-  const processAndUploadImage = async (imageUri) => {
-    try {
-      setUploadingImage(true);
-      const manipulatedImage = await ImageManipulator.manipulateAsync(
-        imageUri,
-        [{ resize: { width: 800 } }],
-        { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
-      );
-
-      setProfileImage(manipulatedImage.uri);
-      await uploadProfileImage(manipulatedImage.uri);
-      setUploadSuccess(true);
-      setTimeout(() => setUploadSuccess(false), 3000);
-    } catch (error) {
-      console.error('Error uploading profile image:', error);
-      Alert.alert('Upload Error', 'Failed to upload profile image.');
-    } finally {
-      setUploadingImage(false);
-    }
-  };
-
-  const handleDeleteImage = async () => {
-    try {
-      await deleteProfileImage();
-      fetchUserData();
-      Alert.alert('Success', 'Profile image deleted successfully.');
-    } catch (error) {
-      console.error('Error deleting profile image:', error);
-      Alert.alert('Delete Error', 'Failed to delete profile image.');
-    }
-    toggleImageOptions();
-  };
-
-  const renderListItem = ({ item }) => (
-    <TouchableOpacity
-      style={styles.listItem}
-      onPress={() => {
-        if (selectedTab === 'Visited Gym') {
-          navigation.navigate('GymDetails', { gym_id: item.gymId });
-        }
-        if (selectedTab === 'Gym Buddies') {
-          navigation.navigate('UserProfile', { userId: item.buddyId });
-        }
-      }}
-    >
-      <View style={styles.listItemContent}>
-        <View style={styles.listItemTextContainer}>
-          <Text style={styles.listItemText}>{item.gymName || item.buddyName || 'N/A'}</Text>
-          <Text style={styles.listItemSubText}>
-            {selectedTab === 'Visited Gym'
-              ? `${Math.round((item.totalWorkoutHours || 0) / 60)} hrs visits`
-              : `${item.workoutHours || 0} hours together`}
-          </Text>
+    } else if (selectedTab === "Posts") {
+      return (
+        <View style={styles.postCard}>
+          <TouchableOpacity
+            style={styles.deleteButton}
+            onPress={() => handleDeletePost(item)}
+          >
+            <Icon name="delete" size={20} color="#FF3B30" />
+          </TouchableOpacity>
+    
+          <TouchableOpacity
+            onPress={() => navigation.navigate("FeedDetailScreen", { feedId: item.id })}
+          >
+            <Text style={styles.postCardTitle}>
+              {item.title || "Untitled Post"}
+            </Text>
+            {item.description ? (
+              <Text style={styles.postCardDescription}>
+                {item.description.slice(0, 120)}...
+              </Text>
+            ) : (
+              <Text style={styles.postCardDescription}>
+                (No description)
+              </Text>
+            )}
+          </TouchableOpacity>
         </View>
-      </View>
-      {selectedTab === 'Visited Gym' && (
-        <Icon name="chevron-right" size={24} color="#4CAF50" />
-      )}
-    </TouchableOpacity>
-  );
-
-  const renderPostItem = ({ item }) => (
-    <TouchableOpacity
-      onPress={() => navigation.navigate('FeedDetailScreen', { feedId: item.id })}
-      style={{ paddingVertical: 12 }}
-    >
-      <Text style={{ fontWeight: 'bold', color: '#4CAF50', fontSize: 15 }}>
-        {item.title || 'Untitled'}
-      </Text>
-      <Text style={{ color: '#555', marginTop: 4 }}>
-        {item.description?.slice(0, 100)}...
-      </Text>
-
-    </TouchableOpacity>
-  );
-
+      );
+    } else {
+      // For Visited Gym or Gym Buddies
+      return (
+        <TouchableOpacity
+          style={styles.listItem}
+          onPress={() => {
+            if (selectedTab === "Visited Gym") {
+              navigation.navigate("GymDetails", { gym_id: item.gymId });
+            } else if (selectedTab === "Gym Buddies") {
+              navigation.navigate("UserProfile", { userId: item.buddyId });
+            }
+          }}
+        >
+          <Text style={styles.listItemText}>
+            {item.gymName || item.buddyName || "Unknown"}
+          </Text>
+        </TouchableOpacity>
+      );
+    }
+  };
+  
+  
   if (loading) {
     return (
-      <View style={styles.loader}>
+      <View style={styles.centered}>
         <ActivityIndicator size="large" color="#4CAF50" />
       </View>
     );
   }
 
-  const totalWorkoutHours = (userData?.total_work_out_time || 0) / 60;
-  const currentMilestone = getCurrentMilestone(totalWorkoutHours);
   const progress = getProgress(totalWorkoutHours);
 
   const nextMilestone = currentMilestone === 'bronze'
@@ -349,150 +294,90 @@ export default function ProfileScreen({ navigation, route }) {
 
   return (
     <View style={styles.safeArea}>
-      <ScrollView style={styles.container}>
-        {/* StatusBar Configuration */}
-        <View style={styles.headerContainer}>
-          <Text style={styles.headerText}>Current workout time :{Math.round(totalWorkoutHours)}</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Settings', { fullName: userData?.full_name })}>
-            <Icon name="cog" size={28} color="#4CAF50" />
-          </TouchableOpacity>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.navigate("Settings", { fullName: userData?.full_name })}>
+          <Icon name="cog" size={26} color="#4CAF50" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Profile</Text>
+        <TouchableOpacity onPress={() => setIsImageOptionsVisible(true)}>
+          <Icon name="camera" size={26} color="#4CAF50" />
+        </TouchableOpacity>
+      </View>
+   
+      {uploadSuccess && (
+        <View style={styles.successBanner}>
+          <Icon name="check-circle" size={18} color="#4CAF50" />
+          <Text style={styles.successText}>Profile Updated Successfully!</Text>
         </View>
+      )}
 
+      <FlatList
+        data={getDataToShow()}
+        key={selectedTab}
+        numColumns={selectedTab === "Reels" ? 3 : 1}
+        renderItem={renderItem}
+        keyExtractor={(item, index) => item.id?.toString() || index.toString()}
+        ListHeaderComponent={
+          <>
+            <View style={styles.profileSection}>
+              <ProfileSection userData={userData} profileImage={profileImage} uploadingImage={uploadingImage} currentMilestone={currentMilestone} toggleImageOptions={toggleImageOptions} />
+              <View style={styles.statsRow}>
+                
+                <View style={styles.statBlock}>
+                  <Text style={styles.statValue}>{userData?.followers_count || 0}</Text>
+                  <Text style={styles.statLabel}>Friends</Text>
+                </View>
+                <View style={styles.statBlock}>
+                  <Text style={styles.statValue}>{Math.round(totalWorkoutHours)}</Text>
+                  <Text style={styles.statLabel}>Workout Hours</Text>
+                </View>
+              </View>
+              <MilestoneProgress progress={Math.round(progress * 10) / 10} hoursToNextMilestone={hoursToNextMilestone} nextMilestone={nextMilestone} />
+            </View>
 
+            <View style={styles.tabs}>
+              {["Reels", "Posts", "Visited Gym", "Gym Buddies"].map((tab) => (
+                <TouchableOpacity
+                  key={tab}
+                  style={[styles.tabItem, selectedTab === tab && styles.tabItemSelected]}
+                  onPress={() => setSelectedTab(tab)}
+                >
+                  <Text style={[styles.tabText, selectedTab === tab && styles.tabTextSelected]}>
+                    {tab}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </>
+        }
+        ListFooterComponent={<View style={{ height: 100 }} />}
+      />
 
-        <ProfileSection userData={userData} profileImage={profileImage} uploadingImage={uploadingImage} currentMilestone={currentMilestone} toggleImageOptions={toggleImageOptions} />
-
-
-        {uploadSuccess && (
-          <View style={styles.successMessage}>
-            <Icon name="check-circle" size={20} color="#4CAF50" />
-            <Text style={styles.successText}>Profile image updated successfully!</Text>
-          </View>
-        )}
-
-        <StatsSection userData={userData} totalWorkoutHours={totalWorkoutHours} navigation={navigation} />
-        <MilestoneProgress progress={Math.round(progress * 10) / 10} hoursToNextMilestone={hoursToNextMilestone} nextMilestone={nextMilestone} />
-
-        <View style={styles.tabContainer}>
-          <TouchableOpacity
-            style={[styles.tabButton, selectedTab === 'Reels' && styles.activeTab]}
-            onPress={() => setSelectedTab('Reels')}
-          >
-            <Text style={[styles.tabText, selectedTab === 'Posts' && styles.activeTabText]}>
-              Reels
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.tabButton, selectedTab === 'Posts' && styles.activeTab]}
-            onPress={() => setSelectedTab('Posts')}
-          >
-            <Text style={[styles.tabText, selectedTab === 'Posts' && styles.activeTabText]}>
-              Posts
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.tabButton, selectedTab === 'Visited Gym' && styles.activeTab]}
-            onPress={() => setSelectedTab('Visited Gym')}
-          >
-            <Text style={[styles.tabText, selectedTab === 'Visited Gym' && styles.activeTabText]}>
-              Visited Gym
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.tabButton, selectedTab === 'Gym Buddies' && styles.activeTab]}
-            onPress={() => setSelectedTab('Gym Buddies')}
-          >
-            <Text style={[styles.tabText, selectedTab === 'Gym Buddies' && styles.activeTabText]}>
-              Gym Buddies
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-
-        <View style={styles.listContainer}>
-          {selectedTab === 'Visited Gym' && visitedGyms.length === 0 ? (
-            <Text style={styles.noDataText}>No visited gyms yet</Text>
-          ) : selectedTab === 'Gym Buddies' && visitedBuddies.length === 0 ? (
-            <Text style={styles.noDataText}>No gym buddies yet</Text>
-          ) : selectedTab === 'Posts' ? (
-            feedLoading ? (
-              <ActivityIndicator size="small" color="#4CAF50" />
-            ) : userPosts.length === 0 ? (
-              <Text style={styles.noDataText}>No posts yet</Text>
-            ) : (
-              <FlatList
-                data={userPosts}
-                renderItem={renderPostItem}
-                keyExtractor={(item) => item.id}
-                contentContainerStyle={styles.listContent}
-                nestedScrollEnabled
-                showsVerticalScrollIndicator={false}
-              />
-            )
-          ) : selectedTab === 'Reels' ? (
-            loadingReels ? (
-              <ActivityIndicator size="small" color="#4CAF50" />
-            ) : reels.length === 0 ? (
-              <Text style={styles.noDataText}>No reels yet</Text>
-            ) : (
-              <FlatList
-                data={reels}
-                numColumns={3} // 👈 3 thumbnails in a row
-                keyExtractor={(item) => item.id}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    onPress={() => navigation.navigate('ReelPlayerScreen', { reelId: item.id })}
-                    style={{ flex: 1 / 3, margin: 5 }}
-                  >
-                    <Image
-                      source={{ uri: item.thumbnailUrl || 'https://via.placeholder.com/150' }}
-                      style={{ width: '100%', height: 120, borderRadius: 8 }}
-                    />
-                  </TouchableOpacity>
-                )}
-                contentContainerStyle={{ paddingBottom: 80 }}
-                showsVerticalScrollIndicator={false}
-              />
-            )
-          ) : (
-            <FlatList
-              data={selectedTab === 'Visited Gym' ? visitedGyms : visitedBuddies}
-              renderItem={renderListItem}
-              keyExtractor={(item) =>
-                selectedTab === 'Visited Gym' ? item.gymId.toString() : item?.buddyName?.toString()
-              }
-              contentContainerStyle={styles.listContent}
-              nestedScrollEnabled
-              showsVerticalScrollIndicator={false}
-            />
-          )}
-        </View>
-
-
-
-      </ScrollView>
+      {/* Footer */}
       <View style={styles.footerContainer}>
         <Footer navigation={navigation} />
       </View>
 
-      <Modal visible={isImageOptionsVisible} transparent={true} animationType="slide">
-        <View style={styles.modalContainer}>
+      {/* Image Modal */}
+      <Modal
+        visible={isImageOptionsVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setIsImageOptionsVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <TouchableOpacity style={styles.modalOption} onPress={takePhoto}>
-              <Icon name="camera" size={24} color="#4CAF50" />
-              <Text style={styles.modalOptionText}>Take Photo</Text>
+            <TouchableOpacity onPress={handleSelectImage}>
+              <Text style={styles.modalButton}>Choose from Gallery</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.modalOption} onPress={selectFromGallery}>
-              <Icon name="image" size={24} color="#4CAF50" />
-              <Text style={styles.modalOptionText}>Choose from Gallery</Text>
+            <TouchableOpacity onPress={handleTakePhoto}>
+              <Text style={styles.modalButton}>Take a Photo</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.modalOption} onPress={handleDeleteImage}>
-              <Icon name="delete" size={24} color="#FF0000" />
-              <Text style={styles.modalOptionText}>Delete Photo</Text>
+            <TouchableOpacity onPress={handleDeleteProfileImage}>
+              <Text style={styles.modalButton}>Delete Profile Image</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.modalOption} onPress={toggleImageOptions}>
-              <Icon name="close" size={24} color="#000" />
-              <Text style={styles.modalOptionText}>Cancel</Text>
+            <TouchableOpacity onPress={() => setIsImageOptionsVisible(false)}>
+              <Text style={[styles.modalButton, { color: "red" }]}>Cancel</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -501,194 +386,181 @@ export default function ProfileScreen({ navigation, route }) {
   );
 }
 
+// 💬 Styles (I'll paste next because this message is large)
+
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    marginTop: 30
-    //backgroundColor: '#f5f5f5',
+    backgroundColor: "#fff",
+    marginTop: 20
   },
-  container: {
-    flex: 1,
-
-    //backgroundColor: '#fff',
-
-  },
-
-  tabContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginTop: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-
-  tabButton: {
-    paddingVertical: 10,
+  header: {
+    height: 50,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 16,
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#ccc",
+    backgroundColor: "#fff",
   },
-
-  activeTab: {
-    borderBottomWidth: 2,
-    borderBottomColor: '#4CAF50',
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#333",
   },
-
-  tabText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#888',
+  successBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#e6f7ea',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    justifyContent: 'center',
   },
-
-  activeTabText: {
+  successText: {
     color: '#4CAF50',
+    fontWeight: '600',
+    marginLeft: 8,
+    fontSize: 14,
   },
-  listContainer: {
-    //backgroundColor: '#fff',
-    //marginTop: 20,
-    // borderRadius: 15,
-    padding: 15,
-    shadowColor: "#000",
-    maxHeight: 300,
-    overflow: "auto",
-    height: 500
+  profileSection: {
+    alignItems: "center",
+    paddingVertical: 20,
+    backgroundColor: "#fff",
+  },
+  profileImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: "#eee",
+    marginBottom: 12,
+  },
+  statsRow: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    width: "100%",
+    marginTop: 12,
+  },
+  statBlock: {
+    alignItems: "center",
+  },
+  statValue: {
+    fontWeight: "bold",
+    fontSize: 16,
+    color: "#333",
+  },
+  statLabel: {
+    fontSize: 12,
+    color: "#777",
+  },
+  milestoneText: {
+    marginTop: 12,
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#4CAF50",
+  },
+  tabs: {
+    flexDirection: "row",
+    borderTopWidth: 0.5,
+    borderTopColor: "#ccc",
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#ccc",
+    backgroundColor: "#fafafa",
+  },
+  tabItem: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: "center",
+  },
+  tabItemSelected: {
+    borderBottomWidth: 2,
+    borderBottomColor: "#4CAF50",
+  },
+  tabText: {
+    fontSize: 14,
+    color: "#666",
+  },
+  tabTextSelected: {
+    color: "#4CAF50",
+    fontWeight: "bold",
+  },
+  gridItem: {
+    flex: 1 / 3,
+    aspectRatio: 1,
+    margin: 1,
+    backgroundColor: "#eee",
+  },
+  gridImage: {
+    width: "100%",
+    height: "100%",
   },
   listItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  listItemContent: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  listItemTextContainer: {
-    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#ccc",
+    backgroundColor: "#fff",
   },
   listItemText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#333',
-  },
-  listItemSubText: {
     fontSize: 14,
-    color: '#666',
-    marginTop: 3,
-  },
-  noDataText: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
-    paddingVertical: 20,
-  },
-  loader: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-  },
-  enlargedProfileImage: {
-    width: 300,
-    height: 300,
-    borderRadius: 150,
-  },
-  closeModalButton: {
-    position: 'absolute',
-    top: 40,
-    right: 20,
+    color: "#333",
   },
   footerContainer: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
-    left: 0,
-    right: 0,
-    //height: 60,
-    backgroundColor: '#FFFFFF',
-    borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+    width: "100%",
+    backgroundColor: "#fff",
   },
-
-  listContainer: {
+  modalOverlay: {
     flex: 1,
-    paddingHorizontal: 20,
-    paddingBottom: 60, // Add extra padding to prevent content from hiding behind Footer
-  },
-  noDataText: {
-    textAlign: 'center',
-    fontSize: 18,
-    color: '#6c757d', // Subtle text color for empty state
-    marginTop: 50, // Add spacing for better alignment
-  },
-  listContent: {
-    paddingBottom: 100, // Extra padding to accommodate Footer
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   modalContent: {
-    width: '80%',
-    backgroundColor: '#fff',
-    borderRadius: 10,
+    backgroundColor: "#fff",
     padding: 20,
-    alignItems: 'flex-start',
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 5, // For Android shadow
+    borderRadius: 10,
+    width: "80%",
   },
-  modalOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 15,
-    paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-  },
-  modalOptionText: {
+  modalButton: {
     fontSize: 16,
-    marginLeft: 10,
-    color: '#333',
+    paddingVertical: 12,
+    textAlign: "center",
+    color: "#4CAF50",
   },
-  settingsButton: {
-    position: "absolute",
-    top: 15,
-    right: 15,
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-    borderRadius: 25,
-    padding: 8,
-    elevation: 5,
-
+  centered: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
-  headerContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 15,
-    backgroundColor: '#fff',
+  postCard: {
+    backgroundColor: "#fff",
+    marginVertical: 8,
+    marginHorizontal: 16,
+    padding: 16,
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 4,
   },
-
-  headerText: {
+  postCardTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#333",
+  },
+  postCardDescription: {
     fontSize: 14,
-    fontWeight: 'bold',
-    color: '#333',
+    color: "#666",
+    marginTop: 8,
   },
-
-  floatingButton: {
+  deleteButton: {
     position: 'absolute',
-    bottom: 20,
-    right: 20,
-    backgroundColor: '#4CAF50',
-    borderRadius: 50,
-    width: 50,
-    height: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 5,
+    top: 10,
+    right: 10,
+    zIndex: 2,
   },
-
-
+  
 });
