@@ -109,6 +109,12 @@ export const verifyOtp = async (mobileNumber, otp) => {
 
     }
   };
+
+
+  export const getToken = async () => {
+    const userToken = await AsyncStorage.getItem('authToken');
+    return userToken;
+  }
   
 
  
