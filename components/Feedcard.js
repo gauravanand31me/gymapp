@@ -10,7 +10,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { MoreVertical, MessageCircle } from 'lucide-react-native';
-import { reactToPost } from '../api/apiService';
+import { getToken, reactToPost } from '../api/apiService';
 import { Feather } from '@expo/vector-icons';
 import { Video } from 'expo-av'; // 👈 Add Video import here
 
@@ -21,7 +21,8 @@ const FeedCard = ({ item, formatTime, onDelete, onReport, onComment, onShare, on
   const [liked, setLiked] = useState(item.userLiked);
   const [modalVisible, setModalVisible] = useState(false);
   const [imageHeight, setImageHeight] = useState(280);
-
+  const [authToken, setAuthToken] = useState(null);
+  
   const calculateImageHeight = (uri) => {
     if (!uri) return;
 
@@ -36,6 +37,16 @@ const FeedCard = ({ item, formatTime, onDelete, onReport, onComment, onShare, on
     });
   };
 
+
+
+  useEffect(() => {
+    const loadToken = async () => {
+      const token = await getToken(); // get token from storage or API
+      console.log(token)
+      setAuthToken(token);
+    };
+    loadToken();
+  }, []);
   useEffect(() => {
     if (item.imageUrl && item.type !== "aiPromo") {
         calculateImageHeight(item.imageUrl);
@@ -143,7 +154,12 @@ const FeedCard = ({ item, formatTime, onDelete, onReport, onComment, onShare, on
           {item.type === 'aiPromo' ? (
             <TouchableOpacity onPress={() => navigation.navigate('ReelsScreen', { reelId: item.id })}>
               <Video
-                source={{ uri: item.imageUrl }}
+              source={{
+                uri: item.videoUrl,
+                headers: {
+                  Authorization: `Bearer ${authToken}`,
+                },
+              }}
                 style={[styles.postVideo, { height: imageHeight }]}
                 resizeMode="cover"
                 shouldPlay={false}
