@@ -31,6 +31,7 @@ export default function ReelsScreen({ navigation, route }) {
   const { reelId, userId } = route.params || {};
   const videoRefs = useRef([]);
   const [authToken, setAuthToken] = useState(null);
+  const [videoReadyStates, setVideoReadyStates] = useState({});
   const [isVideoReady, setIsVideoReady] = useState(false); // Track readiness
 
   useEffect(() => {
@@ -169,7 +170,7 @@ export default function ReelsScreen({ navigation, route }) {
         <TouchableWithoutFeedback onPress={() => setIsPaused((prev) => !prev)}>
           <View>
             {/* Thumbnail overlay shown until video is ready */}
-            {!isVideoReady && (
+            {!videoReadyStates[index] &&  (
               <Image
                 source={{ uri: item.thumbnailUrl || 'https://via.placeholder.com/720x1280.png?text=Loading' }}
                 style={[styles.reelVideo, { position: 'absolute', zIndex: 1 }]}
@@ -191,7 +192,9 @@ export default function ReelsScreen({ navigation, route }) {
               isLooping
               isMuted={false}
               useNativeControls={false}
-              onReadyForDisplay={() => setIsVideoReady(true)}
+              onReadyForDisplay={() => {
+                setVideoReadyStates(prev => ({ ...prev, [index]: true }));
+              }}
               onError={(e) => console.error('Video load error:', e)}
             />
           </View>
@@ -221,9 +224,12 @@ export default function ReelsScreen({ navigation, route }) {
             <Icon name="heart" size={24} color="#fff" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.iconButton}>
-            <Icon name="comment" size={24} color="#fff" />
-          </TouchableOpacity>
+          <TouchableOpacity
+  style={styles.iconButton}
+  onPress={() => navigation.navigate('CommentScreen', { postId: item.id })}
+>
+  <Icon name="comment" size={24} color="#fff" />
+</TouchableOpacity>
 
           <TouchableOpacity style={styles.iconButton}>
             <Icon name="share" size={24} color="#fff" />
@@ -305,8 +311,31 @@ const styles = StyleSheet.create({
   userName: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
   title: { color: '#fff', fontWeight: 'bold', fontSize: 18, marginBottom: 4 },
   description: { color: '#ccc', fontSize: 14, marginBottom: 10 },
-  actions: { position: 'absolute', right: 10, bottom: 20, alignItems: 'center' },
-  iconButton: { marginBottom: 20 },
+  actions: {
+    position: 'absolute',
+    right: 12,
+    bottom: 90,
+    alignItems: 'center',
+    gap: 14, // consistent vertical spacing
+    backgroundColor: 'rgba(0,0,0,0.3)', // optional blur background
+    padding: 8,
+    borderRadius: 20,
+  },
+  
+  iconButton: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 28,
+    width: 50,
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+ 
   uploadButton: {
     position: 'absolute',
     bottom: 90,
