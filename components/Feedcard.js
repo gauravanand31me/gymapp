@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -12,53 +12,90 @@ import {
 import { MoreVertical, MessageCircle } from 'lucide-react-native';
 import { getToken, reactToPost } from '../api/apiService';
 import { Feather } from '@expo/vector-icons';
-import { Video } from 'expo-av'; // 👈 Add Video import here
+import { Video } from 'expo-av';
 
 const { width, height } = Dimensions.get('window');
 
-const FeedCard = ({ item, formatTime, onDelete, onReport, onComment, onShare, onUserPress, navigation }) => {
+const FeedCard = ({
+  item,
+  index,
+  visibleIndex,
+  formatTime,
+  onDelete,
+  onReport,
+  onComment,
+  onShare,
+  onUserPress,
+  navigation,
+}) => {
   const [likeCount, setLikeCount] = useState(item.likeCount);
   const [liked, setLiked] = useState(item.userLiked);
   const [modalVisible, setModalVisible] = useState(false);
   const [imageHeight, setImageHeight] = useState(280);
   const [authToken, setAuthToken] = useState(null);
-  
+  const videoRef = useRef(null);
+
   const calculateImageHeight = (uri) => {
     if (!uri) return;
 
-    Image.getSize(uri, (width, height) => {
-      const screenWidth = Dimensions.get('window').width - 28;
-      const ratio = height / width;
-      const calculatedHeight = screenWidth * ratio;
-      const maxHeight = 500;
-      setImageHeight(Math.min(calculatedHeight, maxHeight));
-    }, (error) => {
-      console.error('Error getting image size:', error);
-    });
+    Image.getSize(
+      uri,
+      (width, height) => {
+        const screenWidth = Dimensions.get('window').width;
+        const ratio = height / width;
+        const calculatedHeight = screenWidth * ratio;
+        const minHeight = screenWidth * 1;
+        const maxHeight = screenWidth * 1.25;
+        setImageHeight(Math.min(Math.max(calculatedHeight, minHeight), maxHeight));
+      },
+      (error) => {
+        console.error('Error getting image size:', error);
+      }
+    );
   };
 
-
+  const getVideoHeight = () => {
+    return item.type === 'aiPromo' ? width * 1.78 : width * 1.25;
+  };
 
   useEffect(() => {
     const loadToken = async () => {
-      const token = await getToken(); // get token from storage or API
-      console.log(token)
+      const token = await getToken();
       setAuthToken(token);
     };
     loadToken();
   }, []);
+
   useEffect(() => {
-    if (item.imageUrl && item.type !== "aiPromo") {
-        calculateImageHeight(item.imageUrl);
+    if (item.imageUrl && item.type !== 'aiPromo') {
+      calculateImageHeight(item.imageUrl);
     }
   }, [item.imageUrl]);
+
+  useEffect(() => {
+    const controlVideo = async () => {
+      if (videoRef.current) {
+        try {
+          await videoRef.current.setStatusAsync({
+            positionMillis: 0,
+            shouldPlay: index === visibleIndex,
+            isMuted: true,
+            isLooping: true,
+          });
+        } catch (e) {
+          console.error('Error controlling video:', e);
+        }
+      }
+    };
+    controlVideo();
+  }, [visibleIndex]);
 
   const handleLike = async () => {
     const previousLiked = liked;
     const previousCount = likeCount;
 
     setLiked(!liked);
-    setLikeCount(prev => (liked ? prev - 1 : prev + 1));
+    setLikeCount((prev) => (liked ? prev - 1 : prev + 1));
 
     try {
       await reactToPost(item.id, liked ? null : 'like');
@@ -105,8 +142,6 @@ const FeedCard = ({ item, formatTime, onDelete, onReport, onComment, onShare, on
     });
   };
 
-  
-
   const postTypeInfo = getPostTypeIcon(item.postType);
 
   return (
@@ -148,28 +183,42 @@ const FeedCard = ({ item, formatTime, onDelete, onReport, onComment, onShare, on
         </TouchableOpacity>
       )}
 
-      {/* Media (Image or Video) */}
+      {/* Media */}
       {item.imageUrl && (
-        <>
+        <View style={styles.mediaContainer}>
           {item.type === 'aiPromo' ? (
-            <TouchableOpacity onPress={() => navigation.navigate('ReelsScreen', { reelId: item.id })}>
+            <TouchableOpacity
+              style={styles.fullWidthMedia}
+              onPress={() => navigation.navigate('ReelsScreen', { reelId: item.id })}
+            >
               <Video
-              source={{
-                uri: item.videoUrl,
-                headers: {
-                  Authorization: `Bearer ${authToken}`,
-                },
-              }}
-                style={[styles.postVideo, { height: imageHeight }]}
+                ref={videoRef}
+                source={{
+                  uri: item.imageUrl,
+                  headers: {
+                    Authorization: `Bearer ${authToken}`,
+                  },
+                }}
+                style={[styles.postVideo, { height: getVideoHeight() }]}
                 resizeMode="cover"
-                shouldPlay={false}
+                shouldPlay={index === visibleIndex}
                 isMuted
-                useNativeControls
+                useNativeControls={false}
+                onLoad={() => {
+                  videoRef.current?.setStatusAsync({
+                    positionMillis: 0,
+                    shouldPlay: index === visibleIndex,
+                  });
+                }}
+                onError={(e) => console.error('Video load error:', e)}
               />
             </TouchableOpacity>
           ) : (
             <>
-              <TouchableOpacity onPress={() => setModalVisible(true)}>
+              <TouchableOpacity
+                style={styles.fullWidthMedia}
+                onPress={() => setModalVisible(true)}
+              >
                 <Image
                   source={{ uri: item.imageUrl }}
                   style={[styles.postImage, { height: imageHeight }]}
@@ -200,7 +249,7 @@ const FeedCard = ({ item, formatTime, onDelete, onReport, onComment, onShare, on
               </Modal>
             </>
           )}
-        </>
+        </View>
       )}
 
       {/* Like Summary */}
@@ -232,7 +281,9 @@ const FeedCard = ({ item, formatTime, onDelete, onReport, onComment, onShare, on
 const styles = StyleSheet.create({
   card: {
     backgroundColor: '#fff',
-    padding: 14,
+    paddingTop: 14,
+    paddingBottom: 14,
+    paddingHorizontal: 14,
     marginBottom: 16,
     borderRadius: 18,
     shadowColor: '#000',
@@ -281,15 +332,19 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     textDecorationLine: 'underline',
   },
-  postImage: {
-    width: '100%',
-    borderRadius: 12,
+  mediaContainer: {
+    marginHorizontal: -14,
     marginTop: 6,
   },
-  postVideo: { // 👈 New video style
+  fullWidthMedia: {
+    width: width,
+  },
+  postImage: {
     width: '100%',
-    borderRadius: 12,
-    marginTop: 6,
+    backgroundColor: '#f0f0f0',
+  },
+  postVideo: {
+    width: '100%',
     backgroundColor: '#000',
   },
   likeSummary: {

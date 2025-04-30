@@ -11,7 +11,7 @@ import {
   ActivityIndicator,
   Image,
   Alert,
-  TouchableWithoutFeedback 
+  TouchableWithoutFeedback
 } from 'react-native';
 import { Video } from 'expo-av';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -31,6 +31,7 @@ export default function ReelsScreen({ navigation, route }) {
   const { reelId, userId } = route.params || {};
   const videoRefs = useRef([]);
   const [authToken, setAuthToken] = useState(null);
+  const [isVideoReady, setIsVideoReady] = useState(false); // Track readiness
 
   useEffect(() => {
     const loadToken = async () => {
@@ -48,7 +49,6 @@ export default function ReelsScreen({ navigation, route }) {
     try {
       setLoading(true);
       const data = await fetchUserReels({ page: 0, limit: 10, reelId, userId });
-      console.log("Data is", data);
       setReels(data || []);
     } catch (err) {
       console.error('Error fetching reels:', err);
@@ -57,10 +57,40 @@ export default function ReelsScreen({ navigation, route }) {
     }
   };
 
+
+  const preloadNextVideos = async (currentIndex) => {
+    const nextIndices = [currentIndex + 1, currentIndex + 2, currentIndex + 3];
+    for (const i of nextIndices) {
+      const ref = videoRefs.current[i];
+      const item = reels[i];
+  
+      if (ref && item && authToken) {
+        try {
+          await ref.loadAsync(
+            {
+              uri: item.videoUrl,
+              headers: { Authorization: `Bearer ${authToken}` },
+            },
+            {
+              shouldPlay: false,
+              positionMillis: 0,
+              isMuted: true,
+              isLooping: false,
+            },
+            false
+          );
+        } catch (error) {
+          console.warn(`Failed to preload video at index ${i}:`, error.message);
+        }
+      }
+    }
+  };
+
   const onViewableItemsChanged = useRef(({ viewableItems }) => {
     if (viewableItems && viewableItems.length > 0) {
       const index = viewableItems[0].index;
-      setPlayVideoIndex(index);   // ✅ Now video will play based on visible index
+      setPlayVideoIndex(index);
+      preloadNextVideos(index); // 👈 preload next 3
     }
   }).current;
 
@@ -137,23 +167,35 @@ export default function ReelsScreen({ navigation, route }) {
     <View style={styles.reelContainer}>
       {playVideoIndex === index ? (
         <TouchableWithoutFeedback onPress={() => setIsPaused((prev) => !prev)}>
-        <Video
-          source={{
-            uri: item.videoUrl,
-            headers: {
-              Authorization: `Bearer ${authToken}`,
-            },
-          }}
-          ref={(ref) => (videoRefs.current[index] = ref)}
-          style={styles.reelVideo}
-          resizeMode="cover"
-          shouldPlay={!isPaused}
-          isLooping
-          isMuted={false}
-          useNativeControls={false}
-          onError={(e) => console.error('Video load error:', e)}
-        />
-      </TouchableWithoutFeedback>
+          <View>
+            {/* Thumbnail overlay shown until video is ready */}
+            {!isVideoReady && (
+              <Image
+                source={{ uri: item.thumbnailUrl || 'https://via.placeholder.com/720x1280.png?text=Loading' }}
+                style={[styles.reelVideo, { position: 'absolute', zIndex: 1 }]}
+                resizeMode="cover"
+              />
+            )}
+
+            <Video
+              source={{
+                uri: item.videoUrl,
+                headers: {
+                  Authorization: `Bearer ${authToken}`,
+                },
+              }}
+              ref={(ref) => (videoRefs.current[index] = ref)}
+              style={styles.reelVideo}
+              resizeMode="cover"
+              shouldPlay={!isPaused}
+              isLooping
+              isMuted={false}
+              useNativeControls={false}
+              onReadyForDisplay={() => setIsVideoReady(true)}
+              onError={(e) => console.error('Video load error:', e)}
+            />
+          </View>
+        </TouchableWithoutFeedback>
       ) : (
         <Image
           source={{ uri: item.thumbnailUrl || 'https://via.placeholder.com/720x1280.png?text=Thumbnail' }}
