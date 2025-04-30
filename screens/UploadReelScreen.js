@@ -40,7 +40,7 @@ const UploadReelScreen = ({ navigation, route }) => {
   const handleVideoLoad = (status) => {
     if (status.isLoaded) {
       const durationMillis = status.durationMillis;
-      if (durationMillis > 30000) {
+      if (durationMillis > 60000) {
         Alert.alert('Video Too Long', 'Please pick or trim a video under 30 seconds.');
         navigation.goBack();
       }

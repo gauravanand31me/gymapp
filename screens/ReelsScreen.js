@@ -11,16 +11,17 @@ import {
   ActivityIndicator,
   Image,
   Alert,
+  TouchableWithoutFeedback 
 } from 'react-native';
 import { Video } from 'expo-av';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Footer from '../components/Footer';
-import { fetchUserReels, deleteReel, uploadReelVideo } from '../api/apiService';
-import * as ImagePicker from 'expo-image-picker'; // ✅ Added for selecting video
+import { fetchUserReels, deleteReel, uploadReelVideo, getToken } from '../api/apiService';
 
 const { height: screenHeight, width: screenWidth } = Dimensions.get('window');
 
 export default function ReelsScreen({ navigation, route }) {
+  const [isPaused, setIsPaused] = useState(false);
   const [reels, setReels] = useState([]);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploading, setUploading] = useState(false);
@@ -29,15 +30,25 @@ export default function ReelsScreen({ navigation, route }) {
   const [playVideoIndex, setPlayVideoIndex] = useState(null);
   const { reelId, userId } = route.params || {};
   const videoRefs = useRef([]);
+  const [authToken, setAuthToken] = useState(null);
 
   useEffect(() => {
+    const loadToken = async () => {
+      const token = await getToken(); // get token from storage or API
+      console.log(token)
+      setAuthToken(token);
+    };
     loadReels();
+    loadToken();
   }, []);
+
+
 
   const loadReels = async () => {
     try {
       setLoading(true);
       const data = await fetchUserReels({ page: 0, limit: 10, reelId, userId });
+      console.log("Data is", data);
       setReels(data || []);
     } catch (err) {
       console.error('Error fetching reels:', err);
@@ -48,13 +59,13 @@ export default function ReelsScreen({ navigation, route }) {
 
   const onViewableItemsChanged = useRef(({ viewableItems }) => {
     if (viewableItems && viewableItems.length > 0) {
-      setCurrentVisibleIndex(viewableItems[0].index);
+      const index = viewableItems[0].index;
+      setPlayVideoIndex(index);   // ✅ Now video will play based on visible index
     }
   }).current;
 
   const viewabilityConfig = { itemVisiblePercentThreshold: 80 };
 
-  // ✅ Upload new Reel
   const handleUploadReel = () => {
     navigation.navigate('UploadReelScreen', {
       onVideoSelected: async (videoData) => {
@@ -67,12 +78,11 @@ export default function ReelsScreen({ navigation, route }) {
             setUploadProgress(progress);
           });
 
-          
           const uploadedUrl = result.reel;
 
           const newReel = {
             id: Date.now().toString(),
-            videoUri: uploadedUrl.videoUrl,
+            videoUrl: uploadedUrl.videoUrl,
             title: uploadedUrl?.title,
             user: { name: 'You', profilePic: 'https://cdn-icons-png.flaticon.com/512/149/149071.png' },
             likes: 0,
@@ -121,26 +131,29 @@ export default function ReelsScreen({ navigation, route }) {
 
   const handleReportReel = (reel) => {
     Alert.alert('Reported', 'Reel has been reported.');
-    // You can add API call for reporting later
   };
 
   const renderItem = ({ item, index }) => (
-    <TouchableOpacity
-      activeOpacity={1}
-      style={styles.reelContainer}
-      onPress={() => setPlayVideoIndex(index)}
-    >
+    <View style={styles.reelContainer}>
       {playVideoIndex === index ? (
+        <TouchableWithoutFeedback onPress={() => setIsPaused((prev) => !prev)}>
         <Video
-          source={{ uri: item.videoUrl }}
+          source={{
+            uri: item.videoUrl,
+            headers: {
+              Authorization: `Bearer ${authToken}`,
+            },
+          }}
           ref={(ref) => (videoRefs.current[index] = ref)}
           style={styles.reelVideo}
           resizeMode="cover"
-          shouldPlay
+          shouldPlay={!isPaused}
+          isLooping
           isMuted={false}
           useNativeControls={false}
           onError={(e) => console.error('Video load error:', e)}
         />
+      </TouchableWithoutFeedback>
       ) : (
         <Image
           source={{ uri: item.thumbnailUrl || 'https://via.placeholder.com/720x1280.png?text=Thumbnail' }}
@@ -187,20 +200,18 @@ export default function ReelsScreen({ navigation, route }) {
           )}
         </View>
       </View>
-    </TouchableOpacity>
+    </View>
   );
 
   return (
     <SafeAreaView style={styles.container}>
-        {uploading && (
+      {uploading && (
         <View style={styles.uploadOverlay}>
           <View style={styles.uploadCard}>
             <Text style={styles.uploadingLabel}>Uploading...</Text>
-
             <View style={styles.progressBarBackground}>
               <View style={[styles.progressBarFill, { width: `${uploadProgress}%` }]} />
             </View>
-
             <Text style={styles.progressText}>{uploadProgress}%</Text>
           </View>
         </View>
@@ -231,11 +242,7 @@ export default function ReelsScreen({ navigation, route }) {
             })}
           />
 
-          {/* ✅ Floating Upload Reel Button */}
-          <TouchableOpacity
-            style={styles.uploadButton}
-            onPress={handleUploadReel} // ✅ Pick video when pressed
-          >
+          <TouchableOpacity style={styles.uploadButton} onPress={handleUploadReel}>
             <Icon name="plus" size={24} color="#fff" />
           </TouchableOpacity>
         </>
@@ -276,12 +283,11 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.6)', // semi-transparent black
+    backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 10, // very high to stay above everything
+    zIndex: 10,
   },
-  
   uploadCard: {
     backgroundColor: '#fff',
     paddingVertical: 20,
@@ -293,16 +299,14 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 6,
-    elevation: 8, // Android shadow
+    elevation: 8,
   },
-  
   uploadingLabel: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
     marginBottom: 20,
   },
-  
   progressBarBackground: {
     width: '100%',
     height: 10,
@@ -311,16 +315,13 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     marginBottom: 10,
   },
-  
   progressBarFill: {
     height: '100%',
-    backgroundColor: '#4CAF50', // Green
+    backgroundColor: '#4CAF50',
   },
-  
   progressText: {
     fontSize: 16,
     fontWeight: '600',
     color: '#333',
   },
-  
 });
