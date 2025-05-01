@@ -234,7 +234,7 @@ export const verifyOtp = async (mobileNumber, otp) => {
     try {
       const userToken = await AsyncStorage.getItem('authToken');
       const { page, limit, userId, reelId } = queryParams; // 👈 also accept userId and reelId
-     
+      
       let endpoint = `${BASE_URL}/users/reel?offset=${page * limit}&limit=${limit}`;
   
       if (userId) {
