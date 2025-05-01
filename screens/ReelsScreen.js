@@ -104,9 +104,12 @@ export default function ReelsScreen({ navigation, route }) {
   const onViewableItemsChanged = useRef(({ viewableItems }) => {
     if (viewableItems && viewableItems.length > 0) {
       const index = viewableItems[0].index;
+      setVideoReadyStates({ [index]: false });
       setPlayVideoIndex(index);
       preloadNextVideos(index);
     }
+
+    
   }).current;
 
   const viewabilityConfig = { itemVisiblePercentThreshold: 80 };
@@ -190,6 +193,7 @@ export default function ReelsScreen({ navigation, route }) {
         <TouchableWithoutFeedback onPress={() => setIsPaused((prev) => !prev)}>
           <View>
             {/* Thumbnail overlay shown until video is ready */}
+            
             {!videoReadyStates[index] &&  (
               <Image
                 source={{ uri: item.thumbnailUrl || 'https://via.placeholder.com/720x1280.png?text=Loading' }}
