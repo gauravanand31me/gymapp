@@ -103,7 +103,7 @@ export default function ProfileScreen({ navigation, route }) {
   useEffect(() => {
     fetchUser();
     
-  }, [route.params]);
+  }, []);
 
   const processAndUploadImage = async (uri) => {
     try {
