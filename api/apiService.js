@@ -238,10 +238,10 @@ export const verifyOtp = async (mobileNumber, otp) => {
       let endpoint = `${BASE_URL}/users/reel?offset=${page * limit}&limit=${limit}`;
   
       if (userId) {
-        endpoint += `&userId=${userId}`; // 👈 append userId if available
+        endpoint += `&user_id=${userId}`; // 👈 append userId if available
       }
       if (reelId) {
-        endpoint += `&reelId=${reelId}`; // 👈 append reelId if available
+        endpoint += `&reel_id=${reelId}`; // 👈 append reelId if available
       }
       
       const response = await fetch(endpoint, {

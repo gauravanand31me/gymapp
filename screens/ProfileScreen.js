@@ -70,19 +70,21 @@ export default function ProfileScreen({ navigation, route }) {
   };
 
   const fetchUser = async () => {
+    
     try {
       const data = await userDetails();
       setUserData(data);
-      setProfileImage(data?.profile_pic || profileImage);
+      loadInitialData();
     } catch (error) {
       Alert.alert("Error", "Failed to load user details.");
     }
   };
 
   const loadInitialData = async () => {
+    
     try {
       const [reelsData, postsData, gymsData, buddiesData] = await Promise.all([
-        fetchUserReels({ page: 0, limit: 30 }),
+        fetchUserReels({ page: 0, limit: 30, userId: userData?.id }),
         fetchMyFeed(0, 30),
         getVisitedGyms(),
         getVisitedBuddies(),
@@ -100,7 +102,7 @@ export default function ProfileScreen({ navigation, route }) {
 
   useEffect(() => {
     fetchUser();
-    loadInitialData();
+    
   }, [route.params]);
 
   const processAndUploadImage = async (uri) => {

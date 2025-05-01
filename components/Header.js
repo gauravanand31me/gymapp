@@ -1,4 +1,12 @@
-import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Platform } from "react-native";
+import React from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  StatusBar,
+  Platform,
+} from "react-native";
 import Icon from "react-native-vector-icons/FontAwesome";
 
 const Header = ({ navigation }) => {
@@ -12,11 +20,17 @@ const Header = ({ navigation }) => {
       <View style={styles.headerContent}>
         <Text style={styles.title}>Yupluck</Text>
         <View style={styles.rightActions}>
-          <TouchableOpacity onPress={() => navigation.navigate("InviteBuddy")}>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => navigation.navigate("InviteBuddy")}
+          >
             <Text style={styles.linkText}>Leaderboard</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate("Profile")} style={{ marginLeft: 12 }}>
-            <Icon name="user-circle" size={24} color="#43A047" />
+          <TouchableOpacity
+            style={[styles.actionButton, { marginLeft: 16 }]}
+            onPress={() => navigation.navigate("Profile")}
+          >
+            <Icon name="user-circle" size={26} color="#388E3C" />
           </TouchableOpacity>
         </View>
       </View>
@@ -27,15 +41,15 @@ const Header = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: "#FFFFFF",
-    paddingHorizontal: 16,
-    paddingBottom: 10,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-    elevation: 2,
+    paddingHorizontal: 20,
+    paddingBottom: 12,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    elevation: 4,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
   },
   headerContent: {
     flexDirection: "row",
@@ -43,9 +57,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   title: {
-    color: "#43A047",
-    fontSize: 20,
-    fontWeight: "bold",
+    color: "#2E7D32",
+    fontSize: 24,
+    fontWeight: "800",
+    letterSpacing: 1,
   },
   rightActions: {
     flexDirection: "row",
@@ -53,9 +68,13 @@ const styles = StyleSheet.create({
   },
   linkText: {
     color: "#4CAF50",
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: "600",
     textDecorationLine: "underline",
+  },
+  actionButton: {
+    paddingVertical: 4,
+    paddingHorizontal: 8,
   },
 });
 
