@@ -36,13 +36,13 @@ export default function ReelsScreen({ navigation, route }) {
 
   useEffect(() => {
     const loadToken = async () => {
-      const token = await getToken(); // get token from storage or API
-      console.log(token)
+      const token = await getToken(); 
       setAuthToken(token);
     };
+    setReels([]);
     loadReels();
     loadToken();
-  }, []);
+  }, [reelId]);
 
 
 
