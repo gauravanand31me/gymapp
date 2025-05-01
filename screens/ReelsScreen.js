@@ -27,12 +27,16 @@ export default function ReelsScreen({ navigation, route }) {
   const [uploading, setUploading] = useState(false);
   const [currentVisibleIndex, setCurrentVisibleIndex] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [playVideoIndex, setPlayVideoIndex] = useState(null);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
   const { reelId, userId } = route.params || {};
   const videoRefs = useRef([]);
   const [authToken, setAuthToken] = useState(null);
   const [videoReadyStates, setVideoReadyStates] = useState({});
-  const [isVideoReady, setIsVideoReady] = useState(false); // Track readiness
+  const [isVideoReady, setIsVideoReady] = useState(false);
+  const PAGE_LIMIT = 2;
 
   useEffect(() => {
     const loadToken = async () => {
@@ -40,31 +44,41 @@ export default function ReelsScreen({ navigation, route }) {
       setAuthToken(token);
     };
     setReels([]);
-    loadReels();
+    setPage(0);
+    setHasMore(true);
+    loadReels(0);
     loadToken();
   }, [reelId]);
 
 
 
-  const loadReels = async () => {
+  const loadReels = async (currentPage) => {
     try {
-      setLoading(true);
-      const data = await fetchUserReels({ page: 0, limit: 10, reelId, userId });
-      setReels(data || []);
+      if (loadingMore || !hasMore) return;
+      setLoadingMore(true);
+      const data = await fetchUserReels({ page: currentPage, limit: PAGE_LIMIT, reelId, userId });
+      if (data?.length > 0) {
+        setReels(prev => [...prev, ...data]);
+        setPage(prev => prev + 1);
+        setHasMore(data.length === PAGE_LIMIT);
+      } else {
+        setHasMore(false);
+      }
     } catch (err) {
       console.error('Error fetching reels:', err);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   };
 
 
   const preloadNextVideos = async (currentIndex) => {
-    const nextIndices = [currentIndex + 1, currentIndex + 2, currentIndex + 3];
+    const nextIndices = [currentIndex + 1, currentIndex + 2];
     for (const i of nextIndices) {
       const ref = videoRefs.current[i];
       const item = reels[i];
-  
+
       if (ref && item && authToken) {
         try {
           await ref.loadAsync(
@@ -91,11 +105,17 @@ export default function ReelsScreen({ navigation, route }) {
     if (viewableItems && viewableItems.length > 0) {
       const index = viewableItems[0].index;
       setPlayVideoIndex(index);
-      preloadNextVideos(index); // 👈 preload next 3
+      preloadNextVideos(index);
     }
   }).current;
 
   const viewabilityConfig = { itemVisiblePercentThreshold: 80 };
+
+  const handleEndReached = () => {
+    if (!loadingMore && hasMore) {
+      loadReels(page);
+    }
+  };
 
   const handleUploadReel = () => {
     navigation.navigate('UploadReelScreen', {
@@ -283,6 +303,8 @@ export default function ReelsScreen({ navigation, route }) {
             decelerationRate="fast"
             onViewableItemsChanged={onViewableItemsChanged}
             viewabilityConfig={viewabilityConfig}
+            onEndReached={handleEndReached}
+            onEndReachedThreshold={0.5}
             getItemLayout={(data, index) => ({
               length: screenHeight,
               offset: screenHeight * index,
