@@ -19,7 +19,7 @@ const ProfileSection = ({
 }) => {
   const [isModalVisible, setModalVisible] = useState(false);
   const toggleModal = () => setModalVisible(!isModalVisible);
-
+  
   const milestoneIcon =
     currentMilestone === "bronze"
       ? require("../assets/bronzemedal.jpg")
@@ -34,7 +34,7 @@ const ProfileSection = ({
   return (
     <View style={styles.card}>
       <TouchableOpacity onPress={toggleModal} style={styles.imageWrapper}>
-        <Image source={{ uri: profileImage }} style={styles.image} />
+        <Image source={{ uri: userData?.profile_pic }} style={styles.image} />
         {uploadingImage && (
           <View style={styles.loadingOverlay}>
             <ActivityIndicator size="large" color="#fff" />
