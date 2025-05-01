@@ -234,16 +234,16 @@ export const verifyOtp = async (mobileNumber, otp) => {
     try {
       const userToken = await AsyncStorage.getItem('authToken');
       const { page, limit, userId, reelId } = queryParams; // 👈 also accept userId and reelId
-     
+      
       let endpoint = `${BASE_URL}/users/reel?offset=${page * limit}&limit=${limit}`;
   
       if (userId) {
-        endpoint += `&userId=${userId}`; // 👈 append userId if available
+        endpoint += `&user_id=${userId}`; // 👈 append userId if available
       }
       if (reelId) {
-        endpoint += `&reelId=${reelId}`; // 👈 append reelId if available
+        endpoint += `&reel_id=${reelId}`; // 👈 append reelId if available
       }
-  
+      
       const response = await fetch(endpoint, {
         method: 'GET',
         headers: {
@@ -253,7 +253,7 @@ export const verifyOtp = async (mobileNumber, otp) => {
       });
   
       const data = await response.json();
-      console.log("Data received", data);
+      
   
       if (response.ok && data.reels) {
         return data.reels.map(item => ({

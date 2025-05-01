@@ -11,7 +11,7 @@ import {
   ActivityIndicator,
   Image,
   Alert,
-  TouchableWithoutFeedback 
+  TouchableWithoutFeedback
 } from 'react-native';
 import { Video } from 'expo-av';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -27,44 +27,95 @@ export default function ReelsScreen({ navigation, route }) {
   const [uploading, setUploading] = useState(false);
   const [currentVisibleIndex, setCurrentVisibleIndex] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [playVideoIndex, setPlayVideoIndex] = useState(null);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
   const { reelId, userId } = route.params || {};
   const videoRefs = useRef([]);
   const [authToken, setAuthToken] = useState(null);
+  const [videoReadyStates, setVideoReadyStates] = useState({});
+  const [isVideoReady, setIsVideoReady] = useState(false);
+  const PAGE_LIMIT = 2;
 
   useEffect(() => {
     const loadToken = async () => {
-      const token = await getToken(); // get token from storage or API
-      console.log(token)
+      const token = await getToken(); 
       setAuthToken(token);
     };
-    loadReels();
+    setReels([]);
+    setPage(0);
+    setHasMore(true);
+    loadReels(0);
     loadToken();
-  }, []);
+  }, [reelId]);
 
 
 
-  const loadReels = async () => {
+  const loadReels = async (currentPage) => {
     try {
-      setLoading(true);
-      const data = await fetchUserReels({ page: 0, limit: 10, reelId, userId });
-      console.log("Data is", data);
-      setReels(data || []);
+      if (loadingMore || !hasMore) return;
+      setLoadingMore(true);
+      const data = await fetchUserReels({ page: currentPage, limit: PAGE_LIMIT, reelId, userId });
+      if (data?.length > 0) {
+        setReels(prev => [...prev, ...data]);
+        setPage(prev => prev + 1);
+        setHasMore(data.length === PAGE_LIMIT);
+      } else {
+        setHasMore(false);
+      }
     } catch (err) {
       console.error('Error fetching reels:', err);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
+    }
+  };
+
+
+  const preloadNextVideos = async (currentIndex) => {
+    const nextIndices = [currentIndex + 1, currentIndex + 2];
+    for (const i of nextIndices) {
+      const ref = videoRefs.current[i];
+      const item = reels[i];
+
+      if (ref && item && authToken) {
+        try {
+          await ref.loadAsync(
+            {
+              uri: item.videoUrl,
+              headers: { Authorization: `Bearer ${authToken}` },
+            },
+            {
+              shouldPlay: false,
+              positionMillis: 0,
+              isMuted: true,
+              isLooping: false,
+            },
+            false
+          );
+        } catch (error) {
+          console.warn(`Failed to preload video at index ${i}:`, error.message);
+        }
+      }
     }
   };
 
   const onViewableItemsChanged = useRef(({ viewableItems }) => {
     if (viewableItems && viewableItems.length > 0) {
       const index = viewableItems[0].index;
-      setPlayVideoIndex(index);   // ✅ Now video will play based on visible index
+      setPlayVideoIndex(index);
+      preloadNextVideos(index);
     }
   }).current;
 
   const viewabilityConfig = { itemVisiblePercentThreshold: 80 };
+
+  const handleEndReached = () => {
+    if (!loadingMore && hasMore) {
+      loadReels(page);
+    }
+  };
 
   const handleUploadReel = () => {
     navigation.navigate('UploadReelScreen', {
@@ -137,23 +188,37 @@ export default function ReelsScreen({ navigation, route }) {
     <View style={styles.reelContainer}>
       {playVideoIndex === index ? (
         <TouchableWithoutFeedback onPress={() => setIsPaused((prev) => !prev)}>
-        <Video
-          source={{
-            uri: item.videoUrl,
-            headers: {
-              Authorization: `Bearer ${authToken}`,
-            },
-          }}
-          ref={(ref) => (videoRefs.current[index] = ref)}
-          style={styles.reelVideo}
-          resizeMode="cover"
-          shouldPlay={!isPaused}
-          isLooping
-          isMuted={false}
-          useNativeControls={false}
-          onError={(e) => console.error('Video load error:', e)}
-        />
-      </TouchableWithoutFeedback>
+          <View>
+            {/* Thumbnail overlay shown until video is ready */}
+            {!videoReadyStates[index] &&  (
+              <Image
+                source={{ uri: item.thumbnailUrl || 'https://via.placeholder.com/720x1280.png?text=Loading' }}
+                style={[styles.reelVideo, { position: 'absolute', zIndex: 1 }]}
+                resizeMode="cover"
+              />
+            )}
+
+            <Video
+              source={{
+                uri: item.videoUrl,
+                headers: {
+                  Authorization: `Bearer ${authToken}`,
+                },
+              }}
+              ref={(ref) => (videoRefs.current[index] = ref)}
+              style={styles.reelVideo}
+              resizeMode="cover"
+              shouldPlay={!isPaused}
+              isLooping
+              isMuted={false}
+              useNativeControls={false}
+              onReadyForDisplay={() => {
+                setVideoReadyStates(prev => ({ ...prev, [index]: true }));
+              }}
+              onError={(e) => console.error('Video load error:', e)}
+            />
+          </View>
+        </TouchableWithoutFeedback>
       ) : (
         <Image
           source={{ uri: item.thumbnailUrl || 'https://via.placeholder.com/720x1280.png?text=Thumbnail' }}
@@ -179,9 +244,12 @@ export default function ReelsScreen({ navigation, route }) {
             <Icon name="heart" size={24} color="#fff" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.iconButton}>
-            <Icon name="comment" size={24} color="#fff" />
-          </TouchableOpacity>
+          <TouchableOpacity
+  style={styles.iconButton}
+  onPress={() => navigation.navigate('CommentScreen', { postId: item.id })}
+>
+  <Icon name="comment" size={24} color="#fff" />
+</TouchableOpacity>
 
           <TouchableOpacity style={styles.iconButton}>
             <Icon name="share" size={24} color="#fff" />
@@ -235,6 +303,8 @@ export default function ReelsScreen({ navigation, route }) {
             decelerationRate="fast"
             onViewableItemsChanged={onViewableItemsChanged}
             viewabilityConfig={viewabilityConfig}
+            onEndReached={handleEndReached}
+            onEndReachedThreshold={0.5}
             getItemLayout={(data, index) => ({
               length: screenHeight,
               offset: screenHeight * index,
@@ -263,8 +333,31 @@ const styles = StyleSheet.create({
   userName: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
   title: { color: '#fff', fontWeight: 'bold', fontSize: 18, marginBottom: 4 },
   description: { color: '#ccc', fontSize: 14, marginBottom: 10 },
-  actions: { position: 'absolute', right: 10, bottom: 20, alignItems: 'center' },
-  iconButton: { marginBottom: 20 },
+  actions: {
+    position: 'absolute',
+    right: 12,
+    bottom: 90,
+    alignItems: 'center',
+    gap: 14, // consistent vertical spacing
+    backgroundColor: 'rgba(0,0,0,0.3)', // optional blur background
+    padding: 8,
+    borderRadius: 20,
+  },
+  
+  iconButton: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 28,
+    width: 50,
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+ 
   uploadButton: {
     position: 'absolute',
     bottom: 90,
