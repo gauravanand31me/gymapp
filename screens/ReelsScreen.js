@@ -17,6 +17,7 @@ import { Video } from 'expo-av';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Footer from '../components/Footer';
 import { fetchUserReels, deleteReel, uploadReelVideo, getToken } from '../api/apiService';
+import yupluckLoader from '../assets/yupluck-hero.png'; // adjust path as needed
 
 const { height: screenHeight, width: screenWidth } = Dimensions.get('window');
 
@@ -37,6 +38,7 @@ export default function ReelsScreen({ navigation, route }) {
   const [videoReadyStates, setVideoReadyStates] = useState({});
   const [isVideoReady, setIsVideoReady] = useState(false);
   const PAGE_LIMIT = 2;
+  const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
   useEffect(() => {
     const loadToken = async () => {
@@ -196,9 +198,14 @@ export default function ReelsScreen({ navigation, route }) {
             
             {!videoReadyStates[index] &&  (
               <Image
-                source={{ uri: item.thumbnailUrl || 'https://via.placeholder.com/720x1280.png?text=Loading' }}
-                style={[styles.reelVideo, { position: 'absolute', zIndex: 1 }]}
-                resizeMode="cover"
+              source={yupluckLoader}
+              style={{
+                width: screenWidth,
+                height: screenHeight,
+                position: 'absolute',
+                zIndex: 1,
+              }}
+              resizeMode="contain"
               />
             )}
 
