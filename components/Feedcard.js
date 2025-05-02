@@ -194,18 +194,18 @@ const FeedCard = ({
               onPress={() => navigation.navigate('ReelsScreen', { reelId: item.id })}
             >
 
-{!isVideoLoaded && (
-  <Image
-    source={yupluckLoader}
-    style={{
-      position: 'absolute',
-      width,
-      height,
-      zIndex: 1,
-    }}
-    resizeMode="contain"
-  />
-)}
+              {!isVideoLoaded && (
+                <Image
+                  source={yupluckLoader}
+                  style={{
+                    position: 'absolute',
+                    width,
+                    height,
+                    zIndex: 1,
+                  }}
+                  resizeMode="contain"
+                />
+              )}
               <Video
                 ref={videoRef}
                 source={{
