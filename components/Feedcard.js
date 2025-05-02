@@ -13,6 +13,7 @@ import { MoreVertical, MessageCircle } from 'lucide-react-native';
 import { getToken, reactToPost } from '../api/apiService';
 import { Feather } from '@expo/vector-icons';
 import { Video } from 'expo-av';
+import yupluckLoader from '../assets/yupluck-hero.png'; // adjust path as needed
 
 const { width, height } = Dimensions.get('window');
 
@@ -33,6 +34,7 @@ const FeedCard = ({
   const [modalVisible, setModalVisible] = useState(false);
   const [imageHeight, setImageHeight] = useState(280);
   const [authToken, setAuthToken] = useState(null);
+  const [isVideoLoaded, setIsVideoLoaded] = useState(false);
   const videoRef = useRef(null);
 
   const calculateImageHeight = (uri) => {
@@ -191,6 +193,19 @@ const FeedCard = ({
               style={styles.fullWidthMedia}
               onPress={() => navigation.navigate('ReelsScreen', { reelId: item.id })}
             >
+
+{!isVideoLoaded && (
+  <Image
+    source={yupluckLoader}
+    style={{
+      position: 'absolute',
+      width,
+      height,
+      zIndex: 1,
+    }}
+    resizeMode="contain"
+  />
+)}
               <Video
                 ref={videoRef}
                 source={{
@@ -205,6 +220,7 @@ const FeedCard = ({
                 isMuted
                 useNativeControls={false}
                 onLoad={() => {
+                  setIsVideoLoaded(true);
                   videoRef.current?.setStatusAsync({
                     positionMillis: 0,
                     shouldPlay: index === visibleIndex,
