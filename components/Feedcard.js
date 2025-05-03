@@ -36,6 +36,7 @@ const FeedCard = ({
   const [authToken, setAuthToken] = useState(null);
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
   const videoRef = useRef(null);
+  const [isMuted, setIsMuted] = useState(true);
 
   const calculateImageHeight = (uri) => {
     if (!uri) return;
@@ -54,6 +55,18 @@ const FeedCard = ({
         console.error('Error getting image size:', error);
       }
     );
+  };
+
+
+  const toggleMute = async () => {
+    setIsMuted(prev => !prev);
+    if (videoRef.current) {
+      try {
+        await videoRef.current.setStatusAsync({ isMuted: !isMuted });
+      } catch (e) {
+        console.error('Mute toggle error:', e);
+      }
+    }
   };
 
   const getVideoHeight = () => {
@@ -130,6 +143,9 @@ const FeedCard = ({
         onPress: () => onReport?.(item),
       });
     }
+
+
+
 
     if (item.canDelete) {
       options.push({
@@ -217,7 +233,7 @@ const FeedCard = ({
                 style={[styles.postVideo, { height: getVideoHeight() }]}
                 resizeMode="cover"
                 shouldPlay={index === visibleIndex}
-                isMuted
+                isMuted={isMuted}
                 useNativeControls={false}
                 onLoad={() => {
                   setIsVideoLoaded(true);
@@ -228,6 +244,21 @@ const FeedCard = ({
                 }}
                 onError={(e) => console.error('Video load error:', e)}
               />
+              <TouchableOpacity
+                onPress={toggleMute}
+                style={{
+                  position: 'absolute',
+                  bottom: 20,
+                  right: 20,
+                  backgroundColor: 'rgba(0,0,0,0.6)',
+                  padding: 10,
+                  borderRadius: 20,
+                  zIndex: 2,
+                }}
+              >
+                <Feather name={isMuted ? 'volume-x' : 'volume-2'} size={24} color="#fff" />
+              </TouchableOpacity>
+
             </TouchableOpacity>
           ) : (
             <>
