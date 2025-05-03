@@ -10,10 +10,11 @@ import {
   Dimensions,
 } from 'react-native';
 import { MoreVertical, MessageCircle } from 'lucide-react-native';
-import { getToken, reactToPost } from '../api/apiService';
+import { getToken, reactToPost, updatePostVisibility } from '../api/apiService';
 import { Feather } from '@expo/vector-icons';
 import { Video } from 'expo-av';
 import yupluckLoader from '../assets/yupluck-hero.png'; // adjust path as needed
+
 
 const { width, height } = Dimensions.get('window');
 
@@ -135,18 +136,45 @@ const FeedCard = ({
   };
 
   const handleMenuPress = () => {
-    const options = [{ text: 'Cancel', style: 'cancel' }];
-
+    const options = [];
+  
+    // Visibility change options (only for post owner)
+    if (item.canDelete) {
+      const visibilityMap = {
+        public: 'Public',
+        private: 'Friends Only',
+        onlyme: 'Only Me',
+      };
+  
+      const otherVisibilities = ['public', 'private', 'onlyme'].filter(v => v !== item.postType);
+  
+      otherVisibilities.forEach((visibility) => {
+        options.push({
+          text: `Change to ${visibilityMap[visibility]}`,
+          onPress: async () => {
+            try {
+              await updatePostVisibility(item.id, visibility);
+              item.postType = visibility;
+              forceRerender();
+              Alert.alert('Visibility Updated', `Post visibility is now "${visibilityMap[visibility]}"`);
+            } catch (err) {
+              console.error(err);
+              Alert.alert('Error', 'Could not update visibility. Please try again.');
+            }
+          },
+        });
+      });
+    }
+  
+    // Report option
     if (item.canReport) {
       options.push({
         text: 'Report Post',
         onPress: () => onReport?.(item),
       });
     }
-
-
-
-
+  
+    // Delete option (if owner)
     if (item.canDelete) {
       options.push({
         text: 'Delete Post',
@@ -154,11 +182,13 @@ const FeedCard = ({
         style: 'destructive',
       });
     }
-
-    Alert.alert('Post Options', 'What would you like to do?', options, {
-      cancelable: true,
-    });
+  
+    // Always add cancel at the end
+    options.push({ text: 'Cancel', style: 'cancel' });
+  
+    Alert.alert('Post Options', 'Choose an action:', options, { cancelable: true });
   };
+  
 
   const postTypeInfo = getPostTypeIcon(item.postType);
 
