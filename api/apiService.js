@@ -894,6 +894,23 @@ export const inviteBuddyRequest = async (bookingId, toUserId) => {
 };
 
 
+
+export const updatePostVisibility = async (postId, newVisibility) => {
+  const token = await getToken();
+  const response = await fetch(`${BASE_URL}/users/feed/${postId}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ newVisibility }),
+  });
+
+  if (!response.ok) throw new Error('Failed to update visibility');
+  return await response.json();
+};
+
+
 export const fetchBuddyInvites = async (bookingId) => {
   try {
     const userToken = await AsyncStorage.getItem('authToken'); // Fetch token if needed

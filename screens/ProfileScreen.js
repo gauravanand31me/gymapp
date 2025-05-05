@@ -225,6 +225,7 @@ export default function ProfileScreen({ navigation, route }) {
         </TouchableOpacity>
       );
     } else if (selectedTab === "Posts") {
+      const isAiPromo = item.type === 'aiPromo';
       return (
         <View style={styles.postCard}>
           <TouchableOpacity
@@ -235,7 +236,11 @@ export default function ProfileScreen({ navigation, route }) {
           </TouchableOpacity>
     
           <TouchableOpacity
-            onPress={() => navigation.navigate("FeedDetailScreen", { feedId: item.id })}
+            onPress={() =>
+              isAiPromo
+                ? navigation.navigate("ReelsScreen", { reelId: item.id })
+                : navigation.navigate("FeedDetailScreen", { feedId: item.id })
+            }
           >
             <Text style={styles.postCardTitle}>
               {item.title || "Untitled Post"}
@@ -252,7 +257,8 @@ export default function ProfileScreen({ navigation, route }) {
           </TouchableOpacity>
         </View>
       );
-    } else {
+    }
+     else {
       // For Visited Gym or Gym Buddies
       return (
         <TouchableOpacity

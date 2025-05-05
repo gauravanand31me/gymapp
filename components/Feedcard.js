@@ -10,9 +10,11 @@ import {
   Dimensions,
 } from 'react-native';
 import { MoreVertical, MessageCircle } from 'lucide-react-native';
-import { getToken, reactToPost } from '../api/apiService';
+import { getToken, reactToPost, updatePostVisibility } from '../api/apiService';
 import { Feather } from '@expo/vector-icons';
 import { Video } from 'expo-av';
+import yupluckLoader from '../assets/yupluck-hero.png'; // adjust path as needed
+
 
 const { width, height } = Dimensions.get('window');
 
@@ -33,7 +35,9 @@ const FeedCard = ({
   const [modalVisible, setModalVisible] = useState(false);
   const [imageHeight, setImageHeight] = useState(280);
   const [authToken, setAuthToken] = useState(null);
+  const [isVideoLoaded, setIsVideoLoaded] = useState(false);
   const videoRef = useRef(null);
+  const [isMuted, setIsMuted] = useState(true);
 
   const calculateImageHeight = (uri) => {
     if (!uri) return;
@@ -52,6 +56,18 @@ const FeedCard = ({
         console.error('Error getting image size:', error);
       }
     );
+  };
+
+
+  const toggleMute = async () => {
+    setIsMuted(prev => !prev);
+    if (videoRef.current) {
+      try {
+        await videoRef.current.setStatusAsync({ isMuted: !isMuted });
+      } catch (e) {
+        console.error('Mute toggle error:', e);
+      }
+    }
   };
 
   const getVideoHeight = () => {
@@ -120,15 +136,45 @@ const FeedCard = ({
   };
 
   const handleMenuPress = () => {
-    const options = [{ text: 'Cancel', style: 'cancel' }];
-
+    const options = [];
+  
+    // Visibility change options (only for post owner)
+    if (item.canDelete) {
+      const visibilityMap = {
+        public: 'Public',
+        private: 'Friends Only',
+        onlyme: 'Only Me',
+      };
+  
+      const otherVisibilities = ['public', 'private', 'onlyme'].filter(v => v !== item.postType);
+  
+      otherVisibilities.forEach((visibility) => {
+        options.push({
+          text: `Change to ${visibilityMap[visibility]}`,
+          onPress: async () => {
+            try {
+              await updatePostVisibility(item.id, visibility);
+              item.postType = visibility;
+              forceRerender();
+              Alert.alert('Visibility Updated', `Post visibility is now "${visibilityMap[visibility]}"`);
+            } catch (err) {
+              console.error(err);
+              Alert.alert('Error', 'Could not update visibility. Please try again.');
+            }
+          },
+        });
+      });
+    }
+  
+    // Report option
     if (item.canReport) {
       options.push({
         text: 'Report Post',
         onPress: () => onReport?.(item),
       });
     }
-
+  
+    // Delete option (if owner)
     if (item.canDelete) {
       options.push({
         text: 'Delete Post',
@@ -136,11 +182,13 @@ const FeedCard = ({
         style: 'destructive',
       });
     }
-
-    Alert.alert('Post Options', 'What would you like to do?', options, {
-      cancelable: true,
-    });
+  
+    // Always add cancel at the end
+    options.push({ text: 'Cancel', style: 'cancel' });
+  
+    Alert.alert('Post Options', 'Choose an action:', options, { cancelable: true });
   };
+  
 
   const postTypeInfo = getPostTypeIcon(item.postType);
 
@@ -191,6 +239,19 @@ const FeedCard = ({
               style={styles.fullWidthMedia}
               onPress={() => navigation.navigate('ReelsScreen', { reelId: item.id })}
             >
+
+              {!isVideoLoaded && (
+                <Image
+                  source={yupluckLoader}
+                  style={{
+                    position: 'absolute',
+                    width,
+                    height,
+                    zIndex: 1,
+                  }}
+                  resizeMode="contain"
+                />
+              )}
               <Video
                 ref={videoRef}
                 source={{
@@ -202,9 +263,10 @@ const FeedCard = ({
                 style={[styles.postVideo, { height: getVideoHeight() }]}
                 resizeMode="cover"
                 shouldPlay={index === visibleIndex}
-                isMuted
+                isMuted={isMuted}
                 useNativeControls={false}
                 onLoad={() => {
+                  setIsVideoLoaded(true);
                   videoRef.current?.setStatusAsync({
                     positionMillis: 0,
                     shouldPlay: index === visibleIndex,
@@ -212,6 +274,21 @@ const FeedCard = ({
                 }}
                 onError={(e) => console.error('Video load error:', e)}
               />
+              <TouchableOpacity
+                onPress={toggleMute}
+                style={{
+                  position: 'absolute',
+                  bottom: 20,
+                  right: 20,
+                  backgroundColor: 'rgba(0,0,0,0.6)',
+                  padding: 10,
+                  borderRadius: 20,
+                  zIndex: 2,
+                }}
+              >
+                <Feather name={isMuted ? 'volume-x' : 'volume-2'} size={24} color="#fff" />
+              </TouchableOpacity>
+
             </TouchableOpacity>
           ) : (
             <>

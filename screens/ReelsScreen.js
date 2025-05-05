@@ -17,6 +17,7 @@ import { Video } from 'expo-av';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Footer from '../components/Footer';
 import { fetchUserReels, deleteReel, uploadReelVideo, getToken } from '../api/apiService';
+import yupluckLoader from '../assets/yupluck-hero.png'; // adjust path as needed
 
 const { height: screenHeight, width: screenWidth } = Dimensions.get('window');
 
@@ -37,6 +38,7 @@ export default function ReelsScreen({ navigation, route }) {
   const [videoReadyStates, setVideoReadyStates] = useState({});
   const [isVideoReady, setIsVideoReady] = useState(false);
   const PAGE_LIMIT = 2;
+  const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
   useEffect(() => {
     const loadToken = async () => {
@@ -195,11 +197,43 @@ export default function ReelsScreen({ navigation, route }) {
             {/* Thumbnail overlay shown until video is ready */}
             
             {!videoReadyStates[index] &&  (
-              <Image
-                source={{ uri: item.thumbnailUrl || 'https://via.placeholder.com/720x1280.png?text=Loading' }}
-                style={[styles.reelVideo, { position: 'absolute', zIndex: 1 }]}
-                resizeMode="cover"
-              />
+              <View
+              style={{
+                position: 'absolute',
+                zIndex: 1,
+                width: screenWidth,
+                height: screenHeight,
+                justifyContent: 'center',
+                alignItems: 'center',
+                backgroundColor: 'rgba(0,0,0,0.85)',
+                paddingHorizontal: 20,
+              }}
+            >
+              {/* Profile Section */}
+              <View style={{ alignItems: 'center', marginBottom: 20 }}>
+                <Image
+                  source={{ uri: item.user?.profilePic || 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }}
+                  style={{ width: 80, height: 80, borderRadius: 40, marginBottom: 10 }}
+                />
+                <Text style={{ color: '#fff', fontSize: 18, fontWeight: 'bold' }}>
+                  {item.user?.name || 'Unknown User'}
+                </Text>
+              </View>
+            
+              {/* Video Title */}
+              <Text style={{ color: '#fff', fontSize: 22, fontWeight: 'bold', textAlign: 'center', marginBottom: 10 }}>
+                {item.title || 'Loading...'}
+              </Text>
+            
+              {/* Video Description */}
+              <Text style={{ color: '#ccc', fontSize: 16, textAlign: 'center', marginBottom: 20 }}>
+                {item.description || 'Preparing your reel...'}
+              </Text>
+            
+              {/* Loading Indicator */}
+              <ActivityIndicator size="large" color="#ffffff" />
+            </View>
+            
             )}
 
             <Video
@@ -231,7 +265,7 @@ export default function ReelsScreen({ navigation, route }) {
         />
       )}
 
-      <View style={styles.overlay}>
+      {videoReadyStates[index] && <View style={styles.overlay}>
         <View style={styles.userInfo}>
           <Image
             source={{ uri: item.user?.profilePic || 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }}
@@ -271,7 +305,7 @@ export default function ReelsScreen({ navigation, route }) {
             </TouchableOpacity>
           )}
         </View>
-      </View>
+      </View>}
     </View>
   );
 
