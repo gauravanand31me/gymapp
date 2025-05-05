@@ -8,7 +8,10 @@
     "userInterfaceStyle": "light",
     "scheme": "yupluck",
     "deepLinking": true,
-    "platforms": ["ios", "android"],
+    "platforms": [
+      "ios",
+      "android"
+    ],
     "splash": {
       "image": "./assets/exposplash.jpeg",
       "resizeMode": "cover",
@@ -22,12 +25,16 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.yupluck.mepluck", 
-      "associatedDomains":["applinks:yupluck.com"],
+      "bundleIdentifier": "com.yupluck.mepluck",
+      "associatedDomains": [
+        "applinks:yupluck.com"
+      ],
       "infoPlist": {
         "CFBundleURLTypes": [
           {
-            "CFBundleURLSchemes": ["yupluck"]
+            "CFBundleURLSchemes": [
+              "yupluck"
+            ]
           }
         ]
       }
@@ -59,6 +66,10 @@
       "eas": {
         "projectId": "2c1cde6b-706b-416b-9bbe-a415fa7baa74"
       }
-    }
+    },
+    "plugins": [
+      "expo-router",
+      "expo-web-browser"
+    ]
   }
 }

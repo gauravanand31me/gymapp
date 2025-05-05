@@ -65,6 +65,7 @@ const styles = StyleSheet.create({
     padding: 24,
     alignItems: 'center',
     backgroundColor: '#F9FAFB',
+
   },
   skipButton: {
     alignSelf: 'flex-end',
@@ -73,6 +74,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6B7280',
     marginBottom: 8,
+    marginTop:13,
   },
   heroImage: {
     width: 250,
