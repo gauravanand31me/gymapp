@@ -452,7 +452,7 @@ export const verifyOtp = async (mobileNumber, otp) => {
         // Track upload progress
         xhr.upload.onprogress = (event) => {
           if (event.lengthComputable && typeof onProgress === 'function') {
-            const percent = Math.round((event.loaded / event.total) * 100);
+            const percent = Math.min(100, Math.round((event.loaded / event.total) * 100));
             onProgress(percent);
           }
         };
@@ -906,7 +906,10 @@ export const updatePostVisibility = async (postId, newVisibility) => {
     body: JSON.stringify({ newVisibility }),
   });
 
-  if (!response.ok) throw new Error('Failed to update visibility');
+  if (!response.ok) {
+    console.log("Response receiced", response);
+    throw new Error('Failed to update visibility');
+  }
   return await response.json();
 };
 

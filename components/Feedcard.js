@@ -143,7 +143,7 @@ const FeedCard = ({
       const visibilityMap = {
         public: 'Public',
         private: 'Friends Only',
-        onlyme: 'Only Me',
+        onlyme: 'onlyme',
       };
   
       const otherVisibilities = ['public', 'private', 'onlyme'].filter(v => v !== item.postType);
@@ -155,7 +155,7 @@ const FeedCard = ({
             try {
               await updatePostVisibility(item.id, visibility);
               item.postType = visibility;
-              forceRerender();
+              //forceRerender();
               Alert.alert('Visibility Updated', `Post visibility is now "${visibilityMap[visibility]}"`);
             } catch (err) {
               console.error(err);

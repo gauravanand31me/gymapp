@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -16,8 +16,10 @@ import {
 import { Video } from 'expo-av';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Footer from '../components/Footer';
-import { fetchUserReels, deleteReel, uploadReelVideo, getToken } from '../api/apiService';
+import { fetchUserReels, deleteReel, uploadReelVideo, getToken, updatePostVisibility } from '../api/apiService';
 import yupluckLoader from '../assets/yupluck-hero.png'; // adjust path as needed
+import { useFocusEffect } from '@react-navigation/native';
+import { cacheMultipleVideos } from '../utils/reelCacheHelper';
 
 const { height: screenHeight, width: screenWidth } = Dimensions.get('window');
 
@@ -37,12 +39,36 @@ export default function ReelsScreen({ navigation, route }) {
   const [authToken, setAuthToken] = useState(null);
   const [videoReadyStates, setVideoReadyStates] = useState({});
   const [isVideoReady, setIsVideoReady] = useState(false);
+  const [videoCache, setVideoCache] = useState({});
+  const [failedVideos, setFailedVideos] = useState({});
   const PAGE_LIMIT = 2;
   const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
+
+
+  useFocusEffect(
+    useCallback(() => {
+      // When screen is focused: do nothing
+
+      return () => {
+        // When screen is unfocused: unload all video refs
+        videoRefs.current.forEach(async (ref) => {
+          if (ref) {
+            try {
+              await ref.unloadAsync();
+            } catch (err) {
+              console.warn('Error unloading video:', err);
+            }
+          }
+        });
+      };
+    }, [])
+  );
+
+
   useEffect(() => {
     const loadToken = async () => {
-      const token = await getToken(); 
+      const token = await getToken();
       setAuthToken(token);
     };
     setReels([]);
@@ -53,12 +79,25 @@ export default function ReelsScreen({ navigation, route }) {
   }, [reelId]);
 
 
+  useEffect(() => {
+    const backgroundPreload = async () => {
+      if (authToken && reels.length) {
+        const urls = reels.map(r => r.videoUrl);
+        const cachedMap = await cacheMultipleVideos(urls, authToken);
+        setVideoCache(prev => ({ ...prev, ...cachedMap }));
+      }
+    };
+    backgroundPreload();
+  }, [authToken, reels]);
+
+
 
   const loadReels = async (currentPage) => {
     try {
       if (loadingMore || !hasMore) return;
       setLoadingMore(true);
       const data = await fetchUserReels({ page: currentPage, limit: PAGE_LIMIT, reelId, userId });
+      console.log("Data received", data);
       if (data?.length > 0) {
         setReels(prev => [...prev, ...data]);
         setPage(prev => prev + 1);
@@ -76,32 +115,41 @@ export default function ReelsScreen({ navigation, route }) {
 
 
   const preloadNextVideos = async (currentIndex) => {
-    const nextIndices = [currentIndex + 1, currentIndex + 2];
-    for (const i of nextIndices) {
-      const ref = videoRefs.current[i];
-      const item = reels[i];
+    const nextReels = reels.slice(currentIndex, currentIndex + 3);
+    const urls = nextReels.map(r => r.videoUrl);
+    const cachedMap = await cacheMultipleVideos(urls, authToken);
 
-      if (ref && item && authToken) {
-        try {
-          await ref.loadAsync(
-            {
-              uri: item.videoUrl,
-              headers: { Authorization: `Bearer ${authToken}` },
-            },
-            {
-              shouldPlay: false,
-              positionMillis: 0,
-              isMuted: true,
-              isLooping: false,
-            },
-            false
-          );
-        } catch (error) {
-          console.warn(`Failed to preload video at index ${i}:`, error.message);
-        }
-      }
-    }
+    setVideoCache(prev => ({ ...prev, ...cachedMap }));
   };
+
+
+  // const preloadNextVideos = async (currentIndex) => {
+  //   const nextIndices = [currentIndex + 1, currentIndex + 2];
+  //   for (const i of nextIndices) {
+  //     const ref = videoRefs.current[i];
+  //     const item = reels[i];
+
+  //     if (ref && item && authToken) {
+  //       try {
+  //         await ref.loadAsync(
+  //           {
+  //             uri: item.videoUrl,
+  //             headers: { Authorization: `Bearer ${authToken}` },
+  //           },
+  //           {
+  //             shouldPlay: false,
+  //             positionMillis: 0,
+  //             isMuted: true,
+  //             isLooping: false,
+  //           },
+  //           false
+  //         );
+  //       } catch (error) {
+  //         console.warn(`Failed to preload video at index ${i}:`, error.message);
+  //       }
+  //     }
+  //   }
+  // };
 
   const onViewableItemsChanged = useRef(({ viewableItems }) => {
     if (viewableItems && viewableItems.length > 0) {
@@ -111,7 +159,7 @@ export default function ReelsScreen({ navigation, route }) {
       preloadNextVideos(index);
     }
 
-    
+
   }).current;
 
   const viewabilityConfig = { itemVisiblePercentThreshold: 80 };
@@ -189,59 +237,42 @@ export default function ReelsScreen({ navigation, route }) {
     Alert.alert('Reported', 'Reel has been reported.');
   };
 
+  const handleVisibilityChange = async (reelId, newVisibility) => {
+    try {
+      await updatePostVisibility(reelId, newVisibility);
+      Alert.alert('Visibility Updated', `Reel is now ${newVisibility}`);
+    } catch (err) {
+      console.error('Visibility update failed:', err);
+      Alert.alert('Error', 'Failed to update visibility.');
+    }
+  };
+
   const renderItem = ({ item, index }) => (
     <View style={styles.reelContainer}>
       {playVideoIndex === index ? (
         <TouchableWithoutFeedback onPress={() => setIsPaused((prev) => !prev)}>
           <View>
             {/* Thumbnail overlay shown until video is ready */}
-            
-            {!videoReadyStates[index] &&  (
-              <View
-              style={{
-                position: 'absolute',
-                zIndex: 1,
-                width: screenWidth,
-                height: screenHeight,
-                justifyContent: 'center',
-                alignItems: 'center',
-                backgroundColor: 'rgba(0,0,0,0.85)',
-                paddingHorizontal: 20,
+
+            {!videoReadyStates[index] && (
+              <Image
+              source={{
+                uri: item.thumbnailUrl || 'https://via.placeholder.com/720x1280.png?text=No+Thumbnail',
               }}
-            >
-              {/* Profile Section */}
-              <View style={{ alignItems: 'center', marginBottom: 20 }}>
-                <Image
-                  source={{ uri: item.user?.profilePic || 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }}
-                  style={{ width: 80, height: 80, borderRadius: 40, marginBottom: 10 }}
-                />
-                <Text style={{ color: '#fff', fontSize: 18, fontWeight: 'bold' }}>
-                  {item.user?.name || 'Unknown User'}
-                </Text>
-              </View>
-            
-              {/* Video Title */}
-              <Text style={{ color: '#fff', fontSize: 22, fontWeight: 'bold', textAlign: 'center', marginBottom: 10 }}>
-                {item.title || 'Loading...'}
-              </Text>
-            
-              {/* Video Description */}
-              <Text style={{ color: '#ccc', fontSize: 16, textAlign: 'center', marginBottom: 20 }}>
-                {item.description || 'Preparing your reel...'}
-              </Text>
-            
-              {/* Loading Indicator */}
-              <ActivityIndicator size="large" color="#ffffff" />
-            </View>
-            
+              style={{ width: screenWidth, height: screenHeight, resizeMode: 'cover' }}
+            />
+
             )}
 
             <Video
               source={{
-                uri: item.videoUrl,
-                headers: {
-                  Authorization: `Bearer ${authToken}`,
-                },
+                uri: failedVideos[item.id] ? item.videoUrl : videoCache[item.videoUrl] || item.videoUrl,
+                ...(videoCache[item.videoUrl]?.startsWith('file://') ? {} : {
+                  headers: {
+                    Authorization: `Bearer ${authToken}`,              
+                    Accept: 'video/*',
+                  }
+                })
               }}
               ref={(ref) => (videoRefs.current[index] = ref)}
               style={styles.reelVideo}
@@ -251,10 +282,24 @@ export default function ReelsScreen({ navigation, route }) {
               isMuted={false}
               useNativeControls={false}
               onReadyForDisplay={() => {
-                setVideoReadyStates(prev => ({ ...prev, [index]: true }));
+                if (typeof index === 'number') {
+                  setVideoReadyStates(prev => ({ ...prev, [index]: true }));
+                  console.log('✅ Video ready for index:', index);
+                } else {
+                  console.warn('⚠️ Video ready but index is invalid:', index);
+                }
               }}
-              onError={(e) => console.error('Video load error:', e)}
+              onError={async (e) => {
+                console.error('❌ Video load error at index', index, e);
+                const failedUri = videoCache[item.videoUrl];
+                console.log("failedUri", failedUri);
+                if (failedUri?.startsWith('file://')) {
+                  await FileSystem.deleteAsync(failedUri, { idempotent: true });
+                }
+                setFailedVideos(prev => ({ ...prev, [item.id]: true }));
+              }}
             />
+
           </View>
         </TouchableWithoutFeedback>
       ) : (
@@ -283,26 +328,34 @@ export default function ReelsScreen({ navigation, route }) {
           </TouchableOpacity>
 
           <TouchableOpacity
-  style={styles.iconButton}
-  onPress={() => navigation.navigate('CommentScreen', { postId: item.id })}
->
-  <Icon name="comment" size={24} color="#fff" />
-</TouchableOpacity>
+            style={styles.iconButton}
+            onPress={() => navigation.navigate('CommentScreen', { postId: item.id })}
+          >
+            <Icon name="comment" size={24} color="#fff" />
+          </TouchableOpacity>
 
           <TouchableOpacity style={styles.iconButton}>
             <Icon name="share" size={24} color="#fff" />
           </TouchableOpacity>
 
           {item.canDelete && (
-            <TouchableOpacity style={styles.iconButton} onPress={() => handleDeleteReel(item)}>
-              <Icon name="trash" size={24} color="#FF3B30" />
-            </TouchableOpacity>
+            <>
+              <TouchableOpacity style={styles.iconButton} onPress={() => handleDeleteReel(item)}>
+                <Icon name="trash" size={24} color="#FF3B30" />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.iconButton} onPress={() => handleVisibilityChange(item.id, item.postType === 'public' ? 'private' : 'public')}>
+                <Icon name="eye" size={24} color={item.postType === 'public' ? '#4CAF50' : '#aaa'} />
+              </TouchableOpacity>
+            </>
           )}
 
           {item.canReport && (
-            <TouchableOpacity style={styles.iconButton} onPress={() => handleReportReel(item)}>
-              <Icon name="flag" size={24} color="#FFC107" />
-            </TouchableOpacity>
+            <>
+              <TouchableOpacity style={styles.iconButton} onPress={() => handleReportReel(item)}>
+                <Icon name="flag" size={24} color="#FFC107" />
+              </TouchableOpacity>
+
+            </>
           )}
         </View>
       </View>}
@@ -381,7 +434,7 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 20,
   },
-  
+
   iconButton: {
     backgroundColor: 'rgba(255,255,255,0.1)',
     borderRadius: 28,
@@ -395,7 +448,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
   },
- 
+
   uploadButton: {
     position: 'absolute',
     bottom: 90,
