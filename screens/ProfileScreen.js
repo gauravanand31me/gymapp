@@ -302,15 +302,7 @@ export default function ProfileScreen({ navigation, route }) {
 
   return (
     <View style={styles.safeArea}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.navigate("Settings", { fullName: userData?.full_name })}>
-          <Icon name="cog" size={26} color="#4CAF50" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Profile</Text>
-        <TouchableOpacity onPress={() => setIsImageOptionsVisible(true)}>
-          <Icon name="camera" size={26} color="#4CAF50" />
-        </TouchableOpacity>
-      </View>
+      
    
       {uploadSuccess && (
         <View style={styles.successBanner}>

@@ -14,6 +14,7 @@ import { getToken, reactToPost, updatePostVisibility } from '../api/apiService';
 import { Feather } from '@expo/vector-icons';
 import { Video } from 'expo-av';
 import yupluckLoader from '../assets/yupluck-hero.png'; // adjust path as needed
+import { cacheVideoIfNeeded } from '../utils/reelCacheHelper';
 
 
 const { width, height } = Dimensions.get('window');
@@ -36,6 +37,7 @@ const FeedCard = ({
   const [imageHeight, setImageHeight] = useState(280);
   const [authToken, setAuthToken] = useState(null);
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
+  const [cachedUri, setCachedUri] = useState(item.imageUrl);
   const videoRef = useRef(null);
   const [isMuted, setIsMuted] = useState(true);
 
@@ -81,6 +83,18 @@ const FeedCard = ({
     };
     loadToken();
   }, []);
+
+
+
+  useEffect(() => {
+    const cacheVideo = async () => {
+      if (item.type === 'aiPromo' && item.imageUrl && authToken) {
+        const localUri = await cacheVideoIfNeeded(item.imageUrl, authToken);
+        setCachedUri(localUri);
+      }
+    };
+    cacheVideo();
+  }, [item.imageUrl, authToken]);
 
   useEffect(() => {
     if (item.imageUrl && item.type !== 'aiPromo') {
@@ -241,25 +255,20 @@ const FeedCard = ({
             >
 
               {!isVideoLoaded && (
-                <Image
-                  source={yupluckLoader}
-                  style={{
-                    position: 'absolute',
-                    width,
-                    height,
-                    zIndex: 1,
-                  }}
-                  resizeMode="contain"
-                />
+                <Text>Loading...</Text>
               )}
               <Video
                 ref={videoRef}
-                source={{
-                  uri: item.imageUrl,
-                  headers: {
-                    Authorization: `Bearer ${authToken}`,
-                  },
-                }}
+                source={
+                  cachedUri.startsWith('file://')
+                    ? { uri: cachedUri }
+                    : {
+                        uri: cachedUri,
+                        headers: {
+                          Authorization: `Bearer ${authToken}`,
+                        },
+                      }
+                }
                 style={[styles.postVideo, { height: getVideoHeight() }]}
                 resizeMode="cover"
                 shouldPlay={index === visibleIndex}

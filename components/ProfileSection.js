@@ -9,6 +9,7 @@ import {
   StyleSheet,
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
+import MatIcon from "react-native-vector-icons/MaterialCommunityIcons";
 
 const ProfileSection = ({
   userData,
@@ -16,10 +17,11 @@ const ProfileSection = ({
   uploadingImage,
   currentMilestone,
   toggleImageOptions,
+  navigation,
 }) => {
   const [isModalVisible, setModalVisible] = useState(false);
   const toggleModal = () => setModalVisible(!isModalVisible);
-  
+
   const milestoneIcon =
     currentMilestone === "bronze"
       ? require("../assets/bronzemedal.jpg")
@@ -32,39 +34,40 @@ const ProfileSection = ({
       : null;
 
   return (
-    <View style={styles.card}>
+    <View style={styles.container}>
       <TouchableOpacity onPress={toggleModal} style={styles.imageWrapper}>
-        <Image source={{ uri: userData?.profile_pic }} style={styles.image} />
+        <Image
+          source={{ uri: userData?.profile_pic || "https://cdn-icons-png.flaticon.com/512/149/149071.png" }}
+          style={styles.image}
+        />
         {uploadingImage && (
           <View style={styles.loadingOverlay}>
             <ActivityIndicator size="large" color="#fff" />
           </View>
         )}
-        <TouchableOpacity
-          style={styles.cameraIcon}
-          onPress={toggleImageOptions}
-        >
-          <Icon name="camera-alt" size={18} color="#fff" />
+        <TouchableOpacity style={styles.cameraIcon} onPress={toggleImageOptions}>
+          <Icon name="photo-camera" size={18} color="#fff" />
         </TouchableOpacity>
       </TouchableOpacity>
 
       <View style={styles.info}>
         <View style={styles.nameRow}>
           <Text style={styles.name}>{userData?.full_name || "User"}</Text>
-          {milestoneIcon && (
-            <Image source={milestoneIcon} style={styles.milestone} />
-          )}
+          {milestoneIcon && <Image source={milestoneIcon} style={styles.milestone} />}
         </View>
         <Text style={styles.username}>@{userData?.username || "username"}</Text>
-        <Text style={styles.mobile}>{userData?.mobile_number || "Phone"}</Text>
+        <Text style={styles.mobile}>📞 {userData?.mobile_number || "Phone"}</Text>
+        <TouchableOpacity
+          style={styles.settingsBtn}
+          onPress={() => navigation.navigate("Settings", { fullName: userData?.full_name })}
+        >
+          <MatIcon name="cog" size={20} color="#4CAF50" />
+          <Text style={styles.settingsText}>Settings</Text>
+        </TouchableOpacity>
       </View>
 
       <Modal visible={isModalVisible} transparent onRequestClose={toggleModal}>
-        <TouchableOpacity
-          style={styles.modalContainer}
-          onPress={toggleModal}
-          activeOpacity={1}
-        >
+        <TouchableOpacity style={styles.modalContainer} onPress={toggleModal} activeOpacity={1}>
           <Image source={{ uri: profileImage }} style={styles.modalImage} />
         </TouchableOpacity>
       </Modal>
@@ -73,19 +76,9 @@ const ProfileSection = ({
 };
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 20,
-    marginHorizontal: 16,
-    marginBottom: 20,
+  container: {
     flexDirection: "row",
     alignItems: "center",
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
   },
   imageWrapper: {
     position: "relative",
@@ -111,7 +104,8 @@ const styles = StyleSheet.create({
     right: 0,
     backgroundColor: "#4CAF50",
     borderRadius: 20,
-    padding: 6,
+    padding: 5,
+    zIndex: 2,
   },
   info: {
     flex: 1,
@@ -126,12 +120,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "700",
     color: "#222",
-    marginRight: 8,
+    marginRight: 6,
   },
   milestone: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
   },
   username: {
     fontSize: 14,
@@ -141,6 +135,17 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#999",
     marginTop: 2,
+  },
+  settingsBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 8,
+  },
+  settingsText: {
+    marginLeft: 6,
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#4CAF50",
   },
   modalContainer: {
     flex: 1,
