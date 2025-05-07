@@ -123,33 +123,7 @@ export default function ReelsScreen({ navigation, route }) {
   };
 
 
-  // const preloadNextVideos = async (currentIndex) => {
-  //   const nextIndices = [currentIndex + 1, currentIndex + 2];
-  //   for (const i of nextIndices) {
-  //     const ref = videoRefs.current[i];
-  //     const item = reels[i];
 
-  //     if (ref && item && authToken) {
-  //       try {
-  //         await ref.loadAsync(
-  //           {
-  //             uri: item.videoUrl,
-  //             headers: { Authorization: `Bearer ${authToken}` },
-  //           },
-  //           {
-  //             shouldPlay: false,
-  //             positionMillis: 0,
-  //             isMuted: true,
-  //             isLooping: false,
-  //           },
-  //           false
-  //         );
-  //       } catch (error) {
-  //         console.warn(`Failed to preload video at index ${i}:`, error.message);
-  //       }
-  //     }
-  //   }
-  // };
 
   const onViewableItemsChanged = useRef(({ viewableItems }) => {
     if (viewableItems && viewableItems.length > 0) {
@@ -331,7 +305,10 @@ export default function ReelsScreen({ navigation, route }) {
             style={styles.iconButton}
             onPress={() => navigation.navigate('CommentScreen', { postId: item.id })}
           >
-            <Icon name="comment" size={24} color="#fff" />
+            <View style={styles.commentContainer}>
+  <Icon name="comment" size={20} color="#fff" />
+  <Text style={styles.commentCountText}>{item?.commentCount || 0}</Text>
+</View>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.iconButton}>
@@ -507,5 +484,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#333',
+  },
+  commentContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 20,
+    marginTop: 8,
+    alignSelf: 'flex-start',
+  },
+  
+  commentCountText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '500',
+    marginLeft: 6,
   },
 });
