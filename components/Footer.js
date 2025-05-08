@@ -16,6 +16,10 @@ const Footer = ({ navigation }) => {
     }, [])
   );
 
+  useEffect(() => {
+    loadNotifications();
+  }, [notification]);
+
   const loadNotifications = async () => {
     const data = await fetchAllNotifications();
     if (data && data.unreadCount !== undefined) {
@@ -23,33 +27,33 @@ const Footer = ({ navigation }) => {
     }
   };
 
-  useEffect(() => {
-    loadNotifications();
-  }, [notification]);
+  const FooterButton = ({ routeName, icon, label }) => {
+    const isActive = currentRoute === routeName;
 
-  const FooterButton = ({ routeName, icon, label }) => (
-    <TouchableOpacity
-      onPress={() => navigation.navigate(routeName)}
-      style={styles.buttonContainer}
-      activeOpacity={0.8}
-    >
-      <View style={styles.iconWrapper}>
-        <Icon
-          name={icon}
-          size={24}
-          color={currentRoute === routeName ? '#4CAF50' : '#777'}
-        />
-        {routeName === 'NotificationListScreen' && unreadCount > 0 && (
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{unreadCount}</Text>
-          </View>
-        )}
-      </View>
-      <Text style={[styles.label, currentRoute === routeName && styles.activeLabel]}>
-        {label}
-      </Text>
-    </TouchableOpacity>
-  );
+    return (
+      <TouchableOpacity
+        onPress={() => navigation.navigate(routeName)}
+        style={styles.buttonContainer}
+        activeOpacity={0.85}
+      >
+        <View style={styles.iconWrapper}>
+          <Icon
+            name={icon}
+            size={isActive ? 26 : 22}
+            color={isActive ? '#4CAF50' : '#888'}
+          />
+          {routeName === 'NotificationListScreen' && unreadCount > 0 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{unreadCount}</Text>
+            </View>
+          )}
+        </View>
+        <Text style={[styles.label, isActive && styles.activeLabel]}>
+          {label}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <View style={styles.footer}>
@@ -67,20 +71,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    height: 65,
-    backgroundColor: '#fdfdfd',
-    borderTopWidth: 0.5,
-    borderTopColor: '#dcdcdc',
-    elevation: 10,
+    height: 70,
+    backgroundColor: '#ffffff',
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 12,
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingHorizontal: 10,
   },
   buttonContainer: {
     alignItems: 'center',
+    justifyContent: 'center',
     flex: 1,
-    paddingVertical: 8,
   },
   iconWrapper: {
     position: 'relative',
@@ -106,8 +115,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   label: {
-    fontSize: 11,
-    color: '#777',
+    fontSize: 12,
+    color: '#888',
     marginTop: 4,
   },
   activeLabel: {

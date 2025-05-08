@@ -136,7 +136,7 @@ export default function ReelsScreen({ navigation, route }) {
 
   }).current;
 
-  const viewabilityConfig = { itemVisiblePercentThreshold: 80 };
+  const viewabilityConfig = { itemVisiblePercentThreshold: 50 };
 
   const handleEndReached = () => {
     if (!loadingMore && hasMore) {
@@ -230,11 +230,11 @@ export default function ReelsScreen({ navigation, route }) {
 
             {!videoReadyStates[index] && (
               <Image
-              source={{
-                uri: item.thumbnailUrl || 'https://via.placeholder.com/720x1280.png?text=No+Thumbnail',
-              }}
-              style={{ width: screenWidth, height: screenHeight, resizeMode: 'cover' }}
-            />
+                source={{
+                  uri: item.thumbnailUrl || 'https://via.placeholder.com/720x1280.png?text=No+Thumbnail',
+                }}
+                style={{ width: screenWidth, height: screenHeight, resizeMode: 'cover' }}
+              />
 
             )}
 
@@ -243,14 +243,14 @@ export default function ReelsScreen({ navigation, route }) {
                 uri: failedVideos[item.id] ? item.videoUrl : videoCache[item.videoUrl] || item.videoUrl,
                 ...(videoCache[item.videoUrl]?.startsWith('file://') ? {} : {
                   headers: {
-                    Authorization: `Bearer ${authToken}`,              
+                    Authorization: `Bearer ${authToken}`,
                     Accept: 'video/*',
                   }
                 })
               }}
               ref={(ref) => (videoRefs.current[index] = ref)}
               style={styles.reelVideo}
-              resizeMode="cover"
+              resizeMode="contain"
               shouldPlay={!isPaused}
               isLooping
               isMuted={false}
@@ -298,7 +298,10 @@ export default function ReelsScreen({ navigation, route }) {
 
         <View style={styles.actions}>
           <TouchableOpacity style={styles.iconButton}>
-            <Icon name="heart" size={24} color="#fff" />
+            <View style={styles.likeContainer}>
+              <Icon name="heart" size={20} color="#fff" />
+              <Text style={styles.likeCountText}>{item?.likeCount || 0}</Text>
+            </View>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -306,9 +309,9 @@ export default function ReelsScreen({ navigation, route }) {
             onPress={() => navigation.navigate('CommentScreen', { postId: item.id })}
           >
             <View style={styles.commentContainer}>
-  <Icon name="comment" size={20} color="#fff" />
-  <Text style={styles.commentCountText}>{item?.commentCount || 0}</Text>
-</View>
+              <Icon name="comment" size={20} color="#fff" />
+              <Text style={styles.commentCountText}>{item?.commentCount || 0}</Text>
+            </View>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.iconButton}>
@@ -495,8 +498,25 @@ const styles = StyleSheet.create({
     marginTop: 8,
     alignSelf: 'flex-start',
   },
-  
+
   commentCountText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '500',
+    marginLeft: 6,
+  },
+  likeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 20,
+    marginTop: 8,
+    alignSelf: 'flex-start',
+  },
+
+  likeCountText: {
     color: '#fff',
     fontSize: 14,
     fontWeight: '500',

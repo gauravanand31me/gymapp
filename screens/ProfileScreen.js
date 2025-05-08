@@ -216,7 +216,7 @@ export default function ProfileScreen({ navigation, route }) {
       return (
         <TouchableOpacity
           style={styles.gridItem}
-          onPress={() => navigation.navigate("ReelPlayerScreen", { reelId: item.id })}
+          onPress={() => navigation.navigate("ReelsScreen", { reelId: item.id })}
         >
           <Image
             source={{ uri: item.thumbnailUrl || "https://via.placeholder.com/150" }}
@@ -536,15 +536,7 @@ const styles = StyleSheet.create({
   },
   postCard: {
     backgroundColor: "#fff",
-    marginVertical: 8,
-    marginHorizontal: 16,
-    padding: 16,
-    borderRadius: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 4,
+    padding: 2
   },
   postCardTitle: {
     fontSize: 16,
