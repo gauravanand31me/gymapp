@@ -318,7 +318,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   header: {
-    backgroundColor: '#2E7D32', // Muted professional green
+    backgroundColor: '#fff', // Muted professional green
     paddingTop: 50,
     paddingBottom: 20,
     paddingHorizontal: 20,

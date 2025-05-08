@@ -99,13 +99,7 @@ const InviteBuddiesScreen = ({ navigation }) => {
         backgroundColor="#f5f5f5" // Ensure this matches the container's background
         translucent={false} // Use translucent if you want to overlay content under the status bar
       />
-      <AnimatedLinearGradient
-        colors={['#4CAF50', '#2E7D32']}
-        style={[styles.header, { opacity: headerOpacity }]}
-      >
-        <Dumbbell size={40} color="#FFFFFF" />
-        <Text style={styles.headerText}>Find Gym Buddies</Text>
-      </AnimatedLinearGradient>
+      
 
       <View style={styles.searchContainer}>
         <Search size={24} color="#888" />
