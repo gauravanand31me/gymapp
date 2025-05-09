@@ -17,7 +17,7 @@ import {
 import { Video } from 'expo-av';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Footer from '../components/Footer';
-import { fetchUserReels, deleteReel, uploadReelVideo, getToken, updatePostVisibility } from '../api/apiService';
+import { fetchUserReels, deleteReel, uploadReelVideo, getToken, updatePostVisibility, getPostById } from '../api/apiService';
 import yupluckLoader from '../assets/yupluck-hero.png'; // adjust path as needed
 import { useFocusEffect } from '@react-navigation/native';
 import { cacheMultipleVideos } from '../utils/reelCacheHelper';
@@ -45,6 +45,7 @@ export default function ReelsScreen({ navigation, route }) {
   const [isVideoReady, setIsVideoReady] = useState(false);
   const [videoCache, setVideoCache] = useState({});
   const [failedVideos, setFailedVideos] = useState({});
+  const [likedReels, setLikedReels] = useState({}); // Store liked status by reelId
   const PAGE_LIMIT = 2;
   const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -91,6 +92,20 @@ export default function ReelsScreen({ navigation, route }) {
         setVideoCache(prev => ({ ...prev, ...cachedMap }));
       }
     };
+
+    const fetchLikedStatus = async () => {
+      const likedMap = {};
+      for (const reel of reels) {
+        try {
+          const post = await getPostById(reel.id); // Assuming reel.id is feedId
+          likedMap[reel.id] = post?.liked || false;
+        } catch (e) {
+          likedMap[reel.id] = false;
+        }
+      }
+      setLikedReels(likedMap);
+    };
+    if (reels.length) fetchLikedStatus();
     backgroundPreload();
   }, [authToken, reels]);
 
@@ -312,7 +327,7 @@ export default function ReelsScreen({ navigation, route }) {
 
         <View style={styles.actions}>
           <TouchableOpacity style={styles.iconButton}>
-            <Icon name="heart" size={18} color="#fff" />
+            <Icon name="heart" size={18} color={likedReels[item.id] ? 'red' : '#fff'} />
             <Text style={styles.likeCountText}>{item?.likeCount || 0}</Text>
           </TouchableOpacity>
 
@@ -357,13 +372,13 @@ export default function ReelsScreen({ navigation, route }) {
 
   return (
     <SafeAreaView style={styles.container}>
-   {showCommentModal && (
-  <View style={styles.modalOverlay}>
-    <View style={styles.halfModal}>
-      <CommentScreen postId={selectedPostId} navigation={navigation} closeModel={() => setShowCommentModal(false)}/>
-    </View>
-  </View>
-)}
+      {showCommentModal && (
+        <View style={styles.modalOverlay}>
+          <View style={styles.halfModal}>
+            <CommentScreen postId={selectedPostId} navigation={navigation} closeModel={() => setShowCommentModal(false)} />
+          </View>
+        </View>
+      )}
       {uploading && (
         <View style={styles.uploadOverlay}>
           <View style={styles.uploadCard}>
@@ -561,7 +576,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.4)', // optional dim background
     justifyContent: 'flex-end',
   },
-  
+
   halfModal: {
     height: '70%',
     backgroundColor: '#fff',
