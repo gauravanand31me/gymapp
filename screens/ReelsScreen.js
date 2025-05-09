@@ -11,7 +11,8 @@ import {
   ActivityIndicator,
   Image,
   Alert,
-  TouchableWithoutFeedback
+  TouchableWithoutFeedback,
+  Share
 } from 'react-native';
 import { Video } from 'expo-av';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -181,6 +182,16 @@ export default function ReelsScreen({ navigation, route }) {
     });
   };
 
+
+  const handleShareReel = async (postId) => {
+    try {
+      const url = `https://yupluck.com/apppost/${postId}`;
+      await Share.share({ message: `Check out this reel on Yupluck: ${url}` });
+    } catch (error) {
+      Alert.alert('Error', 'Could not share reel');
+    }
+  };
+
   const handleDeleteReel = (reel) => {
     Alert.alert(
       'Delete Reel',
@@ -316,7 +327,7 @@ export default function ReelsScreen({ navigation, route }) {
             <Text style={styles.commentCountText}>{item?.commentCount || 0}</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.iconButton}>
+          <TouchableOpacity style={styles.iconButton} onPress={() => handleShareReel(item.id)}>
             <Icon name="share" size={18} color="#fff" />
           </TouchableOpacity>
 
