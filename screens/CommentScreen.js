@@ -15,8 +15,8 @@ import { X } from 'lucide-react-native';
 
 import { fetchComments, addComment, deleteComment } from '../api/apiService'; // Adjust path
 
-export default function CommentScreen({ route, navigation }) {
-  const { postId } = route.params;
+export default function CommentScreen({ route, navigation, postId: propPostId, closeModel }) {
+  const postId = route?.params?.postId || propPostId;
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(false);
@@ -61,9 +61,9 @@ export default function CommentScreen({ route, navigation }) {
     <View style={styles.container}>
       {/* Header with back button */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text><X size={24} color="#000" /></Text>
-        </TouchableOpacity>
+      <TouchableOpacity onPress={() => (typeof closeModel === 'function' ? closeModel() : navigation.goBack())}>
+  <X size={24} color="#000" />
+</TouchableOpacity>
         <Text style={styles.headerTitle}>Comments</Text>
         <View style={{ width: 24 }} />
       </View>

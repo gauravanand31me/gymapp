@@ -269,7 +269,7 @@ const FeedCard = ({
                         },
                       }
                 }
-                style={[styles.postVideo, { height: getVideoHeight() }]}
+                style={[styles.postVideo, { height: 200 }]}
                 resizeMode="contain"
                 shouldPlay={index === visibleIndex}
                 isMuted={isMuted}

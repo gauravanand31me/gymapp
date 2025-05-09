@@ -20,6 +20,7 @@ import { fetchUserReels, deleteReel, uploadReelVideo, getToken, updatePostVisibi
 import yupluckLoader from '../assets/yupluck-hero.png'; // adjust path as needed
 import { useFocusEffect } from '@react-navigation/native';
 import { cacheMultipleVideos } from '../utils/reelCacheHelper';
+import CommentScreen from './CommentScreen';
 
 const { height: screenHeight, width: screenWidth } = Dimensions.get('window');
 
@@ -31,6 +32,8 @@ export default function ReelsScreen({ navigation, route }) {
   const [currentVisibleIndex, setCurrentVisibleIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [showCommentModal, setShowCommentModal] = useState(false);
+  const [selectedPostId, setSelectedPostId] = useState(null);
   const [playVideoIndex, setPlayVideoIndex] = useState(null);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
@@ -298,24 +301,23 @@ export default function ReelsScreen({ navigation, route }) {
 
         <View style={styles.actions}>
           <TouchableOpacity style={styles.iconButton}>
-            <View style={styles.likeContainer}>
-              <Icon name="heart" size={20} color="#fff" />
-              <Text style={styles.likeCountText}>{item?.likeCount || 0}</Text>
-            </View>
+            <Icon name="heart" size={18} color="#fff" />
+            <Text style={styles.likeCountText}>{item?.likeCount || 0}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.iconButton}
-            onPress={() => navigation.navigate('CommentScreen', { postId: item.id })}
+            onPress={() => {
+              setSelectedPostId(item.id);
+              setShowCommentModal(true);
+            }}
           >
-            <View style={styles.commentContainer}>
-              <Icon name="comment" size={20} color="#fff" />
-              <Text style={styles.commentCountText}>{item?.commentCount || 0}</Text>
-            </View>
+            <Icon name="comment" size={18} color="#fff" />
+            <Text style={styles.commentCountText}>{item?.commentCount || 0}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.iconButton}>
-            <Icon name="share" size={24} color="#fff" />
+            <Icon name="share" size={18} color="#fff" />
           </TouchableOpacity>
 
           {item.canDelete && (
@@ -324,7 +326,7 @@ export default function ReelsScreen({ navigation, route }) {
                 <Icon name="trash" size={24} color="#FF3B30" />
               </TouchableOpacity>
               <TouchableOpacity style={styles.iconButton} onPress={() => handleVisibilityChange(item.id, item.postType === 'public' ? 'private' : 'public')}>
-                <Icon name="eye" size={24} color={item.postType === 'public' ? '#4CAF50' : '#aaa'} />
+                <Icon name="eye" size={18} color={item.postType === 'public' ? '#4CAF50' : '#aaa'} />
               </TouchableOpacity>
             </>
           )}
@@ -332,7 +334,7 @@ export default function ReelsScreen({ navigation, route }) {
           {item.canReport && (
             <>
               <TouchableOpacity style={styles.iconButton} onPress={() => handleReportReel(item)}>
-                <Icon name="flag" size={24} color="#FFC107" />
+                <Icon name="flag" size={18} color="#FFC107" />
               </TouchableOpacity>
 
             </>
@@ -344,6 +346,13 @@ export default function ReelsScreen({ navigation, route }) {
 
   return (
     <SafeAreaView style={styles.container}>
+   {showCommentModal && (
+  <View style={styles.modalOverlay}>
+    <View style={styles.halfModal}>
+      <CommentScreen postId={selectedPostId} navigation={navigation} closeModel={() => setShowCommentModal(false)}/>
+    </View>
+  </View>
+)}
       {uploading && (
         <View style={styles.uploadOverlay}>
           <View style={styles.uploadCard}>
@@ -406,27 +415,36 @@ const styles = StyleSheet.create({
   description: { color: '#ccc', fontSize: 14, marginBottom: 10 },
   actions: {
     position: 'absolute',
+    bottom: 100,
     right: 12,
-    bottom: 90,
     alignItems: 'center',
-    gap: 14, // consistent vertical spacing
-    backgroundColor: 'rgba(0,0,0,0.3)', // optional blur background
-    padding: 8,
-    borderRadius: 20,
+    gap: 22, // vertical spacing
   },
 
   iconButton: {
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 28,
-    width: 50,
-    height: 50,
-    justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
+  },
+
+  likeContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  likeCountText: {
+    color: '#fff',
+    fontSize: 12,
+    marginTop: 2,
+  },
+
+  commentContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  commentCountText: {
+    color: '#fff',
+    fontSize: 12,
+    marginTop: 2,
   },
 
   uploadButton: {
@@ -521,5 +539,29 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     marginLeft: 6,
+  },
+  modalOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 1000,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)', // optional dim background
+    justifyContent: 'flex-end',
+  },
+  
+  halfModal: {
+    height: '70%',
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingTop: 10,
+    paddingHorizontal: 16,
+    elevation: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
 });
