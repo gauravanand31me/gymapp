@@ -1,3 +1,4 @@
+// Updated `UserProfileScreen.js`
 import React, { useEffect, useState } from 'react';
 import {
   View,
@@ -7,434 +8,252 @@ import {
   StyleSheet,
   Alert,
   ActivityIndicator,
-  ScrollView,
-  SafeAreaView,
+  FlatList,
   StatusBar,
+  ScrollView,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { UserCircle, Users, Clock, Settings, UserPlus, UserCheck, UserMinus } from 'lucide-react-native';
+import { Users, Clock, UserPlus, UserCheck, UserMinus } from 'lucide-react-native';
 import ImageViewing from 'react-native-image-viewing';
 import Footer from '../components/Footer';
+import MilestoneProgress from '../components/MilestoneProgress';
 import {
   userDetails,
   fetchAllNearByUser,
   addFriend,
   rejectFriendRequest,
   acceptFriendRequest,
+  fetchUserReels,
+  fetchMyFeed,
+  getVisitedGyms,
+  getVisitedBuddies,
 } from '../api/apiService';
-import { Modal } from 'react-native-paper';
-import GymLoader from '../components/GymLoader';
+
+const milestones = { bronze: 50, silver: 100, gold: 200, diamond: 300 };
 
 export default function UserProfileScreen({ navigation, route }) {
+  const { userId } = route.params;
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [friends, setFriends] = useState({ invited: { accepted: false, sent: false } });
+  const [friends, setFriends] = useState({ invited: {} });
   const [loadFriend, setLoadFriend] = useState(true);
   const [isVisible, setIsVisible] = useState(false);
-  const { userId } = route.params;
   const [sameUser, setSameUser] = useState(false);
+  const [selectedTab, setSelectedTab] = useState("Reels");
+  const [reels, setReels] = useState([]);
+  const [posts, setPosts] = useState([]);
+  const [visitedGyms, setVisitedGyms] = useState([]);
+  const [visitedBuddies, setVisitedBuddies] = useState([]);
 
   useEffect(() => {
     fetchUserData();
-    loggedInUser();
   }, [userId]);
 
-  useEffect(() => {
-    const timer = setTimeout(() => getFriendShip(), 2000);
-    return () => clearTimeout(timer);
-  }, [userData?.username]);
-
-  const loggedInUser = async () => {
-    
-    try {
-      const data = await userDetails();
-
-      console.log("data.id", data.id);
-      console.log("userId", userId);
-   
-      if (data.id === userId) {
-        setSameUser(true);
-      } else {
-        setSameUser(false);
-      }
-    } catch (e) {
-
-    } finally {
-
-    }
-  }
-
   const fetchUserData = async () => {
-    setLoading(true);
     try {
+      setLoading(true);
       const data = await userDetails(userId);
-    
+      const self = await userDetails();
+      setSameUser(self.id === data.id);
       setUserData(data);
-    } catch (error) {
-      console.error('Error fetching user data:', error);
-      Alert.alert('Error', 'Could not fetch user data. Please try again later.');
+      loadTabData(data.id);
+      getFriendShip(data.username);
+    } catch (e) {
+      Alert.alert('Error fetching user');
     } finally {
       setLoading(false);
     }
   };
 
-  const getFriendShip = async () => {
+  const loadTabData = async (id) => {
+    try {
+      const [r, p, g, b] = await Promise.all([
+        fetchUserReels({ page: 0, limit: 30, userId: id }),
+        fetchMyFeed(0, 30),
+        getVisitedGyms(),
+        getVisitedBuddies(),
+      ]);
+      setReels(r || []);
+      setPosts(p || []);
+      setVisitedGyms(g.visitedGyms || []);
+      setVisitedBuddies(b.buddiesWithWorkoutHours || []);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const getFriendShip = async (username) => {
     setLoadFriend(true);
     try {
-      const data = await fetchAllNearByUser(userData?.username);
-      setFriends(data[0]);
-    } catch (error) {
-      console.error('Error fetching friendship status:', error);
+      const data = await fetchAllNearByUser(username);
+      setFriends(data[0] || {});
     } finally {
       setLoadFriend(false);
     }
   };
 
   const handleFriendAction = async () => {
-    if (friends?.invited?.accepted) {
-      Alert.alert(
-        'Unfriend',
-        'Are you sure you want to unfriend this user?',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Unfriend', onPress: () => cancelFriendRequest(friends?.invited?.id) }
-        ]
+    const { invited } = friends;
+    if (invited?.accepted) {
+      await rejectFriendRequest(invited.id);
+    } else if (invited?.sent) {
+      await rejectFriendRequest(invited.id);
+    } else {
+      await addFriend(userId);
+    }
+    getFriendShip(userData.username);
+  };
+
+  const handleAcceptRequest = async () => {
+    await acceptFriendRequest(friends?.invited?.id);
+    getFriendShip(userData.username);
+  };
+
+  const handleDeclineRequest = async () => {
+    await rejectFriendRequest(friends?.invited?.id);
+    getFriendShip(userData.username);
+  };
+
+  const progress = (userData?.total_work_out_time || 0) / 60;
+  const milestoneLabel =
+    progress > 200 ? 'Diamond' :
+    progress > 100 ? 'Gold' :
+    progress > 50 ? 'Silver' : 'Bronze';
+  const hoursToNext = Math.max(0, milestones[milestoneLabel.toLowerCase()] - progress);
+
+  const getDataToShow = () => {
+    if (selectedTab === 'Reels') return reels;
+    if (selectedTab === 'Posts') return posts;
+    if (selectedTab === 'Visited Gym') return visitedGyms;
+    if (selectedTab === 'Gym Buddies') return visitedBuddies;
+    return [];
+  };
+
+  const renderItem = ({ item }) => {
+    if (selectedTab === 'Reels') {
+      return (
+        <TouchableOpacity style={styles.gridItem} onPress={() => navigation.navigate("ReelsScreen", { reelId: item.id })}>
+          <Image source={{ uri: item.thumbnailUrl || 'https://via.placeholder.com/150' }} style={styles.gridImage} />
+        </TouchableOpacity>
       );
-    } else if (friends?.invited?.sent) {
-      Alert.alert(
-        'Cancel Friend Request',
-        'Do you want to cancel this friend request?',
-        [
-          { text: 'No', style: 'cancel' },
-          { text: 'Yes', onPress: () => cancelFriendRequest(friends?.invited?.id) }
-        ]
+    } else if (selectedTab === 'Posts') {
+      return (
+        <TouchableOpacity
+          style={styles.listItem}
+          onPress={() => navigation.navigate(item.type === 'aiPromo' ? 'ReelsScreen' : 'FeedDetailScreen', { feedId: item.id })}>
+          <Text style={styles.listItemText}>{item.title || 'Untitled Post'}</Text>
+        </TouchableOpacity>
       );
     } else {
-      sendFriendRequest(userId);
+      return (
+        <TouchableOpacity
+          style={styles.listItem}
+          onPress={() =>
+            selectedTab === 'Visited Gym'
+              ? navigation.navigate('GymDetails', { gym_id: item.gymId })
+              : navigation.navigate('UserProfile', { userId: item.buddyId })
+          }
+        >
+          <Text style={styles.listItemText}>{item.gymName || item.buddyName || 'Unknown'}</Text>
+        </TouchableOpacity>
+      );
     }
   };
 
-  const cancelFriendRequest = async (id) => {
-    try {
-      await rejectFriendRequest(id);
-      fetchUserData();
-      getFriendShip();
-    } catch (error) {
-      console.error('Error cancelling friend request:', error);
-      Alert.alert("Sorry, an error occurred");
-    }
-  };
-
-  const sendFriendRequest = async (id) => {
-    try {
-      await addFriend(id);
-      getFriendShip();
-    } catch (error) {
-      console.error('Error sending friend request:', error);
-      Alert.alert("Sorry, an error occurred");
-    }
-  };
-
-  const handleAcceptRequest = async (id) => {
-      await acceptFriendRequest(friends?.invited?.id)
-      getFriendShip();
-  }
-
-  const handleDeclineRequest = async (id) => {
-    await rejectFriendRequest(friends?.invited?.id);
-    getFriendShip();
-  }
-
-
-  const getMilestoneDetails = () => {
-    const workoutHours = (userData?.total_work_out_time || 0) / 60;
-    if (workoutHours > 200) return { image: require('../assets/diamondmedal.jpg'), label: 'Diamond' };
-    if (workoutHours <= 200 && workoutHours > 100) return { image: require('../assets/goldmedal.jpg'), label: 'Gold' };
-    if (workoutHours <= 100 && workoutHours > 50) return { image: require('../assets/silvermedal.jpg'), label: 'Silver' };
-    return { image: require('../assets/bronzemedal.jpg'), label: 'Bronze' };
-  };
-
-  const toggleModal = () => {
-    
-    setModalVisible(!isModalVisible);
-  };
-
-  
   if (loading) {
-    return (
-      <View style={styles.loader}>
-          <GymLoader />
-      </View>
-    );
+    return <View style={styles.loader}><ActivityIndicator size="large" color="#4CAF50" /></View>;
   }
-
-  const { image: milestoneImage, label: milestoneLabel } = getMilestoneDetails();
-  const totalWorkoutHours = Math.floor(userData?.total_work_out_time / 60) || 0;
 
   return (
     <View style={styles.container}>
-       
-       {/* StatusBar Configuration */}
-       <StatusBar
-        barStyle="dark-content" // Use 'light-content' for white text on dark background
-        backgroundColor="#f5f5f5" // Ensure this matches the container's background
-        translucent={false} // Use translucent if you want to overlay content under the status bar
-      />
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <LinearGradient
-          colors={['#4CAF50', '#45a049']}
-          style={styles.header}
-        >
-
-      <TouchableOpacity onPress={() => setIsVisible(true)}>
-        <Image source={{ uri: userData?.profile_pic || "https://cdn-icons-png.flaticon.com/512/149/149071.png" }} style={styles.profileImage} />
-      </TouchableOpacity>
-
-      <ImageViewing
-        images={[{ uri: userData?.profile_pic || "https://cdn-icons-png.flaticon.com/512/149/149071.png" }]}
-        imageIndex={0}
-        visible={isVisible}
-        onRequestClose={() => setIsVisible(false)}
-      />
-
-         
-
-          <Text style={styles.name}>{userData?.full_name || 'N/A'}</Text>
-          <Text style={styles.username}>@{userData?.username || 'N/A'}</Text>
-          {!sameUser && <TouchableOpacity style={styles.friendButton} onPress={handleFriendAction} disabled={loadFriend}>
-            {loadFriend ? (
-              <ActivityIndicator color="#fff" size="small" />
-            ) : (
-              <>
-                {friends?.invited?.accepted ? (
-                  <>
+      <StatusBar barStyle="dark-content" backgroundColor="#f5f5f5" />
+      <FlatList
+        data={getDataToShow()}
+        key={selectedTab}
+        numColumns={selectedTab === 'Reels' ? 3 : 1}
+        renderItem={renderItem}
+        keyExtractor={(item, index) => item.id?.toString() || index.toString()}
+        ListHeaderComponent={
+          <>
+            <LinearGradient colors={['#4CAF50', '#45a049']} style={styles.header}>
+              <TouchableOpacity onPress={() => setIsVisible(true)}>
+                <Image source={{ uri: userData?.profile_pic }} style={styles.profileImage} />
+              </TouchableOpacity>
+              <ImageViewing
+                images={[{ uri: userData?.profile_pic }]}
+                imageIndex={0}
+                visible={isVisible}
+                onRequestClose={() => setIsVisible(false)}
+              />
+              <Text style={styles.name}>{userData.full_name}</Text>
+              <Text style={styles.username}>@{userData.username}</Text>
+              {!sameUser && (
+                <TouchableOpacity style={styles.friendButton} onPress={handleFriendAction}>
+                  {loadFriend ? <ActivityIndicator color="#fff" /> : friends?.invited?.accepted ? (
                     <UserCheck color="#fff" size={20} />
-                    <Text style={styles.friendButtonText}>Friends</Text>
-                  </>
-                ) : friends?.invited?.sent ? (
-                  <>
+                  ) : friends?.invited?.sent ? (
                     <UserMinus color="#fff" size={20} />
-                    <Text style={styles.friendButtonText}>Cancel Request</Text>
-                  </>
-                ) : friends?.invited?.received ? (
-                  <View style={styles.friendRequestContainer}>
-                    <TouchableOpacity style={styles.acceptButton} onPress={() => handleAcceptRequest(userId)}>
-                      <Text style={styles.buttonText}>Accept</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.declineButton} onPress={() => handleDeclineRequest(userId)}>
-                      <Text style={styles.buttonText}>Decline</Text>
-                    </TouchableOpacity>
-                  </View>
-                ) : (
-                  <>
+                  ) : (
                     <UserPlus color="#fff" size={20} />
-                    <Text style={styles.friendButtonText}>Add Friend</Text>
-                  </>
-                )}
-              </>
-            )}
-          </TouchableOpacity>}
+                  )}
+                  <Text style={styles.friendButtonText}>
+                    {friends?.invited?.accepted ? 'Friends' : friends?.invited?.sent ? 'Cancel Request' : 'Add Friend'}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </LinearGradient>
 
-        </LinearGradient>
-
-        <View style={styles.statsContainer}>
-          <View style={styles.statItem}>
-            <Users color="#4CAF50" size={24} />
-            <Text style={styles.statValue}>{userData?.followers_count || 0}</Text>
-            <Text style={styles.statLabel}>Friends</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Clock color="#4CAF50" size={24} />
-            <Text style={styles.statValue}>{totalWorkoutHours}</Text>
-            <Text style={styles.statLabel}>Workout Hours</Text>
-          </View>
-        </View>
-
-        <View style={styles.milestoneContainer}>
-          <Text style={styles.sectionTitle}>Current Milestone</Text>
-          <View style={styles.milestoneContent}>
-            <Image source={milestoneImage} style={styles.milestoneImage} />
-            <View>
-              <Text style={styles.milestoneLabel}>{milestoneLabel}</Text>
-              <Text style={styles.milestoneDescription}>
-                {totalWorkoutHours} hours of total workout time
-              </Text>
+            <View style={styles.statsContainer}>
+              <View style={styles.statItem}>
+                <Users color="#4CAF50" size={24} />
+                <Text style={styles.statValue}>{userData?.followers_count || 0}</Text>
+                <Text style={styles.statLabel}>Friends</Text>
+              </View>
+              <View style={styles.statItem}>
+                <Clock color="#4CAF50" size={24} />
+                <Text style={styles.statValue}>{Math.floor(progress)}</Text>
+                <Text style={styles.statLabel}>Workout Hours</Text>
+              </View>
             </View>
-          </View>
-        </View>
-      </ScrollView>
+
+            <MilestoneProgress progress={progress} hoursToNextMilestone={hoursToNext} nextMilestone={milestoneLabel} />
+
+            <View style={styles.tabs}>
+              {['Reels'].map(tab => (
+                <TouchableOpacity key={tab} style={[styles.tabItem, selectedTab === tab && styles.tabItemSelected]} onPress={() => setSelectedTab(tab)}>
+                  <Text style={[styles.tabText, selectedTab === tab && styles.tabTextSelected]}>{tab}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </>
+        }
+        ListFooterComponent={<View style={{ height: 80 }} />}
+      />
       <Footer navigation={navigation} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  scrollContent: {
-    flexGrow: 1,
-  },
-  loader: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  header: {
-    alignItems: 'center',
-    padding: 20,
-    paddingTop: 40,
-  },
-  settingsButton: {
-    position: 'absolute',
-    top: 20,
-    right: 20,
-    zIndex: 10,
-  },
-  profileImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    borderWidth: 3,
-    borderColor: '#fff',
-    marginBottom: 10,
-  },
-  name: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 5,
-  },
-  username: {
-    fontSize: 16,
-    color: '#e0e0e0',
-    marginBottom: 15,
-  },
-  friendButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-  },
-  friendButtonText: {
-    color: '#fff',
-    marginLeft: 8,
-    fontWeight: 'bold',
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    padding: 20,
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    marginTop: -20,
-    marginHorizontal: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  statItem: {
-    alignItems: 'center',
-  },
-  statValue: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-    marginTop: 5,
-  },
-  statLabel: {
-    fontSize: 14,
-    color: '#666',
-  },
-  milestoneContainer: {
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    margin: 20,
-    padding: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 15,
-  },
-  milestoneContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  milestoneImage: {
-    width: 60,
-    height: 60,
-    marginRight: 15,
-  },
-  milestoneLabel: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#4CAF50',
-    marginBottom: 5,
-  },
-  milestoneDescription: {
-    fontSize: 14,
-    color: '#666',
-  },
-  friendRequestContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 10,
-  },
-  acceptButton: {
-    backgroundColor: '#4CAF50', // Green color for accept
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    marginRight: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 2,
-    elevation: 5,
-  },
-  declineButton: {
-    backgroundColor: '#F44336', // Red color for decline
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 2,
-    elevation: 5,
-  },
-  buttonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  profileImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-  },
-  modalContainer: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  fullScreenImage: {
-    width: '90%',
-    height: '90%',
-    resizeMode: 'contain',
-  },
+  container: { flex: 1, backgroundColor: '#fff' },
+  loader: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  header: { alignItems: 'center', padding: 20, paddingTop: 40 },
+  profileImage: { width: 100, height: 100, borderRadius: 50, marginBottom: 10 },
+  name: { fontSize: 22, fontWeight: 'bold', color: '#fff' },
+  username: { color: '#eee', fontSize: 14, marginBottom: 10 },
+  friendButton: { flexDirection: 'row', backgroundColor: 'rgba(255,255,255,0.2)', padding: 8, borderRadius: 20, alignItems: 'center' },
+  friendButtonText: { color: '#fff', marginLeft: 8, fontWeight: '600' },
+  statsContainer: { flexDirection: 'row', justifyContent: 'space-around', backgroundColor: '#fff', padding: 16, marginTop: -20 },
+  statItem: { alignItems: 'center' },
+  statValue: { fontWeight: 'bold', fontSize: 18 },
+  statLabel: { color: '#777' },
+  tabs: { flexDirection: 'row', borderTopWidth: 1, borderBottomWidth: 1, borderColor: '#ddd' },
+  tabItem: { flex: 1, padding: 12, alignItems: 'center' },
+  tabItemSelected: { borderBottomWidth: 2, borderBottomColor: '#4CAF50' },
+  tabText: { color: '#777' },
+  tabTextSelected: { color: '#4CAF50', fontWeight: '600' },
+  gridItem: { flex: 1 / 3, aspectRatio: 1, backgroundColor: '#eee', margin: 1 },
+  gridImage: { width: '100%', height: '100%' },
+  listItem: { padding: 14, borderBottomWidth: 1, borderColor: '#eee' },
+  listItemText: { fontSize: 15, color: '#333' },
 });

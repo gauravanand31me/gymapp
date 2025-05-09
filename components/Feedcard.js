@@ -151,7 +151,7 @@ const FeedCard = ({
 
   const handleMenuPress = () => {
     const options = [];
-  
+
     // Visibility change options (only for post owner)
     if (item.canDelete) {
       const visibilityMap = {
@@ -159,9 +159,9 @@ const FeedCard = ({
         private: 'Friends Only',
         onlyme: 'onlyme',
       };
-  
+
       const otherVisibilities = ['public', 'private', 'onlyme'].filter(v => v !== item.postType);
-  
+
       otherVisibilities.forEach((visibility) => {
         options.push({
           text: `Change to ${visibilityMap[visibility]}`,
@@ -179,7 +179,7 @@ const FeedCard = ({
         });
       });
     }
-  
+
     // Report option
     if (item.canReport) {
       options.push({
@@ -187,7 +187,7 @@ const FeedCard = ({
         onPress: () => onReport?.(item),
       });
     }
-  
+
     // Delete option (if owner)
     if (item.canDelete) {
       options.push({
@@ -196,13 +196,13 @@ const FeedCard = ({
         style: 'destructive',
       });
     }
-  
+
     // Always add cancel at the end
     options.push({ text: 'Cancel', style: 'cancel' });
-  
+
     Alert.alert('Post Options', 'Choose an action:', options, { cancelable: true });
   };
-  
+
 
   const postTypeInfo = getPostTypeIcon(item.postType);
 
@@ -234,7 +234,13 @@ const FeedCard = ({
       </View>
 
       {/* Description */}
-      <TouchableOpacity onPress={() => navigation.navigate('FeedDetailScreen', { feedId: item.id })}>
+      <TouchableOpacity
+        onPress={() =>
+          item.type === 'aiPromo'
+            ? navigation.navigate('ReelsScreen', { reelId: item.id })
+            : navigation.navigate('FeedDetailScreen', { feedId: item.id })
+        }
+      >
         <Text style={styles.description}>{item.description}</Text>
       </TouchableOpacity>
 
@@ -263,11 +269,11 @@ const FeedCard = ({
                   cachedUri.startsWith('file://')
                     ? { uri: cachedUri }
                     : {
-                        uri: cachedUri,
-                        headers: {
-                          Authorization: `Bearer ${authToken}`,
-                        },
-                      }
+                      uri: cachedUri,
+                      headers: {
+                        Authorization: `Bearer ${authToken}`,
+                      },
+                    }
                 }
                 style={[styles.postVideo, { height: 200 }]}
                 resizeMode="contain"

@@ -70,7 +70,7 @@ export default function ProfileScreen({ navigation, route }) {
   };
 
   const fetchUser = async () => {
-    
+
     try {
       const data = await userDetails();
       setUserData(data);
@@ -81,7 +81,7 @@ export default function ProfileScreen({ navigation, route }) {
   };
 
   const loadInitialData = async () => {
-    
+
     try {
       const [reelsData, postsData, gymsData, buddiesData] = await Promise.all([
         fetchUserReels({ page: 0, limit: 30, userId: userData?.id }),
@@ -89,6 +89,8 @@ export default function ProfileScreen({ navigation, route }) {
         getVisitedGyms(),
         getVisitedBuddies(),
       ]);
+      console.log("postsData", postsData);           
+      console.log("gymsData?.visitedGyms", gymsData?.visitedGyms);
       setReels(reelsData || []);
       setPosts(postsData || []);
       setVisitedGyms(gymsData?.visitedGyms || []);
@@ -102,7 +104,7 @@ export default function ProfileScreen({ navigation, route }) {
 
   useEffect(() => {
     fetchUser();
-    
+
   }, []);
 
   const processAndUploadImage = async (uri) => {
@@ -171,7 +173,7 @@ export default function ProfileScreen({ navigation, route }) {
   };
 
   const getDataToShow = () => {
-   
+
     if (selectedTab === "Reels") return reels;
     if (selectedTab === "Posts") return posts;
     if (selectedTab === "Visited Gym") return visitedGyms;
@@ -234,7 +236,7 @@ export default function ProfileScreen({ navigation, route }) {
           >
             <Icon name="delete" size={20} color="#FF3B30" />
           </TouchableOpacity>
-    
+
           <TouchableOpacity
             onPress={() =>
               isAiPromo
@@ -258,7 +260,7 @@ export default function ProfileScreen({ navigation, route }) {
         </View>
       );
     }
-     else {
+    else {
       // For Visited Gym or Gym Buddies
       return (
         <TouchableOpacity
@@ -278,8 +280,8 @@ export default function ProfileScreen({ navigation, route }) {
       );
     }
   };
-  
-  
+
+
   if (loading) {
     return (
       <View style={styles.centered}>
@@ -302,8 +304,8 @@ export default function ProfileScreen({ navigation, route }) {
 
   return (
     <View style={styles.safeArea}>
-      
-   
+
+
       {uploadSuccess && (
         <View style={styles.successBanner}>
           <Icon name="check-circle" size={18} color="#4CAF50" />
@@ -322,11 +324,14 @@ export default function ProfileScreen({ navigation, route }) {
             <View style={styles.profileSection}>
               <ProfileSection userData={userData} profileImage={profileImage} uploadingImage={uploadingImage} currentMilestone={currentMilestone} toggleImageOptions={toggleImageOptions} />
               <View style={styles.statsRow}>
-                
-                <View style={styles.statBlock}>
+
+                <TouchableOpacity
+                  style={styles.statBlock}
+                  onPress={() => navigation.navigate('InviteFriendBuddy')}
+                >
                   <Text style={styles.statValue}>{userData?.followers_count || 0}</Text>
                   <Text style={styles.statLabel}>Friends</Text>
-                </View>
+                </TouchableOpacity>
                 <View style={styles.statBlock}>
                   <Text style={styles.statValue}>{Math.round(totalWorkoutHours)}</Text>
                   <Text style={styles.statLabel}>Workout Hours</Text>
@@ -554,5 +559,5 @@ const styles = StyleSheet.create({
     right: 10,
     zIndex: 2,
   },
-  
+
 });

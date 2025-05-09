@@ -67,8 +67,7 @@ export default function CommentScreen({ route, navigation, postId: propPostId, c
         <Text style={styles.headerTitle}>Comments</Text>
         <View style={{ width: 24 }} />
       </View>
-
-      {/* Comments list */}
+      
       <FlatList
         data={comments}
         keyExtractor={(item, index) => index.toString()}
