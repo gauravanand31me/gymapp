@@ -19,13 +19,18 @@ const Header = ({ navigation }) => {
 
       <View style={styles.headerContent}>
         <Text style={styles.title}>Yupluck</Text>
+
         <View style={styles.rightActions}>
+          {/* Search Friends (Leaderboard) */}
           <TouchableOpacity
-            style={styles.actionButton}
+            style={styles.searchButton}
             onPress={() => navigation.navigate("InviteBuddy")}
           >
-            <Text style={styles.linkText}>Leaderboard</Text>
+            <Icon name="search" size={18} color="#388E3C" />
+            <Text style={styles.searchLabel}>Search Friends</Text>
           </TouchableOpacity>
+
+          {/* Profile Icon */}
           <TouchableOpacity
             style={[styles.actionButton, { marginLeft: 16 }]}
             onPress={() => navigation.navigate("Profile")}
@@ -66,15 +71,21 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
-  linkText: {
-    color: "#4CAF50",
-    fontSize: 16,
-    fontWeight: "600",
-    textDecorationLine: "underline",
-  },
   actionButton: {
     paddingVertical: 4,
     paddingHorizontal: 8,
+  },
+  searchButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+  },
+  searchLabel: {
+    color: "#4CAF50",
+    fontSize: 14,
+    fontWeight: "600",
+    marginLeft: 6,
   },
 });
 

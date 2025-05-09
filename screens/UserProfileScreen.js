@@ -1,4 +1,4 @@
-// Updated `UserProfileScreen.js` with clean white design
+// Updated `UserProfileScreen.js`
 import React, { useEffect, useState } from 'react';
 import {
   View,
@@ -21,9 +21,6 @@ import {
   rejectFriendRequest,
   acceptFriendRequest,
   fetchUserReels,
-  fetchMyFeed,
-  getVisitedGyms,
-  getVisitedBuddies,
 } from '../api/apiService';
 import { Users, Clock, UserPlus, UserCheck, UserMinus } from 'lucide-react-native';
 
@@ -37,7 +34,6 @@ export default function UserProfileScreen({ navigation, route }) {
   const [loadFriend, setLoadFriend] = useState(true);
   const [isVisible, setIsVisible] = useState(false);
   const [sameUser, setSameUser] = useState(false);
-  const [selectedTab, setSelectedTab] = useState("Reels");
   const [reels, setReels] = useState([]);
 
   useEffect(() => {
@@ -51,13 +47,21 @@ export default function UserProfileScreen({ navigation, route }) {
       const self = await userDetails();
       setSameUser(self.id === data.id);
       setUserData(data);
-      const r = await fetchUserReels({ page: 0, limit: 30, userId: data.id });
-      setReels(r || []);
+      loadReels(data.id);
       getFriendShip(data.username);
     } catch (e) {
       Alert.alert('Error fetching user');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadReels = async (id) => {
+    try {
+      const r = await fetchUserReels({ page: 0, limit: 30, userId: id });
+      setReels(r || []);
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -73,9 +77,7 @@ export default function UserProfileScreen({ navigation, route }) {
 
   const handleFriendAction = async () => {
     const { invited } = friends;
-    if (invited?.accepted) {
-      await rejectFriendRequest(invited.id);
-    } else if (invited?.sent) {
+    if (invited?.accepted || invited?.sent) {
       await rejectFriendRequest(invited.id);
     } else {
       await addFriend(userId);
@@ -102,7 +104,7 @@ export default function UserProfileScreen({ navigation, route }) {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       <FlatList
         data={reels}
         numColumns={3}
@@ -112,10 +114,13 @@ export default function UserProfileScreen({ navigation, route }) {
           <>
             <View style={styles.header}>
               <TouchableOpacity onPress={() => setIsVisible(true)}>
-                <Image source={{ uri: userData?.profile_pic }} style={styles.profileImage} />
+                <Image
+                  source={{ uri: userData?.profile_pic || 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }}
+                  style={styles.profileImage}
+                />
               </TouchableOpacity>
               <ImageViewing
-                images={[{ uri: userData?.profile_pic }]}
+                images={[{ uri: userData?.profile_pic || 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }]}
                 imageIndex={0}
                 visible={isVisible}
                 onRequestClose={() => setIsVisible(false)}
@@ -125,11 +130,11 @@ export default function UserProfileScreen({ navigation, route }) {
               {!sameUser && (
                 <TouchableOpacity style={styles.friendButton} onPress={handleFriendAction}>
                   {loadFriend ? <ActivityIndicator color="#fff" /> : friends?.invited?.accepted ? (
-                    <UserCheck color="#4CAF50" size={20} />
+                    <UserCheck color="#fff" size={20} />
                   ) : friends?.invited?.sent ? (
-                    <UserMinus color="#4CAF50" size={20} />
+                    <UserMinus color="#fff" size={20} />
                   ) : (
-                    <UserPlus color="#4CAF50" size={20} />
+                    <UserPlus color="#fff" size={20} />
                   )}
                   <Text style={styles.friendButtonText}>
                     {friends?.invited?.accepted ? 'Friends' : friends?.invited?.sent ? 'Cancel Request' : 'Add Friend'}
@@ -153,7 +158,15 @@ export default function UserProfileScreen({ navigation, route }) {
 
             <MilestoneProgress progress={progress} hoursToNextMilestone={hoursToNext} nextMilestone={milestoneLabel} />
 
-            
+            <View style={styles.tabs}>
+              <View style={[styles.tabItem, styles.tabItemSelected]}>
+                <Text style={[styles.tabText, styles.tabTextSelected]}>Reels</Text>
+              </View>
+            </View>
+
+            {reels.length === 0 && (
+              <Text style={styles.emptyMessage}>No reels posted yet.</Text>
+            )}
           </>
         }
         ListFooterComponent={<View style={{ height: 80 }} />}
@@ -166,18 +179,22 @@ export default function UserProfileScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
   loader: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  header: { alignItems: 'center', padding: 20, backgroundColor: '#fff' },
+  header: { alignItems: 'center', padding: 20, paddingTop: 40 },
   profileImage: { width: 100, height: 100, borderRadius: 50, marginBottom: 10 },
   name: { fontSize: 22, fontWeight: 'bold', color: '#333' },
-  username: { color: '#777', fontSize: 14, marginBottom: 10 },
-  friendButton: { flexDirection: 'row', backgroundColor: '#e6f7ea', padding: 8, borderRadius: 20, alignItems: 'center', marginTop: 8 },
-  friendButtonText: { color: '#333', marginLeft: 8, fontWeight: '600' },
-  statsContainer: { flexDirection: 'row', justifyContent: 'space-around', backgroundColor: '#fff', padding: 16 },
+  username: { color: '#666', fontSize: 14, marginBottom: 10 },
+  friendButton: { flexDirection: 'row', backgroundColor: '#4CAF50', padding: 8, borderRadius: 20, alignItems: 'center', paddingHorizontal: 12 },
+  friendButtonText: { color: '#fff', marginLeft: 8, fontWeight: '600' },
+  statsContainer: { flexDirection: 'row', justifyContent: 'space-around', backgroundColor: '#fff', padding: 16, marginTop: -10 },
   statItem: { alignItems: 'center' },
   statValue: { fontWeight: 'bold', fontSize: 18 },
   statLabel: { color: '#777' },
+  tabs: { flexDirection: 'row', borderTopWidth: 1, borderBottomWidth: 1, borderColor: '#ddd', marginTop: 10 },
+  tabItem: { flex: 1, padding: 12, alignItems: 'center' },
+  tabItemSelected: { borderBottomWidth: 2, borderBottomColor: '#4CAF50' },
+  tabText: { color: '#777' },
+  tabTextSelected: { color: '#4CAF50', fontWeight: '600' },
   gridItem: { flex: 1 / 3, aspectRatio: 1, backgroundColor: '#eee', margin: 1 },
   gridImage: { width: '100%', height: '100%' },
-  tabWrapper: { padding: 10, backgroundColor: '#fff' },
-  tabTitle: { fontSize: 18, fontWeight: 'bold', color: '#4CAF50', textAlign: 'center' },
+  emptyMessage: { textAlign: 'center', color: '#999', marginTop: 20, fontSize: 16 },
 });
