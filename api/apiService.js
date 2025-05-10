@@ -266,6 +266,7 @@ export const verifyOtp = async (mobileNumber, otp) => {
           postType: item.postType,
           timestamp: item.timestamp,
           likeCount: item.like_count || 0,
+          viewCount: item.view_count || 0,
           commentCount: item.comment_count || 0,
           shareCount: item.share_count || 0,
           canDelete: item.canDelete || false,
@@ -913,6 +914,25 @@ export const updatePostVisibility = async (postId, newVisibility) => {
   return await response.json();
 };
 
+
+
+export const updateReelViewCount = async (reelId) => {
+  const token = await getToken();
+  const response = await fetch(`${BASE_URL}/users/reel/view/${reelId}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    console.warn("Failed to update view count for reel:", reelId);
+    return;
+  }
+
+  return await response.json();
+};
 
 export const fetchBuddyInvites = async (bookingId) => {
   try {

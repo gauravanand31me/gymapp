@@ -322,7 +322,7 @@ export default function ProfileScreen({ navigation, route }) {
         ListHeaderComponent={
           <>
             <View style={styles.profileSection}>
-              <ProfileSection userData={userData} profileImage={profileImage} uploadingImage={uploadingImage} currentMilestone={currentMilestone} toggleImageOptions={toggleImageOptions} />
+              <ProfileSection userData={userData} profileImage={profileImage} uploadingImage={uploadingImage} currentMilestone={currentMilestone} toggleImageOptions={toggleImageOptions} navigation={navigation}/>
               <View style={styles.statsRow}>
 
                 <TouchableOpacity

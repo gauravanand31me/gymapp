@@ -17,7 +17,7 @@ import {
 import { Video } from 'expo-av';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Footer from '../components/Footer';
-import { fetchUserReels, deleteReel, uploadReelVideo, getToken, updatePostVisibility, getPostById } from '../api/apiService';
+import { fetchUserReels, deleteReel, uploadReelVideo, getToken, updatePostVisibility, updateReelViewCount} from '../api/apiService';
 import yupluckLoader from '../assets/yupluck-hero.png'; // adjust path as needed
 import { useFocusEffect } from '@react-navigation/native';
 import { cacheMultipleVideos } from '../utils/reelCacheHelper';
@@ -45,7 +45,6 @@ export default function ReelsScreen({ navigation, route }) {
   const [isVideoReady, setIsVideoReady] = useState(false);
   const [videoCache, setVideoCache] = useState({});
   const [failedVideos, setFailedVideos] = useState({});
-  const [likedReels, setLikedReels] = useState({}); // Store liked status by reelId
   const PAGE_LIMIT = 2;
   const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -92,20 +91,6 @@ export default function ReelsScreen({ navigation, route }) {
         setVideoCache(prev => ({ ...prev, ...cachedMap }));
       }
     };
-
-    const fetchLikedStatus = async () => {
-      const likedMap = {};
-      for (const reel of reels) {
-        try {
-          const post = await getPostById(reel.id); // Assuming reel.id is feedId
-          likedMap[reel.id] = post?.liked || false;
-        } catch (e) {
-          likedMap[reel.id] = false;
-        }
-      }
-      setLikedReels(likedMap);
-    };
-    if (reels.length) fetchLikedStatus();
     backgroundPreload();
   }, [authToken, reels]);
 
@@ -147,9 +132,11 @@ export default function ReelsScreen({ navigation, route }) {
   const onViewableItemsChanged = useRef(({ viewableItems }) => {
     if (viewableItems && viewableItems.length > 0) {
       const index = viewableItems[0].index;
+     
       setVideoReadyStates({ [index]: false });
       setPlayVideoIndex(index);
       preloadNextVideos(index);
+      
     }
 
 
@@ -219,6 +206,7 @@ export default function ReelsScreen({ navigation, route }) {
           onPress: async () => {
             try {
               const result = await deleteReel(reel.id);
+              console.log("result received", result);
               if (result.success) {
                 setReels(prev => prev.filter(r => r.id !== reel.id));
                 Alert.alert('Success', 'Reel deleted successfully.');
@@ -287,6 +275,7 @@ export default function ReelsScreen({ navigation, route }) {
               onReadyForDisplay={() => {
                 if (typeof index === 'number') {
                   setVideoReadyStates(prev => ({ ...prev, [index]: true }));
+                  updateReelViewCount(item.id);
                   console.log('✅ Video ready for index:', index);
                 } else {
                   console.warn('⚠️ Video ready but index is invalid:', index);
@@ -325,9 +314,14 @@ export default function ReelsScreen({ navigation, route }) {
         {item.title && <Text style={styles.title}>{item.title}</Text>}
         {item.description && <Text style={styles.description}>{item.description}</Text>}
 
+        <View style={styles.viewCountContainer}>
+  <Icon name="eye" size={16} color="#fff" />
+  <Text style={styles.viewCountText}> {item.viewCount || 0} views</Text>
+</View>
+
         <View style={styles.actions}>
           <TouchableOpacity style={styles.iconButton}>
-            <Icon name="heart" size={18} color={likedReels[item.id] ? 'red' : '#fff'} />
+            <Icon name="heart" size={18} color="#fff" />
             <Text style={styles.likeCountText}>{item?.likeCount || 0}</Text>
           </TouchableOpacity>
 
@@ -372,13 +366,13 @@ export default function ReelsScreen({ navigation, route }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      {showCommentModal && (
-        <View style={styles.modalOverlay}>
-          <View style={styles.halfModal}>
-            <CommentScreen postId={selectedPostId} navigation={navigation} closeModel={() => setShowCommentModal(false)} />
-          </View>
-        </View>
-      )}
+   {showCommentModal && (
+  <View style={styles.modalOverlay}>
+    <View style={styles.halfModal}>
+      <CommentScreen postId={selectedPostId} navigation={navigation} closeModel={() => setShowCommentModal(false)}/>
+    </View>
+  </View>
+)}
       {uploading && (
         <View style={styles.uploadOverlay}>
           <View style={styles.uploadCard}>
@@ -390,6 +384,8 @@ export default function ReelsScreen({ navigation, route }) {
           </View>
         </View>
       )}
+
+      
       <StatusBar barStyle="light-content" />
       {loading ? (
         <View style={styles.loader}>
@@ -576,7 +572,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.4)', // optional dim background
     justifyContent: 'flex-end',
   },
-
+  
   halfModal: {
     height: '70%',
     backgroundColor: '#fff',
@@ -589,5 +585,22 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
+  },
+  viewCountContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 14,
+    alignSelf: 'flex-start',
+  },
+  
+  viewCountText: {
+    color: '#fff',
+    marginLeft: 6,
+    fontSize: 13,
+    fontWeight: '500',
   },
 });
